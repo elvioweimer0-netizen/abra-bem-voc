@@ -14,16 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      advertencias: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          data: string
+          descricao: string | null
+          id: string
+          motivo: string
+          responsavel: string
+          tipo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          motivo: string
+          responsavel: string
+          tipo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          motivo?: string
+          responsavel?: string
+          tipo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertencias_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colaboradores: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          matricula: string
+          nome: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          matricula: string
+          nome: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          matricula?: string
+          nome?: string
+          setor?: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      noticias: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          importante: boolean
+          titulo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          importante?: boolean
+          titulo: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          importante?: boolean
+          titulo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Relationships: []
+      }
+      ocorrencias: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          descricao: string
+          id?: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          setor?: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      suspensoes: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          id: string
+          motivo: string
+          responsavel: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          id?: string
+          motivo: string
+          responsavel: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          id?: string
+          motivo?: string
+          responsavel?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suspensoes_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["cargo_tipo"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["cargo_tipo"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["cargo_tipo"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_unidade: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["unidade_tipo"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["cargo_tipo"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
+      setor_tipo:
+        | "acougue"
+        | "padaria"
+        | "hortifruti"
+        | "mercearia"
+        | "frente_de_caixa"
+        | "deposito"
+      unidade_tipo:
+        | "UND 1"
+        | "UND 2"
+        | "UND 3"
+        | "UND 4"
+        | "Central de Produção"
+        | "Centro de Distribuição"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +405,24 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
+      setor_tipo: [
+        "acougue",
+        "padaria",
+        "hortifruti",
+        "mercearia",
+        "frente_de_caixa",
+        "deposito",
+      ],
+      unidade_tipo: [
+        "UND 1",
+        "UND 2",
+        "UND 3",
+        "UND 4",
+        "Central de Produção",
+        "Centro de Distribuição",
+      ],
+    },
   },
 } as const
