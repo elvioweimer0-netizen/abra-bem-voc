@@ -1,0 +1,428 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.4"
+  }
+  public: {
+    Tables: {
+      advertencias: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          data: string
+          descricao: string | null
+          id: string
+          motivo: string
+          responsavel: string
+          tipo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          motivo: string
+          responsavel: string
+          tipo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          motivo?: string
+          responsavel?: string
+          tipo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertencias_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colaboradores: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          matricula: string
+          nome: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          matricula: string
+          nome: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          matricula?: string
+          nome?: string
+          setor?: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      noticias: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          importante: boolean
+          titulo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          importante?: boolean
+          titulo: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          importante?: boolean
+          titulo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Relationships: []
+      }
+      ocorrencias: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          descricao: string
+          id?: string
+          setor: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          setor?: Database["public"]["Enums"]["setor_tipo"]
+          status?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      suspensoes: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          id: string
+          motivo: string
+          responsavel: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          id?: string
+          motivo: string
+          responsavel: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          id?: string
+          motivo?: string
+          responsavel?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suspensoes_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["cargo_tipo"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["cargo_tipo"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["cargo_tipo"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      get_user_unidade: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["unidade_tipo"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["cargo_tipo"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
+      setor_tipo:
+        | "acougue"
+        | "padaria"
+        | "hortifruti"
+        | "mercearia"
+        | "frente_de_caixa"
+        | "deposito"
+      unidade_tipo:
+        | "UND 1"
+        | "UND 2"
+        | "UND 3"
+        | "UND 4"
+        | "Central de Produção"
+        | "Centro de Distribuição"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
+      setor_tipo: [
+        "acougue",
+        "padaria",
+        "hortifruti",
+        "mercearia",
+        "frente_de_caixa",
+        "deposito",
+      ],
+      unidade_tipo: [
+        "UND 1",
+        "UND 2",
+        "UND 3",
+        "UND 4",
+        "Central de Produção",
+        "Centro de Distribuição",
+      ],
+    },
+  },
+} as const
