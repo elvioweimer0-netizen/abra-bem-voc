@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Colaboradores from "@/pages/Colaboradores";
+import ColaboradorPerfil from "@/pages/ColaboradorPerfil";
 import Advertencias from "@/pages/Advertencias";
 import Suspensoes from "@/pages/Suspensoes";
 import Departamentos from "@/pages/Departamentos";
