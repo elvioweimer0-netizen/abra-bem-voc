@@ -123,20 +123,22 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Unidade</Label>
-                <Select value={unidade} onValueChange={(v) => setUnidade(v as Enums<"unidade_tipo">)}>
-                  <SelectTrigger>
-                    <Building2 className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {unidades.map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label>Unidade</Label>
+                  <Select value={unidade} onValueChange={(v) => setUnidade(v as Enums<"unidade_tipo">)}>
+                    <SelectTrigger>
+                      <Building2 className="w-4 h-4 mr-2 text-muted-foreground" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unidades.map((u) => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Carregando..." : isSignUp ? "Criar conta" : "Entrar"}
