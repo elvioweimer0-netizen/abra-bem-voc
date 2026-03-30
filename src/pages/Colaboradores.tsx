@@ -123,7 +123,7 @@ export default function Colaboradores() {
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhum colaborador encontrado.</TableCell></TableRow>
               ) : (
                 filtered.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/colaboradores/${c.id}`)}>
                     <TableCell className="font-medium">{c.nome}</TableCell>
                     <TableCell>{c.matricula}</TableCell>
                     <TableCell>{c.cargo}</TableCell>
