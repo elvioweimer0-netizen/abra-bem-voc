@@ -22,6 +22,7 @@ const setorLabels: Record<string, string> = {
 };
 
 export default function Colaboradores() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [search, setSearch] = useState("");
