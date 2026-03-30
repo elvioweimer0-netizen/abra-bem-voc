@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ const setorLabels: Record<string, string> = {
 };
 
 export default function Colaboradores() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [search, setSearch] = useState("");
@@ -121,7 +123,7 @@ export default function Colaboradores() {
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhum colaborador encontrado.</TableCell></TableRow>
               ) : (
                 filtered.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/colaboradores/${c.id}`)}>
                     <TableCell className="font-medium">{c.nome}</TableCell>
                     <TableCell>{c.matricula}</TableCell>
                     <TableCell>{c.cargo}</TableCell>
