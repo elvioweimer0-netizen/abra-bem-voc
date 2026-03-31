@@ -38,18 +38,17 @@ export default function Dashboard() {
       ] as const : [];
 
       const [news, endo, msgs, ...countResults] = await Promise.all([...basePromises, ...gestaoPromises]);
-      const [news, endo, msgs] = results;
 
       setNoticias(news.data || []);
       setEndomarketing((endo.data as Endomarketing[]) || []);
       setMensagens((msgs.data as Endomarketing[]) || []);
 
-      if (isGestao && results.length === 7) {
+      if (isGestao && countResults.length === 4) {
         setCounts({
-          colaboradores: results[3].count || 0,
-          advertencias: results[4].count || 0,
-          suspensoes: results[5].count || 0,
-          ocorrencias: results[6].count || 0,
+          colaboradores: countResults[0].count || 0,
+          advertencias: countResults[1].count || 0,
+          suspensoes: countResults[2].count || 0,
+          ocorrencias: countResults[3].count || 0,
         });
       }
     };
