@@ -2,6 +2,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 type CargoTipo = "admin" | "gerente" | "lider" | "colaborador";
 
+// Mapping user roles to permission levels:
+// master = admin | adm_departamento = admin | supervisor = lider | gerente = gerente | colaborador = colaborador
 const GESTAO_ROLES: CargoTipo[] = ["admin", "gerente", "lider"];
 
 export function useRole() {
