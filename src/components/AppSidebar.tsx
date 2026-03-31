@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
   Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
-  BookOpen, ClipboardList, FileCheck,
+  BookOpen, ClipboardList, FileCheck, Settings, UserCog,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -95,6 +95,10 @@ const relatoriosItems: MenuItem[] = [
   { title: "Relatórios", url: "/relatorios", icon: FileText },
 ];
 
+const adminItems: MenuItem[] = [
+  { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
+];
+
 const assistenteItems: MenuItem[] = [
   { title: "Assistente IA", url: "/assistente", icon: Bot },
 ];
@@ -103,7 +107,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
-  const { isGestao } = useRole();
+  const { isGestao, canManageUsers } = useRole();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -139,6 +143,10 @@ export function AppSidebar() {
 
         {isGestao && (
           <MenuSection label="Relatórios" items={relatoriosItems} collapsed={collapsed} />
+        )}
+
+        {canManageUsers && (
+          <MenuSection label="Administração" items={adminItems} collapsed={collapsed} />
         )}
 
         <MenuSection label="Ferramentas" items={assistenteItems} collapsed={collapsed} />

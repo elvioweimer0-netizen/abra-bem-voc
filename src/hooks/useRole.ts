@@ -1,10 +1,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 
-type CargoTipo = "admin" | "gerente" | "lider" | "colaborador";
+type CargoTipo = "master" | "admin" | "adm_departamento" | "supervisor" | "gerente" | "lider" | "colaborador";
 
-// Mapping user roles to permission levels:
-// master = admin | adm_departamento = admin | supervisor = lider | gerente = gerente | colaborador = colaborador
-const GESTAO_ROLES: CargoTipo[] = ["admin", "gerente", "lider"];
+const GESTAO_ROLES: CargoTipo[] = ["master", "admin", "adm_departamento", "supervisor", "gerente", "lider"];
+const ADMIN_ROLES: CargoTipo[] = ["master", "admin"];
+const USER_MGMT_ROLES: CargoTipo[] = ["master", "admin", "adm_departamento", "supervisor"];
 
 export function useRole() {
   const { profile } = useAuth();
@@ -12,10 +12,14 @@ export function useRole() {
 
   return {
     cargo,
-    isAdmin: cargo === "admin",
+    isMaster: cargo === "master",
+    isAdmin: ADMIN_ROLES.includes(cargo),
+    isAdmDepartamento: cargo === "adm_departamento",
+    isSupervisor: cargo === "supervisor",
     isGerente: cargo === "gerente",
     isLider: cargo === "lider",
     isColaborador: cargo === "colaborador",
     isGestao: GESTAO_ROLES.includes(cargo),
+    canManageUsers: USER_MGMT_ROLES.includes(cargo),
   };
 }
