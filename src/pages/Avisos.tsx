@@ -50,10 +50,11 @@ export default function Avisos() {
     e.preventDefault();
     if (!profile) return;
 
+    const unidadeValue = form.unidade && form.unidade !== "geral" ? form.unidade as typeof profile.unidade : null;
     const payload = {
       titulo: form.titulo,
       conteudo: form.conteudo,
-      unidade: form.unidade || null,
+      unidade: unidadeValue,
       urgente: form.urgente,
       ativo: form.ativo,
     };

@@ -50,11 +50,12 @@ export default function EndomarketingPage() {
     e.preventDefault();
     if (!profile) return;
 
+    const unidadeValue = form.unidade && form.unidade !== "geral" ? form.unidade as typeof profile.unidade : null;
     const payload = {
-      tipo: form.tipo,
+      tipo: form.tipo as "aniversario" | "destaque" | "campanha" | "mensagem",
       titulo: form.titulo,
       descricao: form.descricao || null,
-      unidade: form.unidade || null,
+      unidade: unidadeValue,
       data: form.data,
     };
 
