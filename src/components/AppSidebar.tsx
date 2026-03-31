@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
   Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
+  BookOpen, ClipboardList, FileCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
