@@ -82,6 +82,15 @@ const rhDocsItems: MenuItem[] = [
   { title: "Políticas Internas", url: "/rh/politicas", icon: FileCheck },
 ];
 
+const gerenciaItems: MenuItem[] = [
+  { title: "Operação", url: "/gerencias/operacao", icon: Monitor },
+  { title: "RH", url: "/gerencias/rh", icon: Users },
+  { title: "Marketing", url: "/gerencias/marketing", icon: TrendingUp },
+  { title: "Manutenção", url: "/gerencias/manutencao", icon: Wrench },
+  { title: "Administrativo", url: "/gerencias/administrativo", icon: DollarSign },
+  { title: "Comercial", url: "/gerencias/comercial", icon: ShoppingCart },
+];
+
 const depItems: MenuItem[] = [
   { title: "Departamentos", url: "/departamentos", icon: Building },
 ];
