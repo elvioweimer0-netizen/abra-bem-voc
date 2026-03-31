@@ -24,22 +24,20 @@ export default function Dashboard() {
     if (!profile) return;
 
     const fetchData = async () => {
-      const promises: Promise<any>[] = [
+      const basePromises = [
         supabase.from("noticias").select("*").order("created_at", { ascending: false }).limit(5),
         supabase.from("endomarketing").select("*").neq("tipo", "mensagem").order("data", { ascending: false }).limit(6),
         supabase.from("endomarketing").select("*").eq("tipo", "mensagem").order("data", { ascending: false }).limit(3),
-      ];
+      ] as const;
 
-      if (isGestao) {
-        promises.push(
-          supabase.from("colaboradores").select("id", { count: "exact", head: true }),
-          supabase.from("advertencias").select("id", { count: "exact", head: true }),
-          supabase.from("suspensoes").select("id", { count: "exact", head: true }),
-          supabase.from("ocorrencias").select("id", { count: "exact", head: true }),
-        );
-      }
+      const gestaoPromises = isGestao ? [
+        supabase.from("colaboradores").select("id", { count: "exact", head: true }),
+        supabase.from("advertencias").select("id", { count: "exact", head: true }),
+        supabase.from("suspensoes").select("id", { count: "exact", head: true }),
+        supabase.from("ocorrencias").select("id", { count: "exact", head: true }),
+      ] as const : [];
 
-      const results = await Promise.all(promises);
+      const [news, endo, msgs, ...countResults] = await Promise.all([...basePromises, ...gestaoPromises]);
       const [news, endo, msgs] = results;
 
       setNoticias(news.data || []);
