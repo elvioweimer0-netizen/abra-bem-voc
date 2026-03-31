@@ -154,6 +154,39 @@ export type Database = {
         }
         Relationships: []
       }
+      galeria: {
+        Row: {
+          categoria: Database["public"]["Enums"]["galeria_categoria"]
+          created_at: string
+          descricao: string | null
+          id: string
+          imagem_url: string
+          publicado_por: string | null
+          titulo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Insert: {
+          categoria?: Database["public"]["Enums"]["galeria_categoria"]
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url: string
+          publicado_por?: string | null
+          titulo: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Update: {
+          categoria?: Database["public"]["Enums"]["galeria_categoria"]
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string
+          publicado_por?: string | null
+          titulo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Relationships: []
+      }
       noticias: {
         Row: {
           conteudo: string
@@ -247,6 +280,60 @@ export type Database = {
         }
         Relationships: []
       }
+      reunioes: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          data: string
+          departamento: Database["public"]["Enums"]["setor_tipo"] | null
+          descricao: string | null
+          duracao_minutos: number
+          horario: string
+          id: string
+          link: string | null
+          observacoes: string | null
+          status: Database["public"]["Enums"]["reuniao_status"]
+          tipo: Database["public"]["Enums"]["reuniao_tipo"]
+          titulo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          data: string
+          departamento?: Database["public"]["Enums"]["setor_tipo"] | null
+          descricao?: string | null
+          duracao_minutos?: number
+          horario: string
+          id?: string
+          link?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["reuniao_status"]
+          tipo?: Database["public"]["Enums"]["reuniao_tipo"]
+          titulo: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          departamento?: Database["public"]["Enums"]["setor_tipo"] | null
+          descricao?: string | null
+          duracao_minutos?: number
+          horario?: string
+          id?: string
+          link?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["reuniao_status"]
+          tipo?: Database["public"]["Enums"]["reuniao_tipo"]
+          titulo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suspensoes: {
         Row: {
           colaborador_id: string
@@ -331,7 +418,15 @@ export type Database = {
       cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
       colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
       endomarketing_tipo: "aniversario" | "destaque" | "campanha" | "mensagem"
+      galeria_categoria:
+        | "equipe"
+        | "eventos"
+        | "campanhas"
+        | "loja"
+        | "destaques"
       ocorrencia_status: "aberta" | "em_andamento" | "concluida"
+      reuniao_status: "agendada" | "em_andamento" | "finalizada" | "cancelada"
+      reuniao_tipo: "online" | "presencial" | "hibrida"
       setor_tipo:
         | "acougue"
         | "padaria"
@@ -477,7 +572,16 @@ export const Constants = {
       cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
       colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
       endomarketing_tipo: ["aniversario", "destaque", "campanha", "mensagem"],
+      galeria_categoria: [
+        "equipe",
+        "eventos",
+        "campanhas",
+        "loja",
+        "destaques",
+      ],
       ocorrencia_status: ["aberta", "em_andamento", "concluida"],
+      reuniao_status: ["agendada", "em_andamento", "finalizada", "cancelada"],
+      reuniao_tipo: ["online", "presencial", "hibrida"],
       setor_tipo: [
         "acougue",
         "padaria",
