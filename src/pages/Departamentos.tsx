@@ -24,7 +24,7 @@ const setorLabels: Record<string, string> = {
   mercearia: "Mercearia", frente_de_caixa: "Frente de Caixa", deposito: "Depósito",
 };
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", em_andamento: "Em Andamento", resolvida: "Resolvida",
+  aberta: "Aberta", em_andamento: "Em Andamento", concluida: "Concluída",
 };
 
 export default function Departamentos() {
