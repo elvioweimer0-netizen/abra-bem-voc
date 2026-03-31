@@ -10,6 +10,8 @@ import { EndomarketingSection } from "@/components/dashboard/EndomarketingSectio
 import { MensagemColaborador } from "@/components/dashboard/MensagemColaborador";
 import { AcoesRapidas } from "@/components/dashboard/AcoesRapidas";
 import { CardsAdministrativos } from "@/components/dashboard/CardsAdministrativos";
+import { HojeNoCurio } from "@/components/dashboard/HojeNoCurio";
+import { MomentosCurio } from "@/components/dashboard/MomentosCurio";
 import type { Noticia, Endomarketing } from "@/types/database";
 
 export default function Dashboard() {
@@ -59,10 +61,11 @@ export default function Dashboard() {
   const heroBanner = noticias.find((n) => n.importante) || noticias[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <HeaderHome />
       <AvisosBanner />
       <BannerPrincipal noticia={heroBanner} />
+      <MensagemColaborador mensagens={mensagens} />
 
       {isGestao && <CardsAdministrativos counts={counts} />}
 
@@ -73,7 +76,10 @@ export default function Dashboard() {
         <EndomarketingSection items={endomarketing} />
       </div>
 
-      <MensagemColaborador mensagens={mensagens} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <HojeNoCurio />
+        <MomentosCurio />
+      </div>
     </div>
   );
 }
