@@ -12,6 +12,7 @@ import { AcoesRapidas } from "@/components/dashboard/AcoesRapidas";
 import { CardsAdministrativos } from "@/components/dashboard/CardsAdministrativos";
 import { HojeNoCurio } from "@/components/dashboard/HojeNoCurio";
 import { MomentosCurio } from "@/components/dashboard/MomentosCurio";
+import { MissaoVisaoValores } from "@/components/dashboard/MissaoVisaoValores";
 import type { Noticia, Endomarketing } from "@/types/database";
 
 export default function Dashboard() {
