@@ -14,6 +14,9 @@ import Suspensoes from "@/pages/Suspensoes";
 import Departamentos from "@/pages/Departamentos";
 import Relatorios from "@/pages/Relatorios";
 import Assistente from "@/pages/Assistente";
+import Noticias from "@/pages/Noticias";
+import EndomarketingPage from "@/pages/EndomarketingPage";
+import Avisos from "@/pages/Avisos";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,9 @@ function ProtectedRoutes() {
         <Route path="/departamentos" element={<Departamentos />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/assistente" element={<Assistente />} />
+        <Route path="/noticias" element={<Noticias />} />
+        <Route path="/endomarketing" element={<EndomarketingPage />} />
+        <Route path="/avisos" element={<Avisos />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

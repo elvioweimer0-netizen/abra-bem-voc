@@ -58,6 +58,36 @@ export type Database = {
           },
         ]
       }
+      avisos: {
+        Row: {
+          ativo: boolean
+          conteudo: string
+          created_at: string
+          id: string
+          titulo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+          urgente: boolean
+        }
+        Insert: {
+          ativo?: boolean
+          conteudo: string
+          created_at?: string
+          id?: string
+          titulo: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          urgente?: boolean
+        }
+        Update: {
+          ativo?: boolean
+          conteudo?: string
+          created_at?: string
+          id?: string
+          titulo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          urgente?: boolean
+        }
+        Relationships: []
+      }
       colaboradores: {
         Row: {
           cargo: Database["public"]["Enums"]["cargo_tipo"]
@@ -91,6 +121,36 @@ export type Database = {
           status?: Database["public"]["Enums"]["colaborador_status"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      endomarketing: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string | null
+          id: string
+          tipo: Database["public"]["Enums"]["endomarketing_tipo"]
+          titulo: string
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          tipo: Database["public"]["Enums"]["endomarketing_tipo"]
+          titulo: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          tipo?: Database["public"]["Enums"]["endomarketing_tipo"]
+          titulo?: string
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
         }
         Relationships: []
       }
@@ -270,6 +330,7 @@ export type Database = {
       advertencia_tipo: "verbal" | "escrita"
       cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
       colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
+      endomarketing_tipo: "aniversario" | "destaque" | "campanha" | "mensagem"
       ocorrencia_status: "aberta" | "em_andamento" | "concluida"
       setor_tipo:
         | "acougue"
@@ -415,6 +476,7 @@ export const Constants = {
       advertencia_tipo: ["verbal", "escrita"],
       cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
       colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
+      endomarketing_tipo: ["aniversario", "destaque", "campanha", "mensagem"],
       ocorrencia_status: ["aberta", "em_andamento", "concluida"],
       setor_tipo: [
         "acougue",
