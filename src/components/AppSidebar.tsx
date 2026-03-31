@@ -147,60 +147,71 @@ export function AppSidebar() {
         {isGestao && (
           <MenuSection label="RH" items={rhAdminItems} collapsed={collapsed} />
         )}
-        <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
 
-        {/* Gerências - collapsible group */}
-        <SidebarGroup>
-          {collapsed ? (
-            <SidebarMenu>
-              {gerenciaItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="h-5 w-5 shrink-0" />
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          ) : (
-            <Collapsible defaultOpen className="group/collapsible">
-              <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-xs tracking-wider">
-                <CollapsibleTrigger className="flex items-center justify-between w-full">
-                  Gerências
-                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {gerenciaItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.url}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                            activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                          >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                            <span>{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
-        </SidebarGroup>
+        {!isColaborador && (
+          <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
+        )}
+
+        {/* Gerências - collapsible group, hidden for colaborador */}
+        {!isColaborador && (
+          <SidebarGroup>
+            {collapsed ? (
+              <SidebarMenu>
+                {gerenciaItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            ) : (
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-xs tracking-wider">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full">
+                    Gerências
+                    <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                  </CollapsibleTrigger>
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {gerenciaItems.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                              activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                            >
+                              <item.icon className="h-5 w-5 shrink-0" />
+                              <span>{item.title}</span>
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </SidebarGroup>
+        )}
 
         <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
-        <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
+
+        {!isColaborador && (
+          <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
+        )}
+        {isColaborador && (
+          <MenuSection label="Reuniões" items={[reunioesItems[0], reunioesItems[2]]} collapsed={collapsed} />
+        )}
 
         {isGestao && (
           <MenuSection label="Relatórios" items={relatoriosItems} collapsed={collapsed} />
