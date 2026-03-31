@@ -130,8 +130,9 @@ export function AppSidebar() {
         <MenuSection label="Comunicação" items={comunicacaoItems} collapsed={collapsed} />
 
         {isGestao && (
-          <MenuSection label="RH" items={rhItems} collapsed={collapsed} />
+          <MenuSection label="RH" items={rhAdminItems} collapsed={collapsed} />
         )}
+        <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
 
         <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
         <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
