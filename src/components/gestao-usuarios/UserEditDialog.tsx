@@ -8,14 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { RoleBadge, roleConfig } from "./RoleBadge";
 import { Constants } from "@/integrations/supabase/types";
-import { Shield, Building, Briefcase, Power } from "lucide-react";
+import { Shield, Building, Briefcase, Power, Network } from "lucide-react";
 
 const UNIDADES = Constants.public.Enums.unidade_tipo;
 const SETORES = Constants.public.Enums.setor_tipo;
+const GERENCIAS = Constants.public.Enums.gerencia_tipo;
 
 const setorLabels: Record<string, string> = {
   acougue: "Açougue", padaria: "Padaria", hortifruti: "Hortifruti",
   mercearia: "Mercearia", frente_de_caixa: "Frente de Caixa", deposito: "Depósito",
+};
+
+const gerenciaLabels: Record<string, string> = {
+  FINANCEIRO: "Financeiro", RECURSOS_HUMANOS: "Recursos Humanos",
+  DEPARTAMENTO_PESSOAL: "Depto. Pessoal", MARKETING: "Marketing",
+  TI: "TI", OPERACAO: "Operação", CENTRAL_PRODUCAO: "Central Produção",
+  CD: "CD", MANUTENCAO: "Manutenção",
 };
 
 export interface UserProfile {
@@ -25,7 +33,8 @@ export interface UserProfile {
   email: string;
   cargo: string;
   unidade: string;
-  departamento: string | null;
+  setor: string | null;
+  gerencia: string;
   ativo: boolean;
   created_at: string;
   updated_at: string;
@@ -42,7 +51,8 @@ interface Props {
 export function UserEditDialog({ user, open, onClose, onSave, callerRole }: Props) {
   const [cargo, setCargo] = useState("");
   const [unidade, setUnidade] = useState("");
-  const [departamento, setDepartamento] = useState<string | null>(null);
+  const [setor, setSetor] = useState<string | null>(null);
+  const [gerencia, setGerencia] = useState("OPERACAO");
   const [ativo, setAtivo] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -50,7 +60,8 @@ export function UserEditDialog({ user, open, onClose, onSave, callerRole }: Prop
     if (user) {
       setCargo(user.cargo);
       setUnidade(user.unidade);
-      setDepartamento(user.departamento);
+      setSetor(user.setor);
+      setGerencia(user.gerencia);
       setAtivo(user.ativo);
     }
   }, [user]);
@@ -68,7 +79,8 @@ export function UserEditDialog({ user, open, onClose, onSave, callerRole }: Prop
   const hasChanges =
     cargo !== user.cargo ||
     unidade !== user.unidade ||
-    departamento !== user.departamento ||
+    setor !== user.setor ||
+    gerencia !== user.gerencia ||
     ativo !== user.ativo;
 
   const handleSave = async () => {
@@ -77,7 +89,8 @@ export function UserEditDialog({ user, open, onClose, onSave, callerRole }: Prop
       await onSave(user.user_id, {
         ...(cargo !== user.cargo && { cargo }),
         ...(unidade !== user.unidade && { unidade }),
-        ...(departamento !== user.departamento && { departamento }),
+        ...(setor !== user.setor && { setor }),
+        ...(gerencia !== user.gerencia && { gerencia }),
         ...(ativo !== user.ativo && { ativo }),
       });
       onClose();
@@ -142,9 +155,23 @@ export function UserEditDialog({ user, open, onClose, onSave, callerRole }: Prop
 
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4" /> Departamento
+              <Network className="h-4 w-4" /> Gerência
             </Label>
-            <Select value={departamento ?? "none"} onValueChange={(v) => setDepartamento(v === "none" ? null : v)}>
+            <Select value={gerencia} onValueChange={setGerencia}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {GERENCIAS.map((g) => (
+                  <SelectItem key={g} value={g}>{gerenciaLabels[g] ?? g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" /> Setor
+            </Label>
+            <Select value={setor ?? "none"} onValueChange={(v) => setSetor(v === "none" ? null : v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum</SelectItem>
