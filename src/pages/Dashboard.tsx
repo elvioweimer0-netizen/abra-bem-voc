@@ -72,6 +72,8 @@ export default function Dashboard() {
 
       <AcoesRapidas />
 
+      <MissaoVisaoValores />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <InformativoMercado noticias={noticias} />
         <EndomarketingSection items={endomarketing} />

@@ -1,7 +1,14 @@
 import { Heart, Star, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-const sections = [
+interface Section {
+  icon: typeof Heart;
+  title: string;
+  text?: string;
+  items?: string[];
+}
+
+const sections: Section[] = [
   {
     icon: Heart,
     title: "Missão",
@@ -15,7 +22,6 @@ const sections = [
   {
     icon: ShieldCheck,
     title: "Valores",
-    text: null,
     items: [
       "Nosso espírito empreendedor é alimentado pela paixão em oferecer o melhor a todos que se relacionam com a nossa marca;",
       "Nosso esforço é focado em ações que surpreendem;",
@@ -24,7 +30,7 @@ const sections = [
       "Valorizamos e estimulamos atitudes éticas, proativas e gentis.",
     ],
   },
-] as const;
+];
 
 export function MissaoVisaoValores() {
   return (
