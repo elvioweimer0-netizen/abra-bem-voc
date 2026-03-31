@@ -77,7 +77,7 @@ export default function Advertencias() {
                 </div>
                 <div className="space-y-2">
                   <Label>Tipo</Label>
-                  <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v })}>
+                  <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v as Enums<"advertencia_tipo"> })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="verbal">Verbal</SelectItem>
