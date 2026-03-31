@@ -1,8 +1,10 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
   Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
-  BookOpen, ClipboardList, FileCheck, Settings, UserCog,
+  BookOpen, ClipboardList, FileCheck, Settings, UserCog, ChevronDown,
+  Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign, Briefcase,
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
@@ -80,6 +82,15 @@ const rhDocsItems: MenuItem[] = [
   { title: "Políticas Internas", url: "/rh/politicas", icon: FileCheck },
 ];
 
+const gerenciaItems: MenuItem[] = [
+  { title: "Operação", url: "/gerencias/operacao", icon: Monitor },
+  { title: "RH", url: "/gerencias/rh", icon: Users },
+  { title: "Marketing", url: "/gerencias/marketing", icon: TrendingUp },
+  { title: "Manutenção", url: "/gerencias/manutencao", icon: Wrench },
+  { title: "Administrativo", url: "/gerencias/administrativo", icon: DollarSign },
+  { title: "Comercial", url: "/gerencias/comercial", icon: ShoppingCart },
+];
+
 const depItems: MenuItem[] = [
   { title: "Departamentos", url: "/departamentos", icon: Building },
 ];
@@ -137,6 +148,56 @@ export function AppSidebar() {
           <MenuSection label="RH" items={rhAdminItems} collapsed={collapsed} />
         )}
         <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
+
+        {/* Gerências - collapsible group */}
+        <SidebarGroup>
+          {collapsed ? (
+            <SidebarMenu>
+              {gerenciaItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          ) : (
+            <Collapsible defaultOpen className="group/collapsible">
+              <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-xs tracking-wider">
+                <CollapsibleTrigger className="flex items-center justify-between w-full">
+                  Gerências
+                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {gerenciaItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                            activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                          >
+                            <item.icon className="h-5 w-5 shrink-0" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+        </SidebarGroup>
 
         <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
         <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />

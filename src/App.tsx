@@ -26,6 +26,7 @@ import CriarReuniao from "@/pages/CriarReuniao";
 import AgendaReunioes from "@/pages/AgendaReunioes";
 import HistoricoReunioes from "@/pages/HistoricoReunioes";
 import GestaoUsuarios from "@/pages/GestaoUsuarios";
+import GerenciaPage from "@/pages/GerenciaPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ function ProtectedRoutes() {
         <Route path="/agenda" element={<AgendaReunioes />} />
         <Route path="/reunioes/historico" element={<HistoricoReunioes />} />
         <Route path="/gestao-usuarios" element={<GestaoUsuarios />} />
+        <Route path="/gerencias/:slug" element={<GerenciaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
