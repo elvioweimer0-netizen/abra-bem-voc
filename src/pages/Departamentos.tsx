@@ -141,7 +141,7 @@ export default function Departamentos() {
                   <div key={o.id} className="p-3 rounded-lg bg-muted/50 border border-border/50">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm">{o.descricao}</p>
-                      <Badge variant={o.status === "resolvida" ? "default" : o.status === "em_andamento" ? "secondary" : "destructive"} className="shrink-0">
+                      <Badge variant={o.status === "concluida" ? "default" : o.status === "em_andamento" ? "secondary" : "destructive"} className="shrink-0">
                         {statusLabels[o.status]}
                       </Badge>
                     </div>

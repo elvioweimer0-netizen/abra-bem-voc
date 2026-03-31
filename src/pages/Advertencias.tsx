@@ -22,7 +22,7 @@ export default function Advertencias() {
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    colaborador_id: "", tipo: "verbal", motivo: "", descricao: "", data: new Date().toISOString().split("T")[0], responsavel: "",
+    colaborador_id: "", tipo: "verbal" as Enums<"advertencia_tipo">, motivo: "", descricao: "", data: new Date().toISOString().split("T")[0], responsavel: "",
   });
 
   const canEdit = profile?.cargo !== "colaborador";
