@@ -249,8 +249,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at: string
+          departamento: Database["public"]["Enums"]["setor_tipo"] | null
           email: string
           id: string
           nome: string
@@ -259,8 +261,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ativo?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
+          departamento?: Database["public"]["Enums"]["setor_tipo"] | null
           email: string
           id?: string
           nome: string
@@ -269,8 +273,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ativo?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
+          departamento?: Database["public"]["Enums"]["setor_tipo"] | null
           email?: string
           id?: string
           nome?: string
@@ -415,7 +421,14 @@ export type Database = {
     }
     Enums: {
       advertencia_tipo: "verbal" | "escrita"
-      cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
+      cargo_tipo:
+        | "admin"
+        | "gerente"
+        | "lider"
+        | "colaborador"
+        | "master"
+        | "adm_departamento"
+        | "supervisor"
       colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
       endomarketing_tipo: "aniversario" | "destaque" | "campanha" | "mensagem"
       galeria_categoria:
@@ -569,7 +582,15 @@ export const Constants = {
   public: {
     Enums: {
       advertencia_tipo: ["verbal", "escrita"],
-      cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
+      cargo_tipo: [
+        "admin",
+        "gerente",
+        "lider",
+        "colaborador",
+        "master",
+        "adm_departamento",
+        "supervisor",
+      ],
       colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
       endomarketing_tipo: ["aniversario", "destaque", "campanha", "mensagem"],
       galeria_categoria: [
