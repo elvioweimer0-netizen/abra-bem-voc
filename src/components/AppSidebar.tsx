@@ -72,6 +72,9 @@ const rhItems: MenuItem[] = [
   { title: "Colaboradores", url: "/colaboradores", icon: Users },
   { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
   { title: "Suspensões", url: "/suspensoes", icon: Ban },
+  { title: "Código de Ética", url: "/rh/codigo-etica", icon: BookOpen },
+  { title: "Cartilha Operacional", url: "/rh/cartilha", icon: ClipboardList },
+  { title: "Políticas Internas", url: "/rh/politicas", icon: FileCheck },
 ];
 
 const depItems: MenuItem[] = [
