@@ -5,6 +5,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/hooks/useRole";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
@@ -33,10 +34,15 @@ const depItems = [
 
 const outrosItems = [
   { title: "Relatórios", url: "/relatorios", icon: FileText },
+];
+
+const assistenteItems = [
   { title: "Assistente IA", url: "/assistente", icon: Bot },
 ];
 
-function MenuSection({ label, items, collapsed }: { label: string; items: typeof mainItems; collapsed: boolean }) {
+type MenuItem = { title: string; url: string; icon: React.ComponentType<{ className?: string }> };
+
+function MenuSection({ label, items, collapsed }: { label: string; items: MenuItem[]; collapsed: boolean }) {
   const location = useLocation();
   return (
     <SidebarGroup>
@@ -68,6 +74,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
+  const { isGestao } = useRole();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -88,9 +95,10 @@ export function AppSidebar() {
       <SidebarContent className="px-2">
         <MenuSection label="Principal" items={mainItems} collapsed={collapsed} />
         <MenuSection label="Comunicação" items={comunicacaoItems} collapsed={collapsed} />
-        <MenuSection label="RH" items={rhItems} collapsed={collapsed} />
-        <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
-        <MenuSection label="Outros" items={outrosItems} collapsed={collapsed} />
+        {isGestao && <MenuSection label="RH" items={rhItems} collapsed={collapsed} />}
+        {isGestao && <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />}
+        {isGestao && <MenuSection label="Relatórios" items={outrosItems} collapsed={collapsed} />}
+        <MenuSection label="Ferramentas" items={assistenteItems} collapsed={collapsed} />
       </SidebarContent>
 
       <SidebarFooter className="p-2">
