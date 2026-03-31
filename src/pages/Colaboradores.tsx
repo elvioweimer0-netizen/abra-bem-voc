@@ -82,7 +82,15 @@ export default function Colaboradores() {
                 </div>
                 <div className="space-y-2">
                   <Label>Cargo</Label>
-                  <Input value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value })} required />
+                  <Select value={form.cargo} onValueChange={(v) => setForm({ ...form, cargo: v as Enums<"cargo_tipo"> })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="colaborador">Colaborador</SelectItem>
+                      <SelectItem value="lider">Líder</SelectItem>
+                      <SelectItem value="gerente">Gerente</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Setor</Label>
