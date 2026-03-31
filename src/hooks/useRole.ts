@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useViewAs } from "@/contexts/ViewAsContext";
 
 type CargoTipo = "master" | "admin" | "adm_departamento" | "supervisor" | "gerente" | "lider" | "colaborador";
 
@@ -8,12 +9,17 @@ const USER_MGMT_ROLES: CargoTipo[] = ["master", "admin", "adm_departamento", "su
 
 export function useRole() {
   const { profile } = useAuth();
-  const cargo = (profile?.cargo ?? "colaborador") as CargoTipo;
+  const { simulatedCargo, isSimulating } = useViewAs();
+
+  const realCargo = (profile?.cargo ?? "colaborador") as CargoTipo;
+  const cargo = (isSimulating && simulatedCargo ? simulatedCargo : realCargo) as CargoTipo;
 
   return {
     cargo,
+    realCargo,
     isMaster: cargo === "master",
     isAdmin: ADMIN_ROLES.includes(cargo),
+    isRealAdmin: ADMIN_ROLES.includes(realCargo),
     isAdmDepartamento: cargo === "adm_departamento",
     isSupervisor: cargo === "supervisor",
     isGerente: cargo === "gerente",
