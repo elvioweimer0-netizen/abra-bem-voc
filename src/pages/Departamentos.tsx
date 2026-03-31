@@ -24,7 +24,7 @@ const setorLabels: Record<string, string> = {
   mercearia: "Mercearia", frente_de_caixa: "Frente de Caixa", deposito: "Depósito",
 };
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", em_andamento: "Em Andamento", resolvida: "Resolvida",
+  aberta: "Aberta", em_andamento: "Em Andamento", concluida: "Concluída",
 };
 
 export default function Departamentos() {
@@ -141,7 +141,7 @@ export default function Departamentos() {
                   <div key={o.id} className="p-3 rounded-lg bg-muted/50 border border-border/50">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm">{o.descricao}</p>
-                      <Badge variant={o.status === "resolvida" ? "default" : o.status === "em_andamento" ? "secondary" : "destructive"} className="shrink-0">
+                      <Badge variant={o.status === "concluida" ? "default" : o.status === "em_andamento" ? "secondary" : "destructive"} className="shrink-0">
                         {statusLabels[o.status]}
                       </Badge>
                     </div>

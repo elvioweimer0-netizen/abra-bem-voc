@@ -27,7 +27,7 @@ export default function Colaboradores() {
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ nome: "", matricula: "", cargo: "", setor: "acougue" as Enums<"setor_tipo"> });
+  const [form, setForm] = useState({ nome: "", matricula: "", cargo: "colaborador" as Enums<"cargo_tipo">, setor: "acougue" as Enums<"setor_tipo"> });
 
   const canEdit = profile?.cargo === "admin" || profile?.cargo === "gerente";
 
@@ -48,7 +48,7 @@ export default function Colaboradores() {
     if (error) { toast.error(error.message); return; }
     toast.success("Colaborador cadastrado!");
     setOpen(false);
-    setForm({ nome: "", matricula: "", cargo: "", setor: "acougue" });
+    setForm({ nome: "", matricula: "", cargo: "colaborador" as Enums<"cargo_tipo">, setor: "acougue" as Enums<"setor_tipo"> });
     fetchData();
   };
 
@@ -82,7 +82,15 @@ export default function Colaboradores() {
                 </div>
                 <div className="space-y-2">
                   <Label>Cargo</Label>
-                  <Input value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value })} required />
+                  <Select value={form.cargo} onValueChange={(v) => setForm({ ...form, cargo: v as Enums<"cargo_tipo"> })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="colaborador">Colaborador</SelectItem>
+                      <SelectItem value="lider">Líder</SelectItem>
+                      <SelectItem value="gerente">Gerente</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Setor</Label>

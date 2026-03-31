@@ -23,7 +23,7 @@ export type Database = {
           id: string
           motivo: string
           responsavel: string
-          tipo: string
+          tipo: Database["public"]["Enums"]["advertencia_tipo"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
         }
         Insert: {
@@ -34,7 +34,7 @@ export type Database = {
           id?: string
           motivo: string
           responsavel: string
-          tipo: string
+          tipo: Database["public"]["Enums"]["advertencia_tipo"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
         }
         Update: {
@@ -45,7 +45,7 @@ export type Database = {
           id?: string
           motivo?: string
           responsavel?: string
-          tipo?: string
+          tipo?: Database["public"]["Enums"]["advertencia_tipo"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
         }
         Relationships: [
@@ -60,35 +60,35 @@ export type Database = {
       }
       colaboradores: {
         Row: {
-          cargo: string
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at: string
           id: string
           matricula: string
           nome: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status: string
+          status: Database["public"]["Enums"]["colaborador_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at: string
         }
         Insert: {
-          cargo: string
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula: string
           nome: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["colaborador_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
         Update: {
-          cargo?: string
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula?: string
           nome?: string
           setor?: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["colaborador_status"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
@@ -128,7 +128,7 @@ export type Database = {
           descricao: string
           id: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status: string
+          status: Database["public"]["Enums"]["ocorrencia_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at: string
         }
@@ -138,7 +138,7 @@ export type Database = {
           descricao: string
           id?: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["ocorrencia_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
@@ -148,7 +148,7 @@ export type Database = {
           descricao?: string
           id?: string
           setor?: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["ocorrencia_status"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
@@ -230,16 +230,19 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          created_at: string
           id: string
           role: Database["public"]["Enums"]["cargo_tipo"]
           user_id: string
         }
         Insert: {
+          created_at?: string
           id?: string
           role: Database["public"]["Enums"]["cargo_tipo"]
           user_id: string
         }
         Update: {
+          created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["cargo_tipo"]
           user_id?: string
@@ -264,7 +267,10 @@ export type Database = {
       }
     }
     Enums: {
+      advertencia_tipo: "verbal" | "escrita"
       cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
+      colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
+      ocorrencia_status: "aberta" | "em_andamento" | "concluida"
       setor_tipo:
         | "acougue"
         | "padaria"
@@ -406,7 +412,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      advertencia_tipo: ["verbal", "escrita"],
       cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
+      colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
+      ocorrencia_status: ["aberta", "em_andamento", "concluida"],
       setor_tipo: [
         "acougue",
         "padaria",

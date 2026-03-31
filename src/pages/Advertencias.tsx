@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Enums } from "@/integrations/supabase/types";
 import { Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,7 +22,7 @@ export default function Advertencias() {
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    colaborador_id: "", tipo: "verbal", motivo: "", descricao: "", data: new Date().toISOString().split("T")[0], responsavel: "",
+    colaborador_id: "", tipo: "verbal" as Enums<"advertencia_tipo">, motivo: "", descricao: "", data: new Date().toISOString().split("T")[0], responsavel: "",
   });
 
   const canEdit = profile?.cargo !== "colaborador";
@@ -77,7 +77,7 @@ export default function Advertencias() {
                 </div>
                 <div className="space-y-2">
                   <Label>Tipo</Label>
-                  <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v })}>
+                  <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v as Enums<"advertencia_tipo"> })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="verbal">Verbal</SelectItem>
