@@ -65,6 +65,7 @@ function ProtectedRoutes() {
         <Route path="/reunioes/criar" element={<CriarReuniao />} />
         <Route path="/agenda" element={<AgendaReunioes />} />
         <Route path="/reunioes/historico" element={<HistoricoReunioes />} />
+        <Route path="/gestao-usuarios" element={<GestaoUsuarios />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

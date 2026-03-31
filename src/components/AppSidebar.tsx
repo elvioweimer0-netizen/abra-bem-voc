@@ -145,6 +145,10 @@ export function AppSidebar() {
           <MenuSection label="Relatórios" items={relatoriosItems} collapsed={collapsed} />
         )}
 
+        {canManageUsers && (
+          <MenuSection label="Administração" items={adminItems} collapsed={collapsed} />
+        )}
+
         <MenuSection label="Ferramentas" items={assistenteItems} collapsed={collapsed} />
       </SidebarContent>
 
