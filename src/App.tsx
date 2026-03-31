@@ -53,6 +53,9 @@ function ProtectedRoutes() {
         <Route path="/departamentos" element={<Departamentos />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/assistente" element={<Assistente />} />
+        <Route path="/rh/codigo-etica" element={<CodigoEtica />} />
+        <Route path="/rh/cartilha" element={<CartilhaOperacional />} />
+        <Route path="/rh/politicas" element={<PoliticasInternas />} />
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/endomarketing" element={<EndomarketingPage />} />
         <Route path="/avisos" element={<Avisos />} />
