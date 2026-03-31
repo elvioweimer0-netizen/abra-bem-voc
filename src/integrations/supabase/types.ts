@@ -230,16 +230,19 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          created_at: string
           id: string
           role: Database["public"]["Enums"]["cargo_tipo"]
           user_id: string
         }
         Insert: {
+          created_at?: string
           id?: string
           role: Database["public"]["Enums"]["cargo_tipo"]
           user_id: string
         }
         Update: {
+          created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["cargo_tipo"]
           user_id?: string
@@ -264,7 +267,10 @@ export type Database = {
       }
     }
     Enums: {
+      advertencia_tipo: "verbal" | "escrita"
       cargo_tipo: "admin" | "gerente" | "lider" | "colaborador"
+      colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
+      ocorrencia_status: "aberta" | "em_andamento" | "concluida"
       setor_tipo:
         | "acougue"
         | "padaria"
@@ -406,7 +412,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      advertencia_tipo: ["verbal", "escrita"],
       cargo_tipo: ["admin", "gerente", "lider", "colaborador"],
+      colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
+      ocorrencia_status: ["aberta", "em_andamento", "concluida"],
       setor_tipo: [
         "acougue",
         "padaria",
