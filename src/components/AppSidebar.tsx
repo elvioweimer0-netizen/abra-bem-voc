@@ -1,5 +1,6 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
+  Megaphone, Heart, Bell,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -11,7 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Início", url: "/", icon: LayoutDashboard },
+];
+
+const comunicacaoItems = [
+  { title: "Notícias", url: "/noticias", icon: Megaphone },
+  { title: "Endomarketing", url: "/endomarketing", icon: Heart },
+  { title: "Avisos", url: "/avisos", icon: Bell },
 ];
 
 const rhItems = [
@@ -80,6 +87,7 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2">
         <MenuSection label="Principal" items={mainItems} collapsed={collapsed} />
+        <MenuSection label="Comunicação" items={comunicacaoItems} collapsed={collapsed} />
         <MenuSection label="RH" items={rhItems} collapsed={collapsed} />
         <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
         <MenuSection label="Outros" items={outrosItems} collapsed={collapsed} />
