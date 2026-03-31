@@ -95,6 +95,10 @@ const relatoriosItems: MenuItem[] = [
   { title: "Relatórios", url: "/relatorios", icon: FileText },
 ];
 
+const adminItems: MenuItem[] = [
+  { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
+];
+
 const assistenteItems: MenuItem[] = [
   { title: "Assistente IA", url: "/assistente", icon: Bot },
 ];
