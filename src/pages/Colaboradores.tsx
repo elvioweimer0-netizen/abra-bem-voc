@@ -48,7 +48,7 @@ export default function Colaboradores() {
     if (error) { toast.error(error.message); return; }
     toast.success("Colaborador cadastrado!");
     setOpen(false);
-    setForm({ nome: "", matricula: "", cargo: "", setor: "acougue" });
+    setForm({ nome: "", matricula: "", cargo: "colaborador" as Enums<"cargo_tipo">, setor: "acougue" as Enums<"setor_tipo"> });
     fetchData();
   };
 
