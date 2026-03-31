@@ -1,9 +1,8 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
-  Megaphone, Heart, Bell, Video, CalendarDays,
+  Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
 import {
@@ -63,8 +62,9 @@ const mainItems: MenuItem[] = [
 
 const comunicacaoItems: MenuItem[] = [
   { title: "Notícias", url: "/noticias", icon: Megaphone },
-  { title: "Endomarketing", url: "/endomarketing", icon: Heart },
+  { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
   { title: "Avisos", url: "/avisos", icon: Bell },
+  { title: "Galeria do Curió", url: "/galeria", icon: Camera },
 ];
 
 const rhItems: MenuItem[] = [
@@ -78,8 +78,10 @@ const depItems: MenuItem[] = [
 ];
 
 const reunioesItems: MenuItem[] = [
-  { title: "Reuniões", url: "/reunioes", icon: Video },
+  { title: "Entrar na Sala", url: "/reunioes", icon: Video },
+  { title: "Criar Reunião", url: "/reunioes/criar", icon: Plus },
   { title: "Agenda", url: "/agenda", icon: CalendarDays },
+  { title: "Histórico", url: "/reunioes/historico", icon: History },
 ];
 
 const relatoriosItems: MenuItem[] = [
