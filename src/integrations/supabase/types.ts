@@ -60,35 +60,35 @@ export type Database = {
       }
       colaboradores: {
         Row: {
-          cargo: string
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at: string
           id: string
           matricula: string
           nome: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status: string
+          status: Database["public"]["Enums"]["colaborador_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at: string
         }
         Insert: {
-          cargo: string
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula: string
           nome: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["colaborador_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
         Update: {
-          cargo?: string
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula?: string
           nome?: string
           setor?: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["colaborador_status"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
