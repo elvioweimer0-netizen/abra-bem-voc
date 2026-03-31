@@ -1,68 +1,88 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Gift, Star, Megaphone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Heart, ArrowRight, Cake, Star, Megaphone, Gift } from "lucide-react";
 import type { Endomarketing } from "@/types/database";
-import { endomarketingTipoLabels } from "@/types/database";
+import { useNavigate } from "react-router-dom";
 
 interface EndomarketingSectionProps {
   items: Endomarketing[];
 }
 
-function endoIcon(tipo: string) {
-  switch (tipo) {
-    case "aniversario":
-      return <Gift className="w-4 h-4 text-pink-500" />;
-    case "destaque":
-      return <Star className="w-4 h-4 text-amber-500" />;
-    case "campanha":
-      return <Megaphone className="w-4 h-4 text-primary" />;
-    default:
-      return <Heart className="w-4 h-4 text-rose-500" />;
-  }
-}
+const tipoIcon: Record<string, React.ComponentType<{ className?: string }>> = {
+  aniversario: Cake,
+  destaque: Star,
+  campanha: Megaphone,
+  mensagem: Gift,
+};
+
+const tipoColor: Record<string, string> = {
+  aniversario: "bg-highlight/15 text-highlight-foreground",
+  destaque: "bg-warning/10 text-warning",
+  campanha: "bg-success/10 text-success",
+  mensagem: "bg-primary/10 text-primary",
+};
+
+const tipoLabel: Record<string, string> = {
+  aniversario: "🎂 Aniversário",
+  destaque: "⭐ Destaque",
+  campanha: "📢 Campanha",
+  mensagem: "💌 Mensagem",
+};
 
 export function EndomarketingSection({ items }: EndomarketingSectionProps) {
+  const navigate = useNavigate();
+
   return (
     <Card className="card-shadow">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
-            <Heart className="w-4 h-4 text-rose-500" />
-          </div>
-          Endomarketing
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Heart className="w-4 h-4 text-primary" />
+            </div>
+            Vida no Curió
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-xs text-primary hover:text-primary"
+            onClick={() => navigate("/endomarketing")}
+          >
+            Ver tudo <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-center py-6">
-            Nenhum conteúdo de endomarketing.
-          </p>
+          <div className="text-center py-6 text-muted-foreground">
+            <Heart className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Nenhuma novidade de endomarketing por enquanto. Fique ligado! 💛</p>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {items.map((e) => (
-              <div
-                key={e.id}
-                className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border/50 hover:border-border transition-colors"
-              >
-                <div className="mt-0.5">{endoIcon(e.tipo)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-medium text-sm text-foreground">{e.titulo}</h3>
-                    <Badge variant="outline" className="text-xs">
-                      {endomarketingTipoLabels[e.tipo]}
-                    </Badge>
+          <div className="space-y-2.5">
+            {items.slice(0, 4).map((item) => {
+              const Icon = tipoIcon[item.tipo] || Gift;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:border-primary/20 hover:bg-muted/40 transition-all"
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tipoColor[item.tipo] || "bg-muted text-muted-foreground"}`}>
+                    <Icon className="w-4 h-4" />
                   </div>
-                  {e.descricao && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {e.descricao}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground/60 mt-1">
-                    {new Date(e.data).toLocaleDateString("pt-BR")}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-foreground truncate">{item.titulo}</h4>
+                    {item.descricao && (
+                      <p className="text-xs text-muted-foreground line-clamp-1">{item.descricao}</p>
+                    )}
+                  </div>
+                  <Badge variant="secondary" className="text-[10px] shrink-0">
+                    {tipoLabel[item.tipo] || item.tipo}
+                  </Badge>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

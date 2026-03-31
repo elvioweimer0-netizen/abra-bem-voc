@@ -46,7 +46,7 @@ export default function Galeria() {
 
   const fetchData = () => {
     let query = supabase.from("galeria").select("*").order("created_at", { ascending: false });
-    if (filterCat !== "all") query = query.eq("categoria", filterCat);
+    if (filterCat !== "all") query = query.eq("categoria", filterCat as any);
     query.then(({ data }) => setFotos((data as GaleriaItem[]) || []));
   };
 
