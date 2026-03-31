@@ -14,6 +14,9 @@ import Suspensoes from "@/pages/Suspensoes";
 import Departamentos from "@/pages/Departamentos";
 import Relatorios from "@/pages/Relatorios";
 import Assistente from "@/pages/Assistente";
+import CodigoEtica from "@/pages/CodigoEtica";
+import CartilhaOperacional from "@/pages/CartilhaOperacional";
+import PoliticasInternas from "@/pages/PoliticasInternas";
 import Noticias from "@/pages/Noticias";
 import EndomarketingPage from "@/pages/EndomarketingPage";
 import Avisos from "@/pages/Avisos";
@@ -50,6 +53,9 @@ function ProtectedRoutes() {
         <Route path="/departamentos" element={<Departamentos />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/assistente" element={<Assistente />} />
+        <Route path="/rh/codigo-etica" element={<CodigoEtica />} />
+        <Route path="/rh/cartilha" element={<CartilhaOperacional />} />
+        <Route path="/rh/politicas" element={<PoliticasInternas />} />
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/endomarketing" element={<EndomarketingPage />} />
         <Route path="/avisos" element={<Avisos />} />

@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
   Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
+  BookOpen, ClipboardList, FileCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,10 +68,16 @@ const comunicacaoItems: MenuItem[] = [
   { title: "Galeria do Curió", url: "/galeria", icon: Camera },
 ];
 
-const rhItems: MenuItem[] = [
+const rhAdminItems: MenuItem[] = [
   { title: "Colaboradores", url: "/colaboradores", icon: Users },
   { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
   { title: "Suspensões", url: "/suspensoes", icon: Ban },
+];
+
+const rhDocsItems: MenuItem[] = [
+  { title: "Código de Ética", url: "/rh/codigo-etica", icon: BookOpen },
+  { title: "Cartilha Operacional", url: "/rh/cartilha", icon: ClipboardList },
+  { title: "Políticas Internas", url: "/rh/politicas", icon: FileCheck },
 ];
 
 const depItems: MenuItem[] = [
@@ -123,8 +130,9 @@ export function AppSidebar() {
         <MenuSection label="Comunicação" items={comunicacaoItems} collapsed={collapsed} />
 
         {isGestao && (
-          <MenuSection label="RH" items={rhItems} collapsed={collapsed} />
+          <MenuSection label="RH" items={rhAdminItems} collapsed={collapsed} />
         )}
+        <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
 
         <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
         <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
