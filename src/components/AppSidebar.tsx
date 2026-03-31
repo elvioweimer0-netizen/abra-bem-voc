@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
-  Megaphone, Heart, Bell,
+  Megaphone, Heart, Bell, Video, CalendarDays,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -12,41 +12,28 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
-const mainItems = [
-  { title: "Início", url: "/", icon: LayoutDashboard },
-];
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
 
-const comunicacaoItems = [
-  { title: "Notícias", url: "/noticias", icon: Megaphone },
-  { title: "Endomarketing", url: "/endomarketing", icon: Heart },
-  { title: "Avisos", url: "/avisos", icon: Bell },
-];
-
-const rhItems = [
-  { title: "Colaboradores", url: "/colaboradores", icon: Users },
-  { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
-  { title: "Suspensões", url: "/suspensoes", icon: Ban },
-];
-
-const depItems = [
-  { title: "Departamentos", url: "/departamentos", icon: Building },
-];
-
-const outrosItems = [
-  { title: "Relatórios", url: "/relatorios", icon: FileText },
-];
-
-const assistenteItems = [
-  { title: "Assistente IA", url: "/assistente", icon: Bot },
-];
-
-type MenuItem = { title: string; url: string; icon: React.ComponentType<{ className?: string }> };
-
-function MenuSection({ label, items, collapsed }: { label: string; items: MenuItem[]; collapsed: boolean }) {
-  const location = useLocation();
+function MenuSection({
+  label,
+  items,
+  collapsed,
+}: {
+  label: string;
+  items: MenuItem[];
+  collapsed: boolean;
+}) {
   return (
     <SidebarGroup>
-      {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-xs tracking-wider">{label}</SidebarGroupLabel>}
+      {!collapsed && (
+        <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-xs tracking-wider">
+          {label}
+        </SidebarGroupLabel>
+      )}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
@@ -70,6 +57,39 @@ function MenuSection({ label, items, collapsed }: { label: string; items: MenuIt
   );
 }
 
+const mainItems: MenuItem[] = [
+  { title: "Início", url: "/", icon: LayoutDashboard },
+];
+
+const comunicacaoItems: MenuItem[] = [
+  { title: "Notícias", url: "/noticias", icon: Megaphone },
+  { title: "Endomarketing", url: "/endomarketing", icon: Heart },
+  { title: "Avisos", url: "/avisos", icon: Bell },
+];
+
+const rhItems: MenuItem[] = [
+  { title: "Colaboradores", url: "/colaboradores", icon: Users },
+  { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
+  { title: "Suspensões", url: "/suspensoes", icon: Ban },
+];
+
+const depItems: MenuItem[] = [
+  { title: "Departamentos", url: "/departamentos", icon: Building },
+];
+
+const reunioesItems: MenuItem[] = [
+  { title: "Reuniões", url: "/reunioes", icon: Video },
+  { title: "Agenda", url: "/agenda", icon: CalendarDays },
+];
+
+const relatoriosItems: MenuItem[] = [
+  { title: "Relatórios", url: "/relatorios", icon: FileText },
+];
+
+const assistenteItems: MenuItem[] = [
+  { title: "Assistente IA", url: "/assistente", icon: Bot },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -86,8 +106,12 @@ export function AppSidebar() {
         />
         {!collapsed && (
           <div className="min-w-0">
-            <h2 className="font-bold text-sidebar-foreground text-sm truncate">Curió Conecta</h2>
-            <p className="text-xs text-sidebar-foreground/50 truncate">{profile?.unidade || "Carregando..."}</p>
+            <h2 className="font-bold text-sidebar-foreground text-sm truncate">
+              Curió Conecta
+            </h2>
+            <p className="text-xs text-sidebar-foreground/50 truncate">
+              {profile?.unidade || "Carregando..."}
+            </p>
           </div>
         )}
       </div>
@@ -95,9 +119,18 @@ export function AppSidebar() {
       <SidebarContent className="px-2">
         <MenuSection label="Principal" items={mainItems} collapsed={collapsed} />
         <MenuSection label="Comunicação" items={comunicacaoItems} collapsed={collapsed} />
-        {isGestao && <MenuSection label="RH" items={rhItems} collapsed={collapsed} />}
-        {isGestao && <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />}
-        {isGestao && <MenuSection label="Relatórios" items={outrosItems} collapsed={collapsed} />}
+
+        {isGestao && (
+          <MenuSection label="RH" items={rhItems} collapsed={collapsed} />
+        )}
+
+        <MenuSection label="Departamentos" items={depItems} collapsed={collapsed} />
+        <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
+
+        {isGestao && (
+          <MenuSection label="Relatórios" items={relatoriosItems} collapsed={collapsed} />
+        )}
+
         <MenuSection label="Ferramentas" items={assistenteItems} collapsed={collapsed} />
       </SidebarContent>
 
