@@ -107,7 +107,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
-  const { isGestao } = useRole();
+  const { isGestao, canManageUsers } = useRole();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
