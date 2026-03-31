@@ -407,6 +407,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_departamento: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["setor_tipo"]
+      }
       get_user_unidade: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["unidade_tipo"]
