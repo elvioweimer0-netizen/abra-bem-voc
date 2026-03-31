@@ -273,12 +273,12 @@ export type Database = {
         | "frente_de_caixa"
         | "deposito"
       unidade_tipo:
-        | "UND 1"
-        | "UND 2"
-        | "UND 3"
-        | "UND 4"
-        | "Central de Produção"
-        | "Centro de Distribuição"
+        | "CIDADE ALTA"
+        | "GOIABEIRAS"
+        | "JARDIM CUIABÁ"
+        | "CPA"
+        | "CENTRAL PRODUÇÃO"
+        | "CD"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -416,12 +416,12 @@ export const Constants = {
         "deposito",
       ],
       unidade_tipo: [
-        "UND 1",
-        "UND 2",
-        "UND 3",
-        "UND 4",
-        "Central de Produção",
-        "Centro de Distribuição",
+        "CIDADE ALTA",
+        "GOIABEIRAS",
+        "JARDIM CUIABÁ",
+        "CPA",
+        "CENTRAL PRODUÇÃO",
+        "CD",
       ],
     },
   },

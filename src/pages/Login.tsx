@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import { Building2, Lock, Mail, User } from "lucide-react";
+import { Lock, Mail, User, MapPin } from "lucide-react";
 
 const unidades = Constants.public.Enums.unidade_tipo;
 
@@ -18,7 +18,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
-  const [unidade, setUnidade] = useState<Enums<"unidade_tipo">>("UND 1");
+  const [unidade, setUnidade] = useState<Enums<"unidade_tipo">>("CIDADE ALTA");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,10 +43,12 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Central do Líder</h1>
+          <img
+            src="/logo-curio.png"
+            alt="Curió Supermercados"
+            className="h-28 mx-auto mb-4 object-contain"
+          />
+          <h1 className="text-2xl font-bold text-foreground">Curió Conecta</h1>
           <p className="text-muted-foreground mt-1">Portal interno de gestão</p>
         </div>
 
@@ -128,7 +130,7 @@ export default function Login() {
                   <Label>Unidade</Label>
                   <Select value={unidade} onValueChange={(v) => setUnidade(v as Enums<"unidade_tipo">)}>
                     <SelectTrigger>
-                      <Building2 className="w-4 h-4 mr-2 text-muted-foreground" />
+                      <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

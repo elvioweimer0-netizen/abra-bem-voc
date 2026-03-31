@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut, ChevronLeft,
+  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -65,12 +65,14 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="p-4 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-sidebar-primary flex items-center justify-center shrink-0">
-          <Building className="w-5 h-5 text-sidebar-primary-foreground" />
-        </div>
+        <img
+          src="/logo-curio.png"
+          alt="Curió"
+          className="w-9 h-9 rounded-xl object-contain shrink-0 bg-card"
+        />
         {!collapsed && (
           <div className="min-w-0">
-            <h2 className="font-bold text-sidebar-foreground text-sm truncate">Central do Líder</h2>
+            <h2 className="font-bold text-sidebar-foreground text-sm truncate">Curió Conecta</h2>
             <p className="text-xs text-sidebar-foreground/50 truncate">{profile?.unidade || "Carregando..."}</p>
           </div>
         )}
