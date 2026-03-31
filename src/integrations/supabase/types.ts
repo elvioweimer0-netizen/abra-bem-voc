@@ -254,6 +254,7 @@ export type Database = {
           created_at: string
           departamento: Database["public"]["Enums"]["setor_tipo"] | null
           email: string
+          gerencia: Database["public"]["Enums"]["gerencia_tipo"] | null
           id: string
           nome: string
           unidade: Database["public"]["Enums"]["unidade_tipo"]
@@ -266,6 +267,7 @@ export type Database = {
           created_at?: string
           departamento?: Database["public"]["Enums"]["setor_tipo"] | null
           email: string
+          gerencia?: Database["public"]["Enums"]["gerencia_tipo"] | null
           id?: string
           nome: string
           unidade: Database["public"]["Enums"]["unidade_tipo"]
@@ -278,6 +280,7 @@ export type Database = {
           created_at?: string
           departamento?: Database["public"]["Enums"]["setor_tipo"] | null
           email?: string
+          gerencia?: Database["public"]["Enums"]["gerencia_tipo"] | null
           id?: string
           nome?: string
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
@@ -441,6 +444,16 @@ export type Database = {
         | "campanhas"
         | "loja"
         | "destaques"
+      gerencia_tipo:
+        | "FINANCEIRO"
+        | "RECURSOS_HUMANOS"
+        | "DEPARTAMENTO_PESSOAL"
+        | "MARKETING"
+        | "TI"
+        | "OPERACAO"
+        | "CENTRAL_PRODUCAO"
+        | "CD"
+        | "MANUTENCAO"
       ocorrencia_status: "aberta" | "em_andamento" | "concluida"
       reuniao_status: "agendada" | "em_andamento" | "finalizada" | "cancelada"
       reuniao_tipo: "online" | "presencial" | "hibrida"
@@ -603,6 +616,17 @@ export const Constants = {
         "campanhas",
         "loja",
         "destaques",
+      ],
+      gerencia_tipo: [
+        "FINANCEIRO",
+        "RECURSOS_HUMANOS",
+        "DEPARTAMENTO_PESSOAL",
+        "MARKETING",
+        "TI",
+        "OPERACAO",
+        "CENTRAL_PRODUCAO",
+        "CD",
+        "MANUTENCAO",
       ],
       ocorrencia_status: ["aberta", "em_andamento", "concluida"],
       reuniao_status: ["agendada", "em_andamento", "finalizada", "cancelada"],
