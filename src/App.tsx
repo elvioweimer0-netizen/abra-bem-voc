@@ -26,6 +26,7 @@ import CriarReuniao from "@/pages/CriarReuniao";
 import AgendaReunioes from "@/pages/AgendaReunioes";
 import HistoricoReunioes from "@/pages/HistoricoReunioes";
 import GestaoUsuarios from "@/pages/GestaoUsuarios";
+import GerenciaPage from "@/pages/GerenciaPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
