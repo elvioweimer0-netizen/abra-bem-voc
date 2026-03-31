@@ -252,11 +252,11 @@ export type Database = {
           ativo: boolean
           cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at: string
-          departamento: Database["public"]["Enums"]["setor_tipo"] | null
           email: string
-          gerencia: Database["public"]["Enums"]["gerencia_tipo"] | null
+          gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
           nome: string
+          setor: Database["public"]["Enums"]["setor_tipo"] | null
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at: string
           user_id: string
@@ -265,11 +265,11 @@ export type Database = {
           ativo?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
-          departamento?: Database["public"]["Enums"]["setor_tipo"] | null
           email: string
-          gerencia?: Database["public"]["Enums"]["gerencia_tipo"] | null
+          gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           nome: string
+          setor?: Database["public"]["Enums"]["setor_tipo"] | null
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
           user_id: string
@@ -278,11 +278,11 @@ export type Database = {
           ativo?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
-          departamento?: Database["public"]["Enums"]["setor_tipo"] | null
           email?: string
-          gerencia?: Database["public"]["Enums"]["gerencia_tipo"] | null
+          gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           nome?: string
+          setor?: Database["public"]["Enums"]["setor_tipo"] | null
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
           user_id?: string

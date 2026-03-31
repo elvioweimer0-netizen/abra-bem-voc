@@ -16,17 +16,25 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  Search, Users, Shield, UserCog, Pencil, Power, ChevronDown, CheckSquare, X,
+  Search, Users, Shield, UserCog, Pencil, Power, CheckSquare, X,
 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 
 const UNIDADES = Constants.public.Enums.unidade_tipo;
 const SETORES = Constants.public.Enums.setor_tipo;
+const GERENCIAS = Constants.public.Enums.gerencia_tipo;
 const ALL_ROLES = Object.keys(roleConfig);
 
 const setorLabels: Record<string, string> = {
   acougue: "Açougue", padaria: "Padaria", hortifruti: "Hortifruti",
   mercearia: "Mercearia", frente_de_caixa: "Frente de Caixa", deposito: "Depósito",
+};
+
+const gerenciaLabels: Record<string, string> = {
+  FINANCEIRO: "Financeiro", RECURSOS_HUMANOS: "Recursos Humanos",
+  DEPARTAMENTO_PESSOAL: "Depto. Pessoal", MARKETING: "Marketing",
+  TI: "TI", OPERACAO: "Operação", CENTRAL_PRODUCAO: "Central Produção",
+  CD: "CD", MANUTENCAO: "Manutenção",
 };
 
 export default function GestaoUsuarios() {
@@ -36,13 +44,14 @@ export default function GestaoUsuarios() {
 
   const [search, setSearch] = useState("");
   const [filterUnidade, setFilterUnidade] = useState("all");
-  const [filterDepartamento, setFilterDepartamento] = useState("all");
+  const [filterSetor, setFilterSetor] = useState("all");
+  const [filterGerencia, setFilterGerencia] = useState("all");
   const [filterCargo, setFilterCargo] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [bulkDialog, setBulkDialog] = useState<{
-    type: "cargo" | "unidade" | "departamento" | "status";
+    type: "cargo" | "unidade" | "setor" | "gerencia" | "status";
     value: string;
   } | null>(null);
 
@@ -62,7 +71,8 @@ export default function GestaoUsuarios() {
         if (!u.nome.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
       }
       if (filterUnidade !== "all" && u.unidade !== filterUnidade) return false;
-      if (filterDepartamento !== "all" && u.departamento !== filterDepartamento) return false;
+      if (filterSetor !== "all" && u.setor !== filterSetor) return false;
+      if (filterGerencia !== "all" && u.gerencia !== filterGerencia) return false;
       if (filterCargo !== "all" && u.cargo !== filterCargo) return false;
       if (filterStatus !== "all") {
         const isAtivo = u.ativo !== false;
@@ -71,7 +81,7 @@ export default function GestaoUsuarios() {
       }
       return true;
     });
-  }, [users, search, filterUnidade, filterDepartamento, filterCargo, filterStatus]);
+  }, [users, search, filterUnidade, filterSetor, filterGerencia, filterCargo, filterStatus]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -93,7 +103,8 @@ export default function GestaoUsuarios() {
     const profileUpdates: Record<string, unknown> = {};
     if (updates.cargo) profileUpdates.cargo = updates.cargo;
     if (updates.unidade) profileUpdates.unidade = updates.unidade;
-    if (updates.departamento !== undefined) profileUpdates.departamento = updates.departamento;
+    if (updates.setor !== undefined) profileUpdates.setor = updates.setor;
+    if (updates.gerencia !== undefined) profileUpdates.gerencia = updates.gerencia;
     if (updates.ativo !== undefined) profileUpdates.ativo = updates.ativo;
 
     const { error: profileError } = await supabase
@@ -122,8 +133,9 @@ export default function GestaoUsuarios() {
         const updates: Partial<UserProfile> = {};
         if (bulkDialog.type === "cargo") updates.cargo = bulkDialog.value;
         if (bulkDialog.type === "unidade") updates.unidade = bulkDialog.value;
-        if (bulkDialog.type === "departamento")
-          updates.departamento = bulkDialog.value === "none" ? null : bulkDialog.value;
+        if (bulkDialog.type === "setor")
+          updates.setor = bulkDialog.value === "none" ? null : bulkDialog.value;
+        if (bulkDialog.type === "gerencia") updates.gerencia = bulkDialog.value;
         if (bulkDialog.type === "status") updates.ativo = bulkDialog.value === "ativo";
         await updateUser(userId, updates);
       }
@@ -146,7 +158,8 @@ export default function GestaoUsuarios() {
   const bulkTypeLabel: Record<string, string> = {
     cargo: "Perfil",
     unidade: "Unidade",
-    departamento: "Departamento",
+    setor: "Setor",
+    gerencia: "Gerência",
     status: "Status",
   };
 
@@ -233,12 +246,23 @@ export default function GestaoUsuarios() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={filterDepartamento} onValueChange={setFilterDepartamento}>
+            <Select value={filterGerencia} onValueChange={setFilterGerencia}>
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Departamento" />
+                <SelectValue placeholder="Gerência" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos Deptos</SelectItem>
+                <SelectItem value="all">Todas Gerências</SelectItem>
+                {GERENCIAS.map((g) => (
+                  <SelectItem key={g} value={g}>{gerenciaLabels[g] ?? g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterSetor} onValueChange={setFilterSetor}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Setor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos Setores</SelectItem>
                 {SETORES.map((s) => (
                   <SelectItem key={s} value={s}>{setorLabels[s] ?? s}</SelectItem>
                 ))}
@@ -302,9 +326,19 @@ export default function GestaoUsuarios() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select onValueChange={(v) => setBulkDialog({ type: "departamento", value: v })}>
-                <SelectTrigger className="w-[160px] h-8 text-xs">
-                  <SelectValue placeholder="Alterar Depto" />
+              <Select onValueChange={(v) => setBulkDialog({ type: "gerencia", value: v })}>
+                <SelectTrigger className="w-[150px] h-8 text-xs">
+                  <SelectValue placeholder="Alterar Gerência" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GERENCIAS.map((g) => (
+                    <SelectItem key={g} value={g}>{gerenciaLabels[g] ?? g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select onValueChange={(v) => setBulkDialog({ type: "setor", value: v })}>
+                <SelectTrigger className="w-[150px] h-8 text-xs">
+                  <SelectValue placeholder="Alterar Setor" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
@@ -358,7 +392,8 @@ export default function GestaoUsuarios() {
                     <TableHead>E-mail</TableHead>
                     <TableHead>Perfil</TableHead>
                     <TableHead>Unidade</TableHead>
-                    <TableHead>Departamento</TableHead>
+                    <TableHead>Gerência</TableHead>
+                    <TableHead>Setor</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-20">Ações</TableHead>
                   </TableRow>
@@ -376,8 +411,9 @@ export default function GestaoUsuarios() {
                       <TableCell className="text-muted-foreground text-sm">{user.email}</TableCell>
                       <TableCell><RoleBadge role={user.cargo} /></TableCell>
                       <TableCell className="text-sm">{user.unidade}</TableCell>
+                      <TableCell className="text-sm">{gerenciaLabels[user.gerencia] ?? user.gerencia}</TableCell>
                       <TableCell className="text-sm">
-                        {user.departamento ? (setorLabels[user.departamento] ?? user.departamento) : "—"}
+                        {user.setor ? (setorLabels[user.setor] ?? user.setor) : "—"}
                       </TableCell>
                       <TableCell><StatusBadge ativo={user.ativo !== false} /></TableCell>
                       <TableCell>
@@ -429,10 +465,12 @@ export default function GestaoUsuarios() {
               <strong>
                 {bulkDialog?.type === "cargo"
                   ? roleConfig[bulkDialog.value]?.label ?? bulkDialog.value
-                  : bulkDialog?.type === "departamento" && bulkDialog.value === "none"
+                  : bulkDialog?.type === "setor" && bulkDialog.value === "none"
                   ? "Nenhum"
-                  : bulkDialog?.type === "departamento"
+                  : bulkDialog?.type === "setor"
                   ? setorLabels[bulkDialog.value] ?? bulkDialog.value
+                  : bulkDialog?.type === "gerencia"
+                  ? gerenciaLabels[bulkDialog.value] ?? bulkDialog.value
                   : bulkDialog?.value}
               </strong>
               . Deseja continuar?
