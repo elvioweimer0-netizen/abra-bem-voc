@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -21,15 +22,18 @@ export function HeaderHome() {
   const firstName = profile?.nome?.split(" ")[0] ?? "";
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           {getGreeting()}, {firstName} 👋
         </h1>
-        <p className="text-muted-foreground text-sm">
-          {profile?.unidade} · <span className="capitalize">{formattedDate}</span>
+        <p className="text-muted-foreground text-sm mt-0.5">
+          <span className="capitalize">{formattedDate}</span>
         </p>
       </div>
+      <Badge variant="secondary" className="self-start sm:self-auto text-xs px-3 py-1">
+        📍 {profile?.unidade || "Carregando..."}
+      </Badge>
     </div>
   );
 }

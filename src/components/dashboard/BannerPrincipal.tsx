@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Megaphone, ArrowRight } from "lucide-react";
+import { Megaphone, ArrowRight, Sparkles } from "lucide-react";
 import type { Noticia } from "@/types/database";
 import { useNavigate } from "react-router-dom";
 
@@ -15,35 +15,36 @@ export function BannerPrincipal({ noticia }: BannerPrincipalProps) {
   if (!noticia) return null;
 
   return (
-    <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/75 text-primary-foreground card-shadow-lg">
+    <Card className="overflow-hidden border-0 gradient-curio-warm text-primary-foreground card-shadow-lg">
       <CardContent className="p-6 sm:p-8 relative">
-        {/* decorative circle */}
-        <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-primary-foreground/5 pointer-events-none" />
-        <div className="absolute -right-4 bottom-0 w-24 h-24 rounded-full bg-primary-foreground/5 pointer-events-none" />
+        {/* decorative elements */}
+        <div className="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-primary-foreground/5 pointer-events-none" />
+        <div className="absolute -right-4 bottom-0 w-28 h-28 rounded-full bg-primary-foreground/5 pointer-events-none" />
+        <div className="absolute left-1/2 -bottom-6 w-64 h-20 rounded-full bg-primary-foreground/3 pointer-events-none blur-2xl" />
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <Megaphone className="w-5 h-5 shrink-0" />
-            <Badge className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs font-semibold">
-              {noticia.importante ? "🔥 Destaque" : "📢 Informativo"}
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 shrink-0 opacity-80" />
+            <Badge className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs font-semibold backdrop-blur-sm">
+              {noticia.importante ? "🔥 Destaque Curió" : "📢 Informativo"}
             </Badge>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold mb-2 leading-tight">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 leading-tight max-w-xl">
             {noticia.titulo}
           </h2>
-          <p className="text-primary-foreground/80 text-sm sm:text-base line-clamp-3 max-w-2xl">
+          <p className="text-primary-foreground/80 text-sm sm:text-base line-clamp-3 max-w-2xl leading-relaxed">
             {noticia.conteudo}
           </p>
 
-          <div className="flex items-center justify-between mt-5">
+          <div className="flex items-center justify-between mt-6">
             <p className="text-primary-foreground/50 text-xs">
               {new Date(noticia.created_at).toLocaleDateString("pt-BR")}
             </p>
             <Button
               size="sm"
               variant="secondary"
-              className="gap-1.5 text-xs font-medium"
+              className="gap-1.5 text-xs font-semibold shadow-md hover:shadow-lg transition-shadow"
               onClick={() => navigate("/noticias")}
             >
               Saiba mais

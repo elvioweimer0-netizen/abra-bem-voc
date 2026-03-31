@@ -17,6 +17,11 @@ import Assistente from "@/pages/Assistente";
 import Noticias from "@/pages/Noticias";
 import EndomarketingPage from "@/pages/EndomarketingPage";
 import Avisos from "@/pages/Avisos";
+import Galeria from "@/pages/Galeria";
+import Reunioes from "@/pages/Reunioes";
+import CriarReuniao from "@/pages/CriarReuniao";
+import AgendaReunioes from "@/pages/AgendaReunioes";
+import HistoricoReunioes from "@/pages/HistoricoReunioes";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +53,11 @@ function ProtectedRoutes() {
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/endomarketing" element={<EndomarketingPage />} />
         <Route path="/avisos" element={<Avisos />} />
+        <Route path="/galeria" element={<Galeria />} />
+        <Route path="/reunioes" element={<Reunioes />} />
+        <Route path="/reunioes/criar" element={<CriarReuniao />} />
+        <Route path="/agenda" element={<AgendaReunioes />} />
+        <Route path="/reunioes/historico" element={<HistoricoReunioes />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
