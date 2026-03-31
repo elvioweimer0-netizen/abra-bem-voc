@@ -23,7 +23,7 @@ export type Database = {
           id: string
           motivo: string
           responsavel: string
-          tipo: string
+          tipo: Database["public"]["Enums"]["advertencia_tipo"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
         }
         Insert: {
@@ -34,7 +34,7 @@ export type Database = {
           id?: string
           motivo: string
           responsavel: string
-          tipo: string
+          tipo: Database["public"]["Enums"]["advertencia_tipo"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
         }
         Update: {
@@ -45,7 +45,7 @@ export type Database = {
           id?: string
           motivo?: string
           responsavel?: string
-          tipo?: string
+          tipo?: Database["public"]["Enums"]["advertencia_tipo"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
         }
         Relationships: [
@@ -128,7 +128,7 @@ export type Database = {
           descricao: string
           id: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status: string
+          status: Database["public"]["Enums"]["ocorrencia_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at: string
         }
@@ -138,7 +138,7 @@ export type Database = {
           descricao: string
           id?: string
           setor: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["ocorrencia_status"]
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
@@ -148,7 +148,7 @@ export type Database = {
           descricao?: string
           id?: string
           setor?: Database["public"]["Enums"]["setor_tipo"]
-          status?: string
+          status?: Database["public"]["Enums"]["ocorrencia_status"]
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           updated_at?: string
         }
