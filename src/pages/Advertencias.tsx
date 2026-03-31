@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Enums } from "@/integrations/supabase/types";
 import { Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
