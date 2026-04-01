@@ -71,6 +71,7 @@ export default function Dashboard() {
 
       {isGestao && <CardsAdministrativos counts={counts} />}
 
+      <CuriozinhoHomeCard />
       <AcoesRapidas />
 
       <MissaoVisaoValores />
