@@ -2,112 +2,111 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
 import { useViewAs } from "@/contexts/ViewAsContext";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, User, Eye, EyeOff, Building } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin, User, Eye, Building } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
+import type { Enums } from "@/integrations/supabase/types";
 
 const cargoLabels: Record<string, string> = {
-  master: "Master",
-  admin: "Admin",
-  adm_departamento: "Adm. Departamento",
-  supervisor: "Supervisor",
-  gerente: "Gerente",
-  lider: "Líder",
-  colaborador: "Colaborador",
+  master: "👑 Master",
+  admin: "👑 Admin",
+  adm_departamento: "📋 Adm. Departamento",
+  supervisor: "📊 Supervisor",
+  gerente: "📊 Gerente",
+  lider: "🧑‍💼 Líder",
+  colaborador: "👷 Colaborador",
 };
 
-const viewAsOptions = ["admin", "gerente", "lider", "colaborador"] as const;
+const viewAsOptions: Enums<"cargo_tipo">[] = ["admin", "gerente", "lider", "colaborador"];
 
 export function AppHeader() {
   const { profile } = useAuth();
   const { realCargo, isRealAdmin } = useRole();
-  const { simulatedCargo, simulatedUnidade, setSimulatedCargo, setSimulatedUnidade, isSimulating } = useViewAs();
-
-  const displayUnidade = simulatedUnidade || profile?.unidade || "Carregando...";
+  const { role, setRole, unidade, setUnidade } = useViewAs();
 
   return (
-    <header className="h-14 border-b bg-card flex items-center px-4 gap-3 shrink-0">
-      <SidebarTrigger />
-      <span className="text-sm font-semibold text-foreground hidden sm:inline">Curió Conecta</span>
-      <div className="flex-1" />
-
-      {/* Simulation banner */}
-      {isSimulating && (
-        <Badge variant="outline" className="gap-1.5 border-amber-500/50 text-amber-600 bg-amber-50 dark:bg-amber-950/30">
-          <Eye className="w-3 h-3" />
-          Visualizando como: {cargoLabels[simulatedCargo || ""]}
-        </Badge>
-      )}
-
-      {/* Admin: View As selector */}
-      {isRealAdmin && (
-        <div className="flex items-center gap-2">
-          <Select
-            value={simulatedCargo || "__real__"}
-            onValueChange={(v) => setSimulatedCargo(v === "__real__" ? null : v as any)}
-          >
-            <SelectTrigger className="h-8 w-[140px] text-xs">
-              <Eye className="w-3 h-3 mr-1 shrink-0" />
-              <SelectValue placeholder="Visualizar como" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__real__">Meu perfil real</SelectItem>
-              {viewAsOptions.map((c) => (
-                <SelectItem key={c} value={c}>{cargoLabels[c]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Unit selector for admin */}
-          <Select
-            value={simulatedUnidade || "__real__"}
-            onValueChange={(v) => setSimulatedUnidade(v === "__real__" ? null : v as any)}
-          >
-            <SelectTrigger className="h-8 w-[150px] text-xs">
-              <Building className="w-3 h-3 mr-1 shrink-0" />
-              <SelectValue placeholder="Unidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__real__">Minha unidade</SelectItem>
-              {Constants.public.Enums.unidade_tipo.map((u) => (
-                <SelectItem key={u} value={u}>{u}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {isSimulating && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => { setSimulatedCargo(null); setSimulatedUnidade(null); }}
-              title="Sair do modo de visualização"
-            >
-              <EyeOff className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      )}
-
-      {profile && (
+    <header className="sticky top-0 z-20 border-b bg-card">
+      <div className="flex min-h-[4rem] items-center justify-between px-4 md:px-6">
+        {/* Left: Sidebar trigger + branding */}
         <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="gap-1.5">
-            <MapPin className="w-3 h-3" />
-            {displayUnidade}
-          </Badge>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-4 h-4 text-primary" />
+          <SidebarTrigger />
+          <div className="hidden sm:flex items-center gap-2.5">
+            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm">
+              C
             </div>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium leading-none">{profile.nome}</p>
-              <p className="text-xs text-muted-foreground capitalize">{cargoLabels[realCargo] || realCargo}</p>
+            <div>
+              <h1 className="text-base font-bold text-primary leading-tight">
+                Curió Conecta
+              </h1>
+              <p className="text-[11px] text-muted-foreground">
+                Supermercado Curió
+              </p>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Center: Role + Unit badges */}
+        <div className="hidden lg:flex items-center gap-2">
+          <span className="px-3 py-1 rounded-full text-xs bg-primary/10 text-primary font-medium">
+            {cargoLabels[role] || role}
+          </span>
+          <span className="px-3 py-1 rounded-full text-xs bg-muted text-muted-foreground font-medium flex items-center gap-1">
+            <MapPin className="w-3 h-3" />
+            {unidade}
+          </span>
+        </div>
+
+        {/* Right: Selectors + User info */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {isRealAdmin && (
+            <>
+              <Select
+                value={role}
+                onValueChange={(v) => setRole(v as Enums<"cargo_tipo">)}
+              >
+                <SelectTrigger className="h-9 w-[150px] text-xs">
+                  <Eye className="w-3.5 h-3.5 mr-1 shrink-0 text-muted-foreground" />
+                  <SelectValue placeholder="Visualizar como" />
+                </SelectTrigger>
+                <SelectContent>
+                  {viewAsOptions.map((c) => (
+                    <SelectItem key={c} value={c}>{cargoLabels[c]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={unidade}
+                onValueChange={(v) => setUnidade(v as Enums<"unidade_tipo">)}
+              >
+                <SelectTrigger className="h-9 w-[160px] text-xs">
+                  <Building className="w-3.5 h-3.5 mr-1 shrink-0 text-muted-foreground" />
+                  <SelectValue placeholder="Unidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Constants.public.Enums.unidade_tipo.map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+
+          {profile && (
+            <div className="flex items-center gap-2 ml-1">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-semibold leading-none">{profile.nome}</p>
+                <p className="text-[11px] text-muted-foreground capitalize">
+                  {cargoLabels[realCargo]?.replace(/^.+\s/, '') || realCargo}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </header>
   );
 }
