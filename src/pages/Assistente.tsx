@@ -202,9 +202,7 @@ export default function Assistente() {
                 ))}
                 {loading && messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4 text-primary" />
-                    </div>
+                    <CuriozinhoAvatar className="h-8 w-8 shrink-0" />
                     <div className="bg-muted p-3 rounded-2xl rounded-bl-md">
                       <div className="flex gap-1">
                         <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
