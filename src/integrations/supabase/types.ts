@@ -436,6 +436,8 @@ export type Database = {
         | "master"
         | "adm_departamento"
         | "supervisor"
+        | "gerente_adm"
+        | "gerente_loja"
       colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
       endomarketing_tipo: "aniversario" | "destaque" | "campanha" | "mensagem"
       galeria_categoria:
@@ -607,6 +609,8 @@ export const Constants = {
         "master",
         "adm_departamento",
         "supervisor",
+        "gerente_adm",
+        "gerente_loja",
       ],
       colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
       endomarketing_tipo: ["aniversario", "destaque", "campanha", "mensagem"],
