@@ -1,11 +1,12 @@
 import {
-  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
+  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, LogOut,
   Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
   BookOpen, ClipboardList, FileCheck, UserCog, ChevronDown,
   Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
   Calendar, Clock, Receipt, FilePlus,
 } from "lucide-react";
+import { CuriozinhoAvatar } from "@/components/curiozinho";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
