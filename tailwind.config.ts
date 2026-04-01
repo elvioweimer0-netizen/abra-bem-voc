@@ -95,10 +95,17 @@ export default {
             height: "0",
           },
         },
+        "curiozinho-flap": {
+          "0%, 100%": { transform: "rotate(-3deg) scale(1)" },
+          "25%": { transform: "rotate(3deg) scale(1.05)" },
+          "50%": { transform: "rotate(-2deg) scale(1.02)" },
+          "75%": { transform: "rotate(2deg) scale(1.04)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "curiozinho-flap": "curiozinho-flap 0.8s ease-in-out infinite",
       },
     },
   },
