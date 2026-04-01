@@ -176,9 +176,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0">
       {/* Logo */}
       <div className="p-4 flex items-center gap-3">
-        <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm shrink-0">
-          C
-        </div>
+        <img
+          src="/logo-curio.png"
+          alt="Curió"
+          className="h-10 w-10 object-contain shrink-0"
+        />
         {!collapsed && (
           <div className="min-w-0">
             <h2 className="font-bold text-sidebar-foreground text-sm truncate">
