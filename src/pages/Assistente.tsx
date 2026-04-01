@@ -156,14 +156,12 @@ export default function Assistente() {
           <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                </div>
+                <CuriozinhoAvatar className="h-20 w-20 mb-4" />
                 <h3 className="font-semibold text-lg mb-1">
                   Olá{profile?.nome ? `, ${profile.nome.split(" ")[0]}` : ""}! 👋
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                  Sou a Assistente IA do Curió. Posso responder sobre regras da empresa, atendimento, procedimentos de caixa, segurança e muito mais.
+                  Sou o Curiózinho! Posso responder sobre regras da empresa, atendimento, procedimentos de caixa, segurança e muito mais.
                 </p>
                 <div className="grid grid-cols-2 gap-2 max-w-md">
                   {SUGGESTIONS.map((s) => (
