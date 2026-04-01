@@ -3,9 +3,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Bot, Send, User, Sparkles } from "lucide-react";
+import { Send, User, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { CuriozinhoAvatar, CuriozinhoAssistantHeader } from "@/components/curiozinho";
 import { toast } from "sonner";
 
 interface Message {
@@ -148,29 +149,19 @@ export default function Assistente() {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Bot className="w-6 h-6 text-primary" />
-          Assistente IA do Curió
-        </h1>
-        <p className="text-muted-foreground">
-          Tire dúvidas sobre regras, procedimentos, atendimento e operação — com base no Código de Ética e na Cartilha Operacional.
-        </p>
-      </div>
+      <CuriozinhoAssistantHeader />
 
       <Card className="overflow-hidden">
         <CardContent className="p-0 flex flex-col" style={{ height: "calc(100vh - 280px)" }}>
           <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                </div>
+                <CuriozinhoAvatar className="h-20 w-20 mb-4" />
                 <h3 className="font-semibold text-lg mb-1">
                   Olá{profile?.nome ? `, ${profile.nome.split(" ")[0]}` : ""}! 👋
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                  Sou a Assistente IA do Curió. Posso responder sobre regras da empresa, atendimento, procedimentos de caixa, segurança e muito mais.
+                  Sou o Curiózinho! Posso responder sobre regras da empresa, atendimento, procedimentos de caixa, segurança e muito mais.
                 </p>
                 <div className="grid grid-cols-2 gap-2 max-w-md">
                   {SUGGESTIONS.map((s) => (
@@ -191,9 +182,7 @@ export default function Assistente() {
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
                     {msg.role === "assistant" && (
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Bot className="w-4 h-4 text-primary" />
-                      </div>
+                      <CuriozinhoAvatar className="h-8 w-8 shrink-0" />
                     )}
                     <div
                       className={`max-w-[80%] p-3 rounded-2xl text-sm whitespace-pre-wrap ${
@@ -213,9 +202,7 @@ export default function Assistente() {
                 ))}
                 {loading && messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4 text-primary" />
-                    </div>
+                    <CuriozinhoAvatar className="h-8 w-8 shrink-0" />
                     <div className="bg-muted p-3 rounded-2xl rounded-bl-md">
                       <div className="flex gap-1">
                         <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />

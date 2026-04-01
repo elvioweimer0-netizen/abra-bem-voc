@@ -1,11 +1,12 @@
 import {
-  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, Bot, LogOut,
+  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, LogOut,
   Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
   BookOpen, ClipboardList, FileCheck, UserCog, ChevronDown,
   Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
   Calendar, Clock, Receipt, FilePlus,
 } from "lucide-react";
+import { CuriozinhoAvatar } from "@/components/curiozinho";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -263,12 +264,30 @@ export function AppSidebar() {
           />
         )}
 
-        {/* Ferramentas */}
-        <MenuSection
-          label="Ferramentas"
-          items={[{ title: "Assistente IA", url: "/assistente", icon: Bot }]}
-          collapsed={collapsed}
-        />
+        {/* Ferramentas - Curiózinho */}
+        <SidebarGroup>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] tracking-widest font-semibold">
+              Ferramentas
+            </SidebarGroupLabel>
+          )}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/assistente"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                    activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                  >
+                    <CuriozinhoAvatar className="h-5 w-5 shrink-0" />
+                    {!collapsed && <span className="text-sm">Curiózinho</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-2">

@@ -13,6 +13,7 @@ import { CardsAdministrativos } from "@/components/dashboard/CardsAdministrativo
 import { HojeNoCurio } from "@/components/dashboard/HojeNoCurio";
 import { MomentosCurio } from "@/components/dashboard/MomentosCurio";
 import { MissaoVisaoValores } from "@/components/dashboard/MissaoVisaoValores";
+import { CuriozinhoHomeCard } from "@/components/curiozinho";
 import type { Noticia, Endomarketing } from "@/types/database";
 
 export default function Dashboard() {
@@ -70,6 +71,7 @@ export default function Dashboard() {
 
       {isGestao && <CardsAdministrativos counts={counts} />}
 
+      <CuriozinhoHomeCard />
       <AcoesRapidas />
 
       <MissaoVisaoValores />
