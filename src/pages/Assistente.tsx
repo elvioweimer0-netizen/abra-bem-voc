@@ -3,9 +3,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Bot, Send, User, Sparkles } from "lucide-react";
+import { Send, User, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { CuriozinhoAvatar, CuriozinhoAssistantHeader } from "@/components/curiozinho";
 import { toast } from "sonner";
 
 interface Message {
