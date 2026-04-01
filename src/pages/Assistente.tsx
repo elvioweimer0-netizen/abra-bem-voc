@@ -149,15 +149,7 @@ export default function Assistente() {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Bot className="w-6 h-6 text-primary" />
-          Assistente IA do Curió
-        </h1>
-        <p className="text-muted-foreground">
-          Tire dúvidas sobre regras, procedimentos, atendimento e operação — com base no Código de Ética e na Cartilha Operacional.
-        </p>
-      </div>
+      <CuriozinhoAssistantHeader />
 
       <Card className="overflow-hidden">
         <CardContent className="p-0 flex flex-col" style={{ height: "calc(100vh - 280px)" }}>
