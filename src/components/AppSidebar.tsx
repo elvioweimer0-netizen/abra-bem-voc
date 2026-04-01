@@ -264,12 +264,30 @@ export function AppSidebar() {
           />
         )}
 
-        {/* Ferramentas */}
-        <MenuSection
-          label="Ferramentas"
-          items={[{ title: "Assistente IA", url: "/assistente", icon: Bot }]}
-          collapsed={collapsed}
-        />
+        {/* Ferramentas - Curiózinho */}
+        <SidebarGroup>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] tracking-widest font-semibold">
+              Ferramentas
+            </SidebarGroupLabel>
+          )}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/assistente"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                    activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                  >
+                    <CuriozinhoAvatar className="h-5 w-5 shrink-0" />
+                    {!collapsed && <span className="text-sm">Curiózinho</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-2">
