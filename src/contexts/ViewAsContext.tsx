@@ -1,33 +1,24 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState } from "react";
 import type { Enums } from "@/integrations/supabase/types";
 
-type CargoTipo = Enums<"cargo_tipo">;
-type UnidadeTipo = Enums<"unidade_tipo">;
+type Role = Enums<"cargo_tipo">;
+type Unidade = Enums<"unidade_tipo">;
 
-interface ViewAsContextType {
-  simulatedCargo: CargoTipo | null;
-  simulatedUnidade: UnidadeTipo | null;
-  setSimulatedCargo: (cargo: CargoTipo | null) => void;
-  setSimulatedUnidade: (unidade: UnidadeTipo | null) => void;
-  isSimulating: boolean;
-}
+type ViewAsContextType = {
+  role: Role;
+  setRole: (role: Role) => void;
+  unidade: Unidade;
+  setUnidade: (unidade: Unidade) => void;
+};
 
-const ViewAsContext = createContext<ViewAsContextType | undefined>(undefined);
+const ViewAsContext = createContext<ViewAsContextType | null>(null);
 
-export function ViewAsProvider({ children }: { children: ReactNode }) {
-  const [simulatedCargo, setSimulatedCargo] = useState<CargoTipo | null>(null);
-  const [simulatedUnidade, setSimulatedUnidade] = useState<UnidadeTipo | null>(null);
+export function ViewAsProvider({ children }: { children: React.ReactNode }) {
+  const [role, setRole] = useState<Role>("admin");
+  const [unidade, setUnidade] = useState<Unidade>("CIDADE ALTA");
 
   return (
-    <ViewAsContext.Provider
-      value={{
-        simulatedCargo,
-        simulatedUnidade,
-        setSimulatedCargo,
-        setSimulatedUnidade,
-        isSimulating: simulatedCargo !== null,
-      }}
-    >
+    <ViewAsContext.Provider value={{ role, setRole, unidade, setUnidade }}>
       {children}
     </ViewAsContext.Provider>
   );
@@ -35,6 +26,6 @@ export function ViewAsProvider({ children }: { children: ReactNode }) {
 
 export function useViewAs() {
   const context = useContext(ViewAsContext);
-  if (!context) throw new Error("useViewAs must be used within ViewAsProvider");
+  if (!context) throw new Error("useViewAs must be used inside ViewAsProvider");
   return context;
 }

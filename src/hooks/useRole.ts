@@ -9,10 +9,10 @@ const USER_MGMT_ROLES: CargoTipo[] = ["master", "admin", "adm_departamento", "su
 
 export function useRole() {
   const { profile } = useAuth();
-  const { simulatedCargo, isSimulating } = useViewAs();
+  const { role } = useViewAs();
 
   const realCargo = (profile?.cargo ?? "colaborador") as CargoTipo;
-  const cargo = (isSimulating && simulatedCargo ? simulatedCargo : realCargo) as CargoTipo;
+  const cargo = role as CargoTipo;
 
   return {
     cargo,
