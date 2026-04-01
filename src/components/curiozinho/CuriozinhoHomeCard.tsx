@@ -9,7 +9,7 @@ export function CuriozinhoHomeCard() {
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           <div className="shrink-0">
-            <CuriozinhoAvatar className="h-14 w-14" />
+            <CuriozinhoAvatar className="h-14 w-14" animated />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-foreground text-base mb-1">

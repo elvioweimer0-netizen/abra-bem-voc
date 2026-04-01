@@ -156,7 +156,7 @@ export default function Assistente() {
           <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <CuriozinhoAvatar className="h-20 w-20 mb-4" />
+                <CuriozinhoAvatar className="h-20 w-20 mb-4" animated />
                 <h3 className="font-semibold text-lg mb-1">
                   Olá{profile?.nome ? `, ${profile.nome.split(" ")[0]}` : ""}! 👋
                 </h3>
