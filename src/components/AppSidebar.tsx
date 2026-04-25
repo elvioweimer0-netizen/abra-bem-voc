@@ -187,9 +187,9 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
-  const { isAdmin, isGerente, isEncarregado } = useRole();
+  const { isAdmin, isGerente, isEncarregado, isSupervisor, isLeadershipPanel } = useRole();
 
-  const showEncarregado = isEncarregado || isGerente || isAdmin;
+  const showEncarregado = isEncarregado || isGerente || isAdmin || isSupervisor;
   const showGerente = isGerente || isAdmin;
 
   return (
@@ -245,11 +245,13 @@ export function AppSidebar() {
 
         {showEncarregado && <MenuSection label="Operação" items={encarregadoItems} collapsed={collapsed} />}
 
+        {isLeadershipPanel && <MenuSection label="Cobrança" items={[{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }]} collapsed={collapsed} />}
+
         {showGerente && (
           <MenuSection
             label="Gestão da Unidade"
             items={[
-              { title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge },
+              { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
               { title: "Colaboradores", url: "/colaboradores", icon: Users },
               { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
               { title: "Suspensões", url: "/suspensoes", icon: Ban },
