@@ -378,6 +378,7 @@ export default function GestaoUsuarios() {
               <p className="text-sm">Ajuste os filtros ou busca</p>
             </div>
           ) : (
+            <>
             <div className="space-y-3 p-4 md:hidden">
               {filtered.map((user) => (
                 <article key={user.id} className={`rounded-xl border border-border bg-card p-4 ${selectedIds.has(user.user_id) ? "ring-2 ring-primary/30" : ""}`}>
@@ -460,6 +461,7 @@ export default function GestaoUsuarios() {
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
