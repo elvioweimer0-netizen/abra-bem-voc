@@ -32,9 +32,11 @@ export function useRole() {
   const cargo = (ADMIN_ROLES.includes(realCargo) ? role : realCargo) as CargoTipo;
   const appProfile = ADMIN_ROLES.includes(cargo)
     ? "admin"
+    : cargo === "supervisor"
+      ? "supervisor"
     : ["gerente", "gerente_loja", "gerente_adm"].includes(cargo)
       ? "gerente"
-      : ["encarregado", "lider", "supervisor", "adm_departamento"].includes(cargo)
+      : ["encarregado", "lider", "adm_departamento"].includes(cargo)
         ? "encarregado"
         : "colaborador";
 
@@ -54,6 +56,7 @@ export function useRole() {
     isColaborador: appProfile === "colaborador",
     isEncarregado: appProfile === "encarregado",
     isGerente: appProfile === "gerente",
+    isLeadershipPanel: appProfile === "supervisor" || appProfile === "admin",
 
     // Flags compostas
     isGestao: GESTAO_ROLES.includes(cargo),
