@@ -5,7 +5,7 @@ import { useViewAs } from "@/contexts/ViewAsContext";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MapPin, User, Eye, Building } from "lucide-react";
+import { Bell, MapPin, User, Eye, Building } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 
@@ -50,14 +50,12 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="flex min-h-[4rem] items-center justify-between px-4 md:px-6">
+      <div className="relative flex h-14 items-center justify-between px-3 md:h-16 md:px-6">
         {/* Left: Sidebar trigger + branding */}
         <div className="flex items-center gap-3">
-          <SidebarTrigger />
+          <SidebarTrigger className="h-12 w-12 md:h-10 md:w-10" />
           <div className="hidden sm:flex items-center gap-2.5">
-            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm">
-              C
-            </div>
+            <img src="/curio_logo_claro.png" alt="Curió Conecta" className="h-9 w-auto object-contain" />
             <div>
               <h1 className="text-base font-bold text-primary leading-tight">
                 Curió Conecta
@@ -68,6 +66,12 @@ export function AppHeader() {
             </div>
           </div>
         </div>
+
+        <img
+          src="/curio_logo_claro.png"
+          alt="Curió Conecta"
+          className="absolute left-1/2 h-8 w-auto -translate-x-1/2 object-contain sm:hidden"
+        />
 
         {/* Center: Role + Unit badges */}
         <div className="hidden lg:flex items-center gap-2">
@@ -86,7 +90,7 @@ export function AppHeader() {
         </div>
 
         {/* Right: Selectors + User info */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-1 md:gap-3">
           {isRealAdmin && (
             <>
               <Select
@@ -125,7 +129,11 @@ export function AppHeader() {
 
           {profile && (
             <div className="flex items-center gap-2 ml-1">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <button className="relative flex h-12 w-12 items-center justify-center rounded-full text-muted-foreground md:hidden" aria-label="Notificações">
+                <Bell className="h-5 w-5" />
+                <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
+              </button>
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
                 <User className="w-4 h-4 text-primary" />
               </div>
               <div className="hidden sm:block text-right">
