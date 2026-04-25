@@ -53,15 +53,15 @@ export default function Advertencias() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><AlertTriangle className="w-6 h-6 text-warning" /> Advertências</h1>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><AlertTriangle className="w-6 h-6 text-warning" /> Advertências</h1>
           <p className="text-muted-foreground">Gerenciar advertências de colaboradores</p>
         </div>
         {canEdit && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" /> Nova Advertência</Button>
+              <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Nova Advertência</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Cadastrar Advertência</DialogTitle></DialogHeader>
@@ -112,7 +112,21 @@ export default function Advertencias() {
 
       <Card className="card-shadow">
         <CardContent className="pt-6">
-          <Table>
+          <div className="space-y-3 md:hidden">
+            {advertencias.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma advertência encontrada.</p>
+            ) : advertencias.map((a) => (
+              <article key={a.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-semibold text-foreground">{a.colaboradores?.nome || "—"}</h3>
+                  <Badge variant={a.tipo === "verbal" ? "secondary" : "destructive"}>{a.tipo}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{new Date(a.data).toLocaleDateString("pt-BR")} · {a.responsavel}</p>
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{a.motivo}</p>
+              </article>
+            ))}
+          </div>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Colaborador</TableHead>
