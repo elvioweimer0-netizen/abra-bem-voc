@@ -63,7 +63,7 @@ export default function Dashboard() {
   const heroBanner = noticias.find((n) => n.importante) || noticias[0];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <HeaderHome />
       <AvisosBanner />
       <BannerPrincipal noticia={heroBanner} />

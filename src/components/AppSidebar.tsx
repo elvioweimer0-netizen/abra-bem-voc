@@ -6,6 +6,7 @@ import {
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
   Calendar, Clock, Receipt, FilePlus,
 } from "lucide-react";
+import type { Enums } from "@/integrations/supabase/types";
 import { CuriozinhoAvatar } from "@/components/curiozinho";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NavLink } from "@/components/NavLink";
@@ -155,6 +156,18 @@ const solicitacoesItems: MenuItem[] = [
   { title: "Manutenção", url: "/chamados-manutencao", icon: Wrench },
 ];
 
+const cargoLabels: Record<Enums<"cargo_tipo">, string> = {
+  admin: "Admin",
+  gerente: "Gerente",
+  lider: "Líder",
+  colaborador: "Colaborador",
+  master: "Master",
+  adm_departamento: "Adm. Departamento",
+  supervisor: "Supervisor",
+  gerente_adm: "Gerente Adm.",
+  gerente_loja: "Gerente Loja",
+};
+
 /* ─── component ─── */
 
 export function AppSidebar() {
@@ -178,9 +191,9 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="p-4 flex items-center gap-3">
         <img
-          src="/logo-curio.png"
+          src="/curio_logo_escuro.png"
           alt="Curió"
-          className="h-10 w-10 object-contain shrink-0"
+          className="h-10 w-auto object-contain shrink-0"
         />
         {!collapsed && (
           <div className="min-w-0">
@@ -193,6 +206,22 @@ export function AppSidebar() {
           </div>
         )}
       </div>
+
+      {!collapsed && profile && (
+        <div className="mx-4 mb-3 rounded-xl border border-sidebar-border bg-sidebar-accent/60 p-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sidebar-primary/15 text-sidebar-primary">
+              <UserCircle className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-sidebar-foreground">{profile.nome}</p>
+              <p className="truncate text-xs text-sidebar-foreground/60">
+                {cargoLabels[profile.cargo]} • {profile.unidade}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!collapsed && <Separator className="mx-4 w-auto opacity-30" />}
 

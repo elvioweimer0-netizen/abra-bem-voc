@@ -44,15 +44,15 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
-            src="/logo-curio.png"
+            src="/curio_logo_vermelho.png"
             alt="Curió Supermercados"
-            className="h-28 mx-auto mb-4 object-contain"
+            className="h-24 mx-auto mb-4 object-contain"
           />
           <h1 className="text-2xl font-bold text-foreground">Curió Conecta</h1>
           <p className="text-muted-foreground mt-1">Portal interno de gestão</p>
         </div>
 
-        <Card className="card-shadow-lg border-border/50">
+        <Card className="card-shadow-lg border-border">
           <CardHeader className="pb-4">
             <div className="flex gap-2">
               <Button

@@ -32,23 +32,23 @@ export function AcoesRapidas() {
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+      <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
         ⚡ Ações Rápidas
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-3">
         {visibleActions.map((action) => (
           <Card
             key={action.label}
-            className="card-shadow hover:card-shadow-md transition-all cursor-pointer group hover:-translate-y-0.5"
+            className="aspect-square hover:card-shadow-md transition-all cursor-pointer group hover:-translate-y-0.5"
             onClick={() => navigate(action.href)}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2.5 text-center">
+            <CardContent className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center">
               <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform`}
+                className={`w-14 h-14 rounded-xl flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform`}
               >
-                <action.icon className="w-5 h-5" />
+                <action.icon className="w-7 h-7" />
               </div>
-              <span className="text-xs font-medium text-foreground leading-tight">
+              <span className="text-sm font-semibold text-foreground leading-tight">
                 {action.label}
               </span>
             </CardContent>
