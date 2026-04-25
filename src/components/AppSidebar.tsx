@@ -249,7 +249,7 @@ export function AppSidebar() {
 
         {showEncarregado && <MenuSection label="Operação" items={encarregadoItems} collapsed={collapsed} />}
 
-        {isLeadershipPanel && <MenuSection label="Cobrança" items={[{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }]} collapsed={collapsed} />}
+        {isLeadershipPanel && <MenuSection label="Cobrança" items={[{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }, { title: "Reuniões", url: "/reunioes-lideranca", icon: CalendarClock }, { title: "+ Novo B.O.", url: "/bo-eletronico", icon: ClipboardPlus }, { title: "Inspeções", url: "/inspecoes", icon: SearchCheck }]} collapsed={collapsed} />}
 
         {showGerente && (
           <MenuSection
