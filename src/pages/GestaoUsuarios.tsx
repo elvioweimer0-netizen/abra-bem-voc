@@ -225,8 +225,8 @@ export default function GestaoUsuarios() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            <div className="relative sm:col-span-2 lg:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome ou e-mail..."
@@ -236,7 +236,7 @@ export default function GestaoUsuarios() {
               />
             </div>
             <Select value={filterUnidade} onValueChange={setFilterUnidade}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Unidade" />
               </SelectTrigger>
               <SelectContent>
@@ -247,7 +247,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterGerencia} onValueChange={setFilterGerencia}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Gerência" />
               </SelectTrigger>
               <SelectContent>
@@ -258,7 +258,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterSetor} onValueChange={setFilterSetor}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Setor" />
               </SelectTrigger>
               <SelectContent>
@@ -269,7 +269,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterCargo} onValueChange={setFilterCargo}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Perfil" />
               </SelectTrigger>
               <SelectContent>
@@ -280,7 +280,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
