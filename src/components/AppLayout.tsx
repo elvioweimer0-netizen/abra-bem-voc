@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { ViewAsProvider } from "@/contexts/ViewAsContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { FloatingBoButton } from "@/components/leadership/FloatingBoButton";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 {children}
               </main>
             </ScrollArea>
+            <FloatingBoButton />
             <MobileBottomNav />
           </div>
         </div>
