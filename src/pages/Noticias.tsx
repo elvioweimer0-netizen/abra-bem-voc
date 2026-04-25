@@ -84,9 +84,9 @@ export default function Noticias() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <Megaphone className="w-6 h-6 text-primary" /> Notícias
           </h1>
           <p className="text-muted-foreground text-sm">Informativo do mercado</p>
@@ -94,7 +94,7 @@ export default function Noticias() {
         {canEdit && (
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Notícia</Button>
+              <Button className="w-full gap-2 sm:w-auto"><Plus className="w-4 h-4" /> Nova Notícia</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -125,7 +125,22 @@ export default function Noticias() {
 
       <Card className="card-shadow">
         <CardContent className="pt-6">
-          <Table>
+          <div className="space-y-3 md:hidden">
+            {noticias.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma notícia.</p>
+            ) : noticias.map((n) => (
+              <article key={n.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-semibold text-foreground">{n.titulo}</h3>
+                  {n.importante && <Badge variant="destructive">Importante</Badge>}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{n.unidade || "Geral"} · {new Date(n.created_at).toLocaleDateString("pt-BR")}</p>
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{n.conteudo}</p>
+                {canEdit && <div className="mt-3 flex gap-2"><Button variant="outline" size="sm" onClick={() => openEdit(n)}><Pencil className="w-4 h-4" /> Editar</Button><Button variant="ghost" size="sm" onClick={() => handleDelete(n.id)}><Trash2 className="w-4 h-4 text-destructive" /> Excluir</Button></div>}
+              </article>
+            ))}
+          </div>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
