@@ -4,7 +4,7 @@ import {
   BookOpen, ClipboardList, FileCheck, UserCog, ChevronDown,
   Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
-  Settings, ScrollText,
+  Settings, ScrollText, ClipboardCheck, Gauge,
 } from "lucide-react";
 import type { Enums } from "@/integrations/supabase/types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -130,6 +130,7 @@ const colaboradorEssentials: MenuItem[] = [
 ];
 
 const encarregadoItems: MenuItem[] = [
+  { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
   { title: "Meu Departamento", url: "/departamentos", icon: Building },
   { title: "Minha Equipe", url: "/colaboradores", icon: Users },
   { title: "Registrar Ocorrência", url: "/departamentos", icon: AlertTriangle },
@@ -248,6 +249,7 @@ export function AppSidebar() {
           <MenuSection
             label="Gestão da Unidade"
             items={[
+              { title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge },
               { title: "Colaboradores", url: "/colaboradores", icon: Users },
               { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
               { title: "Suspensões", url: "/suspensoes", icon: Ban },
