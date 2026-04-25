@@ -14,7 +14,7 @@ type ViewAsContextType = {
 const ViewAsContext = createContext<ViewAsContextType | null>(null);
 
 export function ViewAsProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<Role>("admin");
+  const [role, setRole] = useState<Role>("colaborador");
   const [unidade, setUnidade] = useState<Unidade>("CIDADE ALTA");
 
   return (

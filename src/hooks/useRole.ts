@@ -4,6 +4,7 @@ import { useViewAs } from "@/contexts/ViewAsContext";
 export type CargoTipo =
   | "master"
   | "admin"
+  | "encarregado"
   | "adm_departamento"
   | "supervisor"
   | "gerente"
@@ -14,8 +15,7 @@ export type CargoTipo =
 
 /** Perfis que podem ver áreas de gestão */
 const GESTAO_ROLES: CargoTipo[] = [
-  "master", "admin", "adm_departamento", "supervisor",
-  "gerente", "gerente_adm", "gerente_loja", "lider",
+  "master", "admin", "gerente", "gerente_adm", "gerente_loja",
 ];
 
 /** Perfis com poderes administrativos globais */
@@ -29,11 +29,19 @@ export function useRole() {
   const { role } = useViewAs();
 
   const realCargo = (profile?.cargo ?? "colaborador") as CargoTipo;
-  const cargo = role as CargoTipo;
+  const cargo = (ADMIN_ROLES.includes(realCargo) ? role : realCargo) as CargoTipo;
+  const appProfile = ADMIN_ROLES.includes(cargo)
+    ? "admin"
+    : ["gerente", "gerente_loja", "gerente_adm"].includes(cargo)
+      ? "gerente"
+      : ["encarregado", "lider", "supervisor", "adm_departamento"].includes(cargo)
+        ? "encarregado"
+        : "colaborador";
 
   return {
     cargo,
     realCargo,
+    appProfile,
 
     // Flags básicas
     isMaster: cargo === "master",
@@ -43,7 +51,9 @@ export function useRole() {
     isGerenteAdm: cargo === "gerente_adm" || cargo === "adm_departamento",
     isGerenteLoja: cargo === "gerente_loja" || cargo === "gerente",
     isLider: cargo === "lider",
-    isColaborador: cargo === "colaborador",
+    isColaborador: appProfile === "colaborador",
+    isEncarregado: appProfile === "encarregado",
+    isGerente: appProfile === "gerente",
 
     // Flags compostas
     isGestao: GESTAO_ROLES.includes(cargo),

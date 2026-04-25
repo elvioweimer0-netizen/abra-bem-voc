@@ -14,6 +14,7 @@ import type { Enums } from "@/integrations/supabase/types";
 const cargoLabels: Record<string, string> = {
   master: "👑 Master",
   admin: "👑 Admin",
+  encarregado: "🧑‍💼 Encarregado",
   supervisor: "📊 Supervisor",
   adm_departamento: "📋 Adm. Departamento",
   gerente_adm: "📋 Gerente Adm.",
@@ -24,12 +25,13 @@ const cargoLabels: Record<string, string> = {
 };
 
 const viewAsOptions: Enums<"cargo_tipo">[] = [
-  "admin", "supervisor", "gerente_adm", "gerente_loja", "colaborador",
+  "colaborador", "encarregado", "gerente", "admin",
 ];
 
 const roleColorMap: Record<string, string> = {
   master: "bg-red-900/15 text-red-900",
   admin: "bg-red-700/15 text-red-700",
+  encarregado: "bg-success/15 text-success",
   supervisor: "bg-purple-700/15 text-purple-700",
   adm_departamento: "bg-blue-700/15 text-blue-700",
   gerente_adm: "bg-blue-700/15 text-blue-700",
@@ -97,7 +99,7 @@ export function AppHeader() {
                 value={role}
                 onValueChange={(v) => setRole(v as Enums<"cargo_tipo">)}
               >
-                <SelectTrigger className="h-9 w-[160px] text-xs">
+                <SelectTrigger className="hidden h-10 w-[170px] text-xs sm:flex">
                   <Eye className="w-3.5 h-3.5 mr-1 shrink-0 text-muted-foreground" />
                   <SelectValue placeholder="Visualizar como" />
                 </SelectTrigger>

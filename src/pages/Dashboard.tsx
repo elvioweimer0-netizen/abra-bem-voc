@@ -18,7 +18,8 @@ import type { Noticia, Endomarketing } from "@/types/database";
 
 export default function Dashboard() {
   const { profile } = useAuth();
-  const { isGestao } = useRole();
+  const { isGerente, isAdmin } = useRole();
+  const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
   const [noticias, setNoticias] = useState<Noticia[]>([]);
   const [endomarketing, setEndomarketing] = useState<Endomarketing[]>([]);
@@ -34,7 +35,7 @@ export default function Dashboard() {
         supabase.from("endomarketing").select("*").eq("tipo", "mensagem").order("data", { ascending: false }).limit(3),
       ] as const;
 
-      const gestaoPromises = isGestao ? [
+      const gestaoPromises = showAdminMetrics ? [
         supabase.from("colaboradores").select("id", { count: "exact", head: true }),
         supabase.from("advertencias").select("id", { count: "exact", head: true }),
         supabase.from("suspensoes").select("id", { count: "exact", head: true }),
@@ -47,7 +48,7 @@ export default function Dashboard() {
       setEndomarketing((endo.data as Endomarketing[]) || []);
       setMensagens((msgs.data as Endomarketing[]) || []);
 
-      if (isGestao && countResults.length === 4) {
+      if (showAdminMetrics && countResults.length === 4) {
         setCounts({
           colaboradores: countResults[0].count || 0,
           advertencias: countResults[1].count || 0,
@@ -58,7 +59,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [profile, isGestao]);
+  }, [profile, showAdminMetrics]);
 
   const heroBanner = noticias.find((n) => n.importante) || noticias[0];
 
@@ -69,7 +70,7 @@ export default function Dashboard() {
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 
-      {isGestao && <CardsAdministrativos counts={counts} />}
+      {showAdminMetrics && <CardsAdministrativos counts={counts} />}
 
       <CuriozinhoHomeCard />
       <AcoesRapidas />
