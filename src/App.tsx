@@ -32,6 +32,10 @@ import GestaoUsuarios from "@/pages/GestaoUsuarios";
 import GerenciaPage from "@/pages/GerenciaPage";
 import ChecklistDiario from "@/pages/ChecklistDiario";
 import PainelCobranca from "@/pages/PainelCobranca";
+import ReunioesLideranca from "@/pages/ReunioesLideranca";
+import BoEletronico from "@/pages/BoEletronico";
+import Inspecoes from "@/pages/Inspecoes";
+import VisaoGeralAdmin from "@/pages/VisaoGeralAdmin";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +80,10 @@ function ProtectedRoutes() {
         <Route path="/gerencias/:slug" element={<GerenciaPage />} />
         <Route path="/checklist-diario" element={<ChecklistDiario />} />
         <Route path="/painel-cobranca" element={<PainelCobranca />} />
+        <Route path="/reunioes-lideranca" element={<ReunioesLideranca />} />
+        <Route path="/bo-eletronico" element={<BoEletronico />} />
+        <Route path="/inspecoes" element={<Inspecoes />} />
+        <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

@@ -413,9 +413,72 @@ export type Database = {
           },
         ]
       }
+      leadership_meetings: {
+        Row: {
+          agenda: Json
+          created_at: string
+          created_by: string | null
+          decisions: string | null
+          ended_at: string | null
+          id: string
+          is_monthly_in_person: boolean
+          minutes: string | null
+          scheduled_date: string
+          scheduled_time: string
+          status: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          type: Database["public"]["Enums"]["meeting_type"]
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          agenda?: Json
+          created_at?: string
+          created_by?: string | null
+          decisions?: string | null
+          ended_at?: string | null
+          id?: string
+          is_monthly_in_person?: boolean
+          minutes?: string | null
+          scheduled_date?: string
+          scheduled_time: string
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          type: Database["public"]["Enums"]["meeting_type"]
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agenda?: Json
+          created_at?: string
+          created_by?: string | null
+          decisions?: string | null
+          ended_at?: string | null
+          id?: string
+          is_monthly_in_person?: boolean
+          minutes?: string | null
+          scheduled_date?: string
+          scheduled_time?: string
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["meeting_type"]
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_meetings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leadership_occurrences: {
         Row: {
           atribuido_a: string | null
+          comments_count: number
           created_at: string
           criado_em: string
           descricao: string
@@ -431,6 +494,7 @@ export type Database = {
         }
         Insert: {
           atribuido_a?: string | null
+          comments_count?: number
           created_at?: string
           criado_em?: string
           descricao: string
@@ -446,6 +510,7 @@ export type Database = {
         }
         Update: {
           atribuido_a?: string | null
+          comments_count?: number
           created_at?: string
           criado_em?: string
           descricao?: string
@@ -465,6 +530,95 @@ export type Database = {
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_agenda_items: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          meeting_id: string
+          title: string
+          type: Database["public"]["Enums"]["agenda_item_type"]
+          unit_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          meeting_id: string
+          title: string
+          type?: Database["public"]["Enums"]["agenda_item_type"]
+          unit_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          title?: string
+          type?: Database["public"]["Enums"]["agenda_item_type"]
+          unit_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_agenda_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_agenda_items_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_attendees: {
+        Row: {
+          auto_replaced_by: string | null
+          created_at: string
+          id: string
+          joined_at: string | null
+          meeting_id: string
+          present: boolean
+          role_label: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_replaced_by?: string | null
+          created_at?: string
+          id?: string
+          joined_at?: string | null
+          meeting_id: string
+          present?: boolean
+          role_label?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_replaced_by?: string | null
+          created_at?: string
+          id?: string
+          joined_at?: string | null
+          meeting_id?: string
+          present?: boolean
+          role_label?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_attendees_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_meetings"
             referencedColumns: ["id"]
           },
         ]
@@ -496,6 +650,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_events: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          payload: Json
+          recipient_user_id: string | null
+          sent_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_event_type"]
+          unit_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_event_type"]
+          unit_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_event_type"]
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -525,6 +723,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      occurrence_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          occurrence_id: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          occurrence_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          occurrence_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "occurrence_comments_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_occurrences"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ocorrencias: {
         Row: {
@@ -814,6 +1044,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_leadership: { Args: { _user_id: string }; Returns: boolean }
       user_can_access_unit: {
         Args: { _unit_id: string; _user_id: string }
         Returns: boolean
@@ -821,6 +1052,16 @@ export type Database = {
     }
     Enums: {
       advertencia_tipo: "verbal" | "escrita"
+      agenda_item_type:
+        | "bo"
+        | "informativo"
+        | "venda"
+        | "meta"
+        | "performance"
+        | "quebra"
+        | "livre"
+        | "convidado"
+        | "decisao"
       cargo_tipo:
         | "admin"
         | "gerente"
@@ -859,6 +1100,15 @@ export type Database = {
         | "CENTRAL_PRODUCAO"
         | "CD"
         | "MANUTENCAO"
+      meeting_status: "agendada" | "em_andamento" | "encerrada" | "cancelada"
+      meeting_type: "diaria" | "semanal" | "individual"
+      notification_event_type:
+        | "meeting_reminder"
+        | "checklist_pending"
+        | "checklist_closing"
+        | "high_occurrence"
+        | "weekly_report"
+        | "meeting_minutes"
       occurrence_severity: "baixa" | "media" | "alta"
       occurrence_status: "aberto" | "em_tratamento" | "resolvido"
       occurrence_type:
@@ -1013,6 +1263,17 @@ export const Constants = {
   public: {
     Enums: {
       advertencia_tipo: ["verbal", "escrita"],
+      agenda_item_type: [
+        "bo",
+        "informativo",
+        "venda",
+        "meta",
+        "performance",
+        "quebra",
+        "livre",
+        "convidado",
+        "decisao",
+      ],
       cargo_tipo: [
         "admin",
         "gerente",
@@ -1054,6 +1315,16 @@ export const Constants = {
         "CENTRAL_PRODUCAO",
         "CD",
         "MANUTENCAO",
+      ],
+      meeting_status: ["agendada", "em_andamento", "encerrada", "cancelada"],
+      meeting_type: ["diaria", "semanal", "individual"],
+      notification_event_type: [
+        "meeting_reminder",
+        "checklist_pending",
+        "checklist_closing",
+        "high_occurrence",
+        "weekly_report",
+        "meeting_minutes",
       ],
       occurrence_severity: ["baixa", "media", "alta"],
       occurrence_status: ["aberto", "em_tratamento", "resolvido"],

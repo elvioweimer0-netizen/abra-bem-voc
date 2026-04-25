@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Video, FileText, CalendarDays, Headphones,
   Bell, MessageSquare, Camera, Bot,
-  ClipboardCheck, Gauge,
+  ClipboardCheck, Gauge, ClipboardPlus, SearchCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/hooks/useRole";
@@ -20,6 +20,8 @@ interface QuickAction {
 const allActions: QuickAction[] = [
   { label: "Meu Checklist", icon: ClipboardCheck, href: "/checklist-diario", color: "bg-primary/10 text-primary", liderancaOnly: true },
   { label: "Painel de Cobrança", icon: Gauge, href: "/painel-cobranca", color: "bg-warning/10 text-warning", painelOnly: true },
+  { label: "Novo B.O.", icon: ClipboardPlus, href: "/bo-eletronico", color: "bg-primary/10 text-primary", liderancaOnly: true },
+  { label: "Inspeções", icon: SearchCheck, href: "/inspecoes", color: "bg-success/10 text-success", painelOnly: true },
   { label: "Entrar na Reunião", icon: Video, href: "/reunioes", color: "bg-primary/10 text-primary" },
   { label: "Avisos Importantes", icon: Bell, href: "/avisos", color: "bg-warning/10 text-warning" },
   { label: "Minha Agenda", icon: CalendarDays, href: "/agenda", color: "bg-success/10 text-success" },
