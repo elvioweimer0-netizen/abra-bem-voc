@@ -214,6 +214,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          general_announcements: boolean
+          hr_messages: boolean
+          id: string
+          important_notices: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          general_announcements?: boolean
+          hr_messages?: boolean
+          id?: string
+          important_notices?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          general_announcements?: boolean
+          hr_messages?: boolean
+          id?: string
+          important_notices?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ocorrencias: {
         Row: {
           created_at: string
@@ -284,6 +314,33 @@ export type Database = {
           nome?: string
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          subscription: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          subscription: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          subscription?: Json
           updated_at?: string
           user_id?: string
         }
