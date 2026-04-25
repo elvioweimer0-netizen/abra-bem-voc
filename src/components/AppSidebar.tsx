@@ -4,7 +4,7 @@ import {
   BookOpen, ClipboardList, FileCheck, UserCog, ChevronDown,
   Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
-  Calendar, Clock, Receipt, FilePlus,
+  Settings, ScrollText,
 } from "lucide-react";
 import type { Enums } from "@/integrations/supabase/types";
 import { CuriozinhoAvatar } from "@/components/curiozinho";
@@ -105,11 +105,12 @@ function CollapsibleSection({ label, items, collapsed }: { label: string; items:
 /* ─── menu definitions ─── */
 
 const comunicacaoItems: MenuItem[] = [
-  { title: "Notícias", url: "/noticias", icon: Megaphone },
-  { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
   { title: "Avisos", url: "/avisos", icon: Bell },
+  { title: "Notícias", url: "/noticias", icon: Megaphone },
   { title: "Galeria do Curió", url: "/galeria", icon: Camera },
 ];
+
+const endomarketingItem: MenuItem = { title: "Campanhas Internas", url: "/endomarketing", icon: Heart };
 
 const rhItems: MenuItem[] = [
   { title: "Colaboradores", url: "/colaboradores", icon: Users },
@@ -121,6 +122,19 @@ const rhDocsItems: MenuItem[] = [
   { title: "Código de Ética", url: "/rh/codigo-etica", icon: BookOpen },
   { title: "Cartilha Operacional", url: "/rh/cartilha", icon: ClipboardList },
   { title: "Políticas Internas", url: "/rh/politicas", icon: FileCheck },
+];
+
+const colaboradorEssentials: MenuItem[] = [
+  { title: "Falar com RH", url: "/assistente", icon: Headphones },
+  { title: "Curiózinho", url: "/assistente", icon: FileQuestion },
+  { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
+];
+
+const encarregadoItems: MenuItem[] = [
+  { title: "Meu Departamento", url: "/departamentos", icon: Building },
+  { title: "Minha Equipe", url: "/colaboradores", icon: Users },
+  { title: "Registrar Ocorrência", url: "/departamentos", icon: AlertTriangle },
+  { title: "Solicitações", url: "/solicitacoes", icon: FileQuestion },
 ];
 
 const gerenciaItems: MenuItem[] = [
@@ -151,13 +165,20 @@ const colaboradorItems: MenuItem[] = [
 ];
 
 const solicitacoesItems: MenuItem[] = [
-  { title: "Solicitações", url: "/solicitacoes", icon: FileQuestion },
+  { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion },
   { title: "Chamados TI", url: "/chamados-ti", icon: Headphones },
-  { title: "Manutenção", url: "/chamados-manutencao", icon: Wrench },
+];
+
+const adminItems: MenuItem[] = [
+  { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
+  { title: "Gestão de Unidades", url: "/departamentos", icon: Building },
+  { title: "Configurações do App", url: "/gestao-usuarios", icon: Settings },
+  { title: "Logs do Sistema", url: "/relatorios", icon: ScrollText },
 ];
 
 const cargoLabels: Record<Enums<"cargo_tipo">, string> = {
   admin: "Admin",
+  encarregado: "Encarregado",
   gerente: "Gerente",
   lider: "Líder",
   colaborador: "Colaborador",
