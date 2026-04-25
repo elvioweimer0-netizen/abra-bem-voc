@@ -60,6 +60,13 @@ async function streamChat({
     return;
   }
 
+  const contentType = resp.headers.get("Content-Type") || "";
+  if (contentType.includes("application/json")) {
+    const data = await resp.json().catch(() => null);
+    onError(data?.error || "A IA está temporariamente indisponível.");
+    return;
+  }
+
   if (!resp.body) {
     onError("Resposta vazia da IA.");
     return;

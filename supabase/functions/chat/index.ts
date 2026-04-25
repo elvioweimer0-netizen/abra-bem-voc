@@ -160,8 +160,11 @@ serve(async (req) => {
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes." }), {
-          status: 402,
+        return new Response(JSON.stringify({
+          error: "Créditos de IA insuficientes no momento. Avise a liderança para recarregar os créditos e tente novamente depois.",
+          fallback: true,
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
