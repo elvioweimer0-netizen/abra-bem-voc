@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Megaphone, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import type { Noticia } from "@/types/database";
 import { useNavigate } from "react-router-dom";
 
@@ -17,10 +17,12 @@ export function BannerPrincipal({ noticia }: BannerPrincipalProps) {
   return (
     <Card className="overflow-hidden border-0 gradient-curio-warm text-primary-foreground card-shadow-lg">
       <CardContent className="p-6 sm:p-8 relative">
-        {/* decorative elements */}
-        <div className="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-primary-foreground/5 pointer-events-none" />
-        <div className="absolute -right-4 bottom-0 w-28 h-28 rounded-full bg-primary-foreground/5 pointer-events-none" />
-        <div className="absolute left-1/2 -bottom-6 w-64 h-20 rounded-full bg-primary-foreground/3 pointer-events-none blur-2xl" />
+        <img
+          src="/curio_logo_vermelho.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-6 bottom-2 h-28 w-auto opacity-15 sm:h-40"
+        />
 
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-4">
