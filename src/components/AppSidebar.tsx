@@ -7,7 +7,6 @@ import {
   Settings, ScrollText,
 } from "lucide-react";
 import type { Enums } from "@/integrations/supabase/types";
-import { CuriozinhoAvatar } from "@/components/curiozinho";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -187,7 +186,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
-  const { appProfile, isAdmin, isGerente, isEncarregado } = useRole();
+  const { isAdmin, isGerente, isEncarregado } = useRole();
 
   const showEncarregado = isEncarregado || isGerente || isAdmin;
   const showGerente = isGerente || isAdmin;
