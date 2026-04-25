@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { PushPermission } from "@/components/PushPermission";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Colaboradores from "@/pages/Colaboradores";
@@ -88,6 +90,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PushPermission />
+          <PwaInstallPrompt />
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/*" element={<ProtectedRoutes />} />
