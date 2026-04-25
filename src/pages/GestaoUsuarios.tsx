@@ -193,7 +193,7 @@ export default function GestaoUsuarios() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <Shield className="h-5 w-5 text-emerald-600" />
+            <Shield className="h-5 w-5 text-success" />
             <div>
               <p className="text-2xl font-bold">{users.filter((u) => u.ativo !== false).length}</p>
               <p className="text-xs text-muted-foreground">Ativos</p>
@@ -202,7 +202,7 @@ export default function GestaoUsuarios() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <Shield className="h-5 w-5 text-orange-500" />
+            <Shield className="h-5 w-5 text-warning" />
             <div>
               <p className="text-2xl font-bold">
                 {users.filter((u) => ["master", "admin", "adm_departamento"].includes(u.cargo)).length}
@@ -452,7 +452,7 @@ export default function GestaoUsuarios() {
                             className="h-8 w-8"
                             onClick={() => toggleStatus(user)}
                           >
-                            <Power className={`h-4 w-4 ${user.ativo !== false ? "text-emerald-600" : "text-muted-foreground"}`} />
+                            <Power className={`h-4 w-4 ${user.ativo !== false ? "text-success" : "text-muted-foreground"}`} />
                           </Button>
                         </div>
                       </TableCell>
