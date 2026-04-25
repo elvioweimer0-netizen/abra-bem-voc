@@ -5,10 +5,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { PushPermission } from "@/components/PushPermission";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Colaboradores from "@/pages/Colaboradores";
 import ColaboradorPerfil from "@/pages/ColaboradorPerfil";
+import MeuPerfil from "@/pages/MeuPerfil";
 import Advertencias from "@/pages/Advertencias";
 import Suspensoes from "@/pages/Suspensoes";
 import Departamentos from "@/pages/Departamentos";
@@ -50,6 +53,7 @@ function ProtectedRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/colaboradores" element={<Colaboradores />} />
         <Route path="/colaboradores/:id" element={<ColaboradorPerfil />} />
+        <Route path="/meu-perfil" element={<MeuPerfil />} />
         <Route path="/advertencias" element={<Advertencias />} />
         <Route path="/suspensoes" element={<Suspensoes />} />
         <Route path="/departamentos" element={<Departamentos />} />
@@ -88,6 +92,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PushPermission />
+          <PwaInstallPrompt />
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/*" element={<ProtectedRoutes />} />
