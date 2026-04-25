@@ -239,90 +239,33 @@ export function AppSidebar() {
           collapsed={collapsed}
         />
 
-        {/* Comunicação */}
-        <MenuSection label="Comunicação" items={comunicacaoItems} collapsed={collapsed} />
+        <MenuSection label="Comunicação" items={[...comunicacaoItems, ...(isAdmin ? [endomarketingItem] : [])]} collapsed={collapsed} />
+        <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
+        <MenuSection label="Minha Área" items={colaboradorEssentials} collapsed={collapsed} />
 
-        {/* Área do colaborador */}
-        {isColaborador && (
-          <MenuSection label="Minha Área" items={colaboradorItems} collapsed={collapsed} />
-        )}
+        {showEncarregado && <MenuSection label="Operação" items={encarregadoItems} collapsed={collapsed} />}
 
-        {/* RH */}
-        {showRh && <MenuSection label="RH" items={rhItems} collapsed={collapsed} />}
-
-        {/* Documentos */}
-        {showDocs && <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />}
-
-        {/* Gerências */}
-        {showGerencias && (
-          <CollapsibleSection label="Gerências" items={gerenciaItems} collapsed={collapsed} />
-        )}
-
-        {/* Departamentos */}
-        <MenuSection
-          label="Departamentos"
-          items={[{ title: "Departamentos", url: "/departamentos", icon: Building }]}
-          collapsed={collapsed}
-        />
-
-        {/* Solicitações (gerente_loja) */}
-        {showSolicitacoes && (
-          <MenuSection label="Solicitações" items={solicitacoesItems} collapsed={collapsed} />
-        )}
-
-        {/* Reuniões */}
-        {showReunioesFull ? (
-          <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
-        ) : (
+        {showGerente && (
           <MenuSection
-            label="Reuniões"
-            items={[reunioesItems[0], reunioesItems[2]]}
+            label="Gestão da Unidade"
+            items={[
+              { title: "Colaboradores", url: "/colaboradores", icon: Users },
+              { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
+              { title: "Suspensões", url: "/suspensoes", icon: Ban },
+              { title: "Relatórios da Unidade", url: "/relatorios", icon: FileText },
+              ...solicitacoesItems,
+            ]}
             collapsed={collapsed}
           />
         )}
 
-        {/* Relatórios */}
-        {showRelatórios && (
-          <MenuSection
-            label="Relatórios"
-            items={[{ title: "Relatórios", url: "/relatorios", icon: FileText }]}
-            collapsed={collapsed}
-          />
+        {isAdmin && (
+          <>
+            <CollapsibleSection label="Gerências" items={gerenciaItems} collapsed={collapsed} />
+            <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
+            <MenuSection label="Administração" items={adminItems} collapsed={collapsed} />
+          </>
         )}
-
-        {/* Administração */}
-        {canManageUsers && (
-          <MenuSection
-            label="Administração"
-            items={[{ title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog }]}
-            collapsed={collapsed}
-          />
-        )}
-
-        {/* Ferramentas - Curiózinho */}
-        <SidebarGroup>
-          {!collapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] tracking-widest font-semibold">
-              Ferramentas
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/assistente"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                    activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                  >
-                    <CuriozinhoAvatar className="h-5 w-5 shrink-0" />
-                    {!collapsed && <span className="text-sm">Curiózinho</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-2">
