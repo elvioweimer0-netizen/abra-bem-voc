@@ -88,6 +88,179 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_completions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          data: string
+          id: string
+          status: Database["public"]["Enums"]["checklist_status"]
+          template_id: string
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          status?: Database["public"]["Enums"]["checklist_status"]
+          template_id: string
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          status?: Database["public"]["Enums"]["checklist_status"]
+          template_id?: string
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_completions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_item_responses: {
+        Row: {
+          completed_at: string | null
+          completion_id: string
+          created_at: string
+          foto_url: string | null
+          id: string
+          item_id: string
+          observacao: string | null
+          resposta: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_id: string
+          created_at?: string
+          foto_url?: string | null
+          id?: string
+          item_id: string
+          observacao?: string | null
+          resposta?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completion_id?: string
+          created_at?: string
+          foto_url?: string | null
+          id?: string
+          item_id?: string
+          observacao?: string | null
+          resposta?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_item_responses_completion_id_fkey"
+            columns: ["completion_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_completions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_item_responses_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_items: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          obrigatorio: boolean
+          ordem: number
+          template_id: string
+          tipo_resposta: Database["public"]["Enums"]["checklist_response_type"]
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          obrigatorio?: boolean
+          ordem: number
+          template_id: string
+          tipo_resposta?: Database["public"]["Enums"]["checklist_response_type"]
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          obrigatorio?: boolean
+          ordem?: number
+          template_id?: string
+          tipo_resposta?: Database["public"]["Enums"]["checklist_response_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          period: Database["public"]["Enums"]["checklist_period"]
+          role_target: Database["public"]["Enums"]["checklist_role_target"]
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          period: Database["public"]["Enums"]["checklist_period"]
+          role_target: Database["public"]["Enums"]["checklist_role_target"]
+          unit_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          period?: Database["public"]["Enums"]["checklist_period"]
+          role_target?: Database["public"]["Enums"]["checklist_role_target"]
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       colaboradores: {
         Row: {
           cargo: Database["public"]["Enums"]["cargo_tipo"]
@@ -186,6 +359,115 @@ export type Database = {
           unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
         }
         Relationships: []
+      }
+      leadership_inspections: {
+        Row: {
+          created_at: string
+          data: string
+          fotos: string[]
+          id: string
+          inspector_id: string
+          observacoes_gerais: string | null
+          score_atendimento: number
+          score_estoque: number
+          score_limpeza: number
+          score_organizacao: number
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          fotos?: string[]
+          id?: string
+          inspector_id: string
+          observacoes_gerais?: string | null
+          score_atendimento?: number
+          score_estoque?: number
+          score_limpeza?: number
+          score_organizacao?: number
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          fotos?: string[]
+          id?: string
+          inspector_id?: string
+          observacoes_gerais?: string | null
+          score_atendimento?: number
+          score_estoque?: number
+          score_limpeza?: number
+          score_organizacao?: number
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_inspections_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leadership_occurrences: {
+        Row: {
+          atribuido_a: string | null
+          created_at: string
+          criado_em: string
+          descricao: string
+          foto_url: string | null
+          gravidade: Database["public"]["Enums"]["occurrence_severity"]
+          id: string
+          reportado_por: string
+          resolvido_em: string | null
+          status: Database["public"]["Enums"]["occurrence_status"]
+          tipo: Database["public"]["Enums"]["occurrence_type"]
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          atribuido_a?: string | null
+          created_at?: string
+          criado_em?: string
+          descricao: string
+          foto_url?: string | null
+          gravidade?: Database["public"]["Enums"]["occurrence_severity"]
+          id?: string
+          reportado_por: string
+          resolvido_em?: string | null
+          status?: Database["public"]["Enums"]["occurrence_status"]
+          tipo?: Database["public"]["Enums"]["occurrence_type"]
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          atribuido_a?: string | null
+          created_at?: string
+          criado_em?: string
+          descricao?: string
+          foto_url?: string | null
+          gravidade?: Database["public"]["Enums"]["occurrence_severity"]
+          id?: string
+          reportado_por?: string
+          resolvido_em?: string | null
+          status?: Database["public"]["Enums"]["occurrence_status"]
+          tipo?: Database["public"]["Enums"]["occurrence_type"]
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_occurrences_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       noticias: {
         Row: {
@@ -286,8 +568,11 @@ export type Database = {
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
           nome: string
+          permission_units: string[]
+          role: Database["public"]["Enums"]["cargo_tipo"] | null
           setor: Database["public"]["Enums"]["setor_tipo"] | null
           unidade: Database["public"]["Enums"]["unidade_tipo"]
+          unit_id: string | null
           updated_at: string
           user_id: string
         }
@@ -299,8 +584,11 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           nome: string
+          permission_units?: string[]
+          role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
           unidade: Database["public"]["Enums"]["unidade_tipo"]
+          unit_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -312,12 +600,23 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           nome?: string
+          permission_units?: string[]
+          role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
+          unit_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {
@@ -441,6 +740,39 @@ export type Database = {
           },
         ]
       }
+      units: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          type: Database["public"]["Enums"]["unit_type"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          type: Database["public"]["Enums"]["unit_type"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          type?: Database["public"]["Enums"]["unit_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -482,6 +814,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_can_access_unit: {
+        Args: { _unit_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       advertencia_tipo: "verbal" | "escrita"
@@ -496,6 +832,15 @@ export type Database = {
         | "gerente_adm"
         | "gerente_loja"
         | "encarregado"
+      checklist_period:
+        | "abertura"
+        | "durante"
+        | "fechamento"
+        | "producao_dia"
+        | "operacao_cd"
+      checklist_response_type: "sim_nao" | "texto" | "foto"
+      checklist_role_target: "gerente" | "encarregado"
+      checklist_status: "pendente" | "parcial" | "completo"
       colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
       endomarketing_tipo: "aniversario" | "destaque" | "campanha" | "mensagem"
       galeria_categoria:
@@ -514,6 +859,14 @@ export type Database = {
         | "CENTRAL_PRODUCAO"
         | "CD"
         | "MANUTENCAO"
+      occurrence_severity: "baixa" | "media" | "alta"
+      occurrence_status: "aberto" | "em_tratamento" | "resolvido"
+      occurrence_type:
+        | "atendimento"
+        | "quebra"
+        | "manutencao"
+        | "disciplina"
+        | "outro"
       ocorrencia_status: "aberta" | "em_andamento" | "concluida"
       reuniao_status: "agendada" | "em_andamento" | "finalizada" | "cancelada"
       reuniao_tipo: "online" | "presencial" | "hibrida"
@@ -531,6 +884,7 @@ export type Database = {
         | "CPA"
         | "CENTRAL PRODUÇÃO"
         | "CD"
+      unit_type: "loja" | "central"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -671,6 +1025,16 @@ export const Constants = {
         "gerente_loja",
         "encarregado",
       ],
+      checklist_period: [
+        "abertura",
+        "durante",
+        "fechamento",
+        "producao_dia",
+        "operacao_cd",
+      ],
+      checklist_response_type: ["sim_nao", "texto", "foto"],
+      checklist_role_target: ["gerente", "encarregado"],
+      checklist_status: ["pendente", "parcial", "completo"],
       colaborador_status: ["ativo", "inativo", "ferias", "afastado"],
       endomarketing_tipo: ["aniversario", "destaque", "campanha", "mensagem"],
       galeria_categoria: [
@@ -691,6 +1055,15 @@ export const Constants = {
         "CD",
         "MANUTENCAO",
       ],
+      occurrence_severity: ["baixa", "media", "alta"],
+      occurrence_status: ["aberto", "em_tratamento", "resolvido"],
+      occurrence_type: [
+        "atendimento",
+        "quebra",
+        "manutencao",
+        "disciplina",
+        "outro",
+      ],
       ocorrencia_status: ["aberta", "em_andamento", "concluida"],
       reuniao_status: ["agendada", "em_andamento", "finalizada", "cancelada"],
       reuniao_tipo: ["online", "presencial", "hibrida"],
@@ -710,6 +1083,7 @@ export const Constants = {
         "CENTRAL PRODUÇÃO",
         "CD",
       ],
+      unit_type: ["loja", "central"],
     },
   },
 } as const

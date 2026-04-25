@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Video, FileText, CalendarDays, Headphones,
   Bell, MessageSquare, Camera, Bot,
+  ClipboardCheck, Gauge,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/hooks/useRole";
@@ -12,9 +13,13 @@ interface QuickAction {
   href: string;
   color: string;
   gestaoOnly?: boolean;
+  liderancaOnly?: boolean;
+  painelOnly?: boolean;
 }
 
 const allActions: QuickAction[] = [
+  { label: "Meu Checklist", icon: ClipboardCheck, href: "/checklist-diario", color: "bg-primary/10 text-primary", liderancaOnly: true },
+  { label: "Painel de Cobrança", icon: Gauge, href: "/painel-cobranca", color: "bg-warning/10 text-warning", painelOnly: true },
   { label: "Entrar na Reunião", icon: Video, href: "/reunioes", color: "bg-primary/10 text-primary" },
   { label: "Avisos Importantes", icon: Bell, href: "/avisos", color: "bg-warning/10 text-warning" },
   { label: "Minha Agenda", icon: CalendarDays, href: "/agenda", color: "bg-success/10 text-success" },
@@ -26,9 +31,13 @@ const allActions: QuickAction[] = [
 
 export function AcoesRapidas() {
   const navigate = useNavigate();
-  const { isGestao } = useRole();
+  const { isGestao, isEncarregado, isGerente, isLeadershipPanel } = useRole();
 
-  const visibleActions = allActions.filter((a) => !a.gestaoOnly || isGestao);
+  const visibleActions = allActions.filter((a) => {
+    if (a.painelOnly) return isLeadershipPanel;
+    if (a.liderancaOnly) return isEncarregado || isGerente;
+    return !a.gestaoOnly || isGestao;
+  });
 
   return (
     <div>
