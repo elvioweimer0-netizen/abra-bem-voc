@@ -4,7 +4,7 @@ import {
   BookOpen, ClipboardList, FileCheck, UserCog, ChevronDown,
   Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
-  Settings, ScrollText, ClipboardCheck, Gauge,
+  Settings, ScrollText, ClipboardCheck, Gauge, CalendarClock, ClipboardPlus, SearchCheck,
 } from "lucide-react";
 import type { Enums } from "@/integrations/supabase/types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -131,6 +131,8 @@ const colaboradorEssentials: MenuItem[] = [
 
 const encarregadoItems: MenuItem[] = [
   { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
+  { title: "Reuniões", url: "/reunioes-lideranca", icon: CalendarClock },
+  { title: "+ Novo B.O.", url: "/bo-eletronico", icon: ClipboardPlus },
   { title: "Meu Departamento", url: "/departamentos", icon: Building },
   { title: "Minha Equipe", url: "/colaboradores", icon: Users },
   { title: "Registrar Ocorrência", url: "/departamentos", icon: AlertTriangle },
@@ -162,6 +164,8 @@ const solicitacoesItems: MenuItem[] = [
 ];
 
 const adminItems: MenuItem[] = [
+  { title: "Visão Geral", url: "/visao-geral-admin", icon: Gauge },
+  { title: "Inspeções", url: "/inspecoes", icon: SearchCheck },
   { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
   { title: "Gestão de Unidades", url: "/departamentos", icon: Building },
   { title: "Configurações do App", url: "/gestao-usuarios", icon: Settings },
