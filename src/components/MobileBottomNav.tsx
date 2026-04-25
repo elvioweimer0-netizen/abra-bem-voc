@@ -1,10 +1,10 @@
-import { Bell, Home, Megaphone, MoreHorizontal, Sparkles } from "lucide-react";
+import { Bell, CalendarClock, Home, MoreHorizontal, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const items = [
   { label: "Início", href: "/", icon: Home },
   { label: "Avisos", href: "/avisos", icon: Bell, badge: true },
-  { label: "Notícias", href: "/noticias", icon: Megaphone },
+  { label: "Reuniões", href: "/reunioes-lideranca", icon: CalendarClock },
   { label: "Curiózinho", href: "/assistente", icon: Sparkles, featured: true },
   { label: "Mais", href: "/departamentos", icon: MoreHorizontal },
 ];
