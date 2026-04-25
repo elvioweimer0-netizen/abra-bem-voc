@@ -378,7 +378,26 @@ export default function GestaoUsuarios() {
               <p className="text-sm">Ajuste os filtros ou busca</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="space-y-3 p-4 md:hidden">
+              {filtered.map((user) => (
+                <article key={user.id} className={`rounded-xl border border-border bg-card p-4 ${selectedIds.has(user.user_id) ? "ring-2 ring-primary/30" : ""}`}>
+                  <div className="flex items-start gap-3">
+                    <Checkbox checked={selectedIds.has(user.user_id)} onCheckedChange={() => toggleSelect(user.user_id)} />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-foreground">{user.nome}</h3>
+                      <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                      <div className="mt-3 flex flex-wrap gap-2"><RoleBadge role={user.cargo} /><StatusBadge ativo={user.ativo !== false} /></div>
+                      <p className="mt-3 text-xs text-muted-foreground">{user.unidade} · {gerenciaLabels[user.gerencia] ?? user.gerencia}{user.setor ? ` · ${setorLabels[user.setor] ?? user.setor}` : ""}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditingUser(user)}><Pencil className="h-4 w-4" /> Editar</Button>
+                    <Button variant="ghost" size="sm" onClick={() => toggleStatus(user)}><Power className={`h-4 w-4 ${user.ativo !== false ? "text-success" : "text-muted-foreground"}`} /> {user.ativo !== false ? "Desativar" : "Ativar"}</Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
