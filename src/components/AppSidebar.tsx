@@ -156,14 +156,6 @@ const reunioesItems: MenuItem[] = [
   { title: "Histórico", url: "/reunioes/historico", icon: History },
 ];
 
-const colaboradorItems: MenuItem[] = [
-  { title: "Meus Dados", url: "/meu-perfil", icon: UserCircle },
-  { title: "Calendário", url: "/calendario", icon: Calendar },
-  { title: "Meu Ponto", url: "/ponto", icon: Clock },
-  { title: "Holerite", url: "/holerite", icon: Receipt },
-  { title: "Atestados", url: "/atestados", icon: FilePlus },
-];
-
 const solicitacoesItems: MenuItem[] = [
   { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion },
   { title: "Chamados TI", url: "/chamados-ti", icon: Headphones },
@@ -195,17 +187,10 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
-  const {
-    isAdmin, isSupervisor, isGerenteAdm, isGerenteLoja,
-    isColaborador, isGestao, canManageUsers,
-  } = useRole();
+  const { appProfile, isAdmin, isGerente, isEncarregado } = useRole();
 
-  const showGerencias = isAdmin || isSupervisor || isGerenteAdm;
-  const showRh = isGestao;
-  const showDocs = !isColaborador;
-  const showRelatórios = isGestao;
-  const showSolicitacoes = isGerenteLoja || isAdmin || isSupervisor;
-  const showReunioesFull = !isColaborador;
+  const showEncarregado = isEncarregado || isGerente || isAdmin;
+  const showGerente = isGerente || isAdmin;
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
