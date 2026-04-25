@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, User, AlertTriangle, Ban, Clock } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { NotificationSettings } from "@/components/NotificationSettings";
 
 type Colaborador = Tables<"colaboradores">;
 type Advertencia = Tables<"advertencias">;
@@ -102,6 +103,8 @@ export default function ColaboradorPerfil() {
           </div>
         </CardContent>
       </Card>
+
+      {profile?.user_id === id && <NotificationSettings />}
 
       <Tabs defaultValue="historico">
         <TabsList>
