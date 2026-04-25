@@ -59,15 +59,15 @@ export default function Colaboradores() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Users className="w-6 h-6 text-primary" /> Colaboradores</h1>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Users className="w-6 h-6 text-primary" /> Colaboradores</h1>
           <p className="text-muted-foreground">Gerenciar colaboradores da unidade</p>
         </div>
         {canEdit && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" /> Novo Colaborador</Button>
+              <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Novo Colaborador</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Cadastrar Colaborador</DialogTitle></DialogHeader>
@@ -116,7 +116,23 @@ export default function Colaboradores() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="space-y-3 md:hidden">
+            {filtered.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhum colaborador encontrado.</p>
+            ) : filtered.map((c) => (
+              <button key={c.id} className="w-full rounded-xl border border-border bg-card p-4 text-left" onClick={() => navigate(`/colaboradores/${c.id}`)}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-foreground">{c.nome}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Matrícula {c.matricula} · {setorLabels[c.setor] || c.setor}</p>
+                  </div>
+                  <Badge variant={c.status === "ativo" ? "default" : "secondary"}>{c.status}</Badge>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground capitalize">{c.cargo}</p>
+              </button>
+            ))}
+          </div>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>

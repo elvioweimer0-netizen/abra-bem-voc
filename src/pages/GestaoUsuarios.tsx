@@ -193,7 +193,7 @@ export default function GestaoUsuarios() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <Shield className="h-5 w-5 text-emerald-600" />
+            <Shield className="h-5 w-5 text-success" />
             <div>
               <p className="text-2xl font-bold">{users.filter((u) => u.ativo !== false).length}</p>
               <p className="text-xs text-muted-foreground">Ativos</p>
@@ -202,7 +202,7 @@ export default function GestaoUsuarios() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <Shield className="h-5 w-5 text-orange-500" />
+            <Shield className="h-5 w-5 text-warning" />
             <div>
               <p className="text-2xl font-bold">
                 {users.filter((u) => ["master", "admin", "adm_departamento"].includes(u.cargo)).length}
@@ -225,8 +225,8 @@ export default function GestaoUsuarios() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            <div className="relative sm:col-span-2 lg:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome ou e-mail..."
@@ -236,7 +236,7 @@ export default function GestaoUsuarios() {
               />
             </div>
             <Select value={filterUnidade} onValueChange={setFilterUnidade}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Unidade" />
               </SelectTrigger>
               <SelectContent>
@@ -247,7 +247,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterGerencia} onValueChange={setFilterGerencia}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Gerência" />
               </SelectTrigger>
               <SelectContent>
@@ -258,7 +258,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterSetor} onValueChange={setFilterSetor}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Setor" />
               </SelectTrigger>
               <SelectContent>
@@ -269,7 +269,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterCargo} onValueChange={setFilterCargo}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Perfil" />
               </SelectTrigger>
               <SelectContent>
@@ -280,7 +280,7 @@ export default function GestaoUsuarios() {
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -378,7 +378,27 @@ export default function GestaoUsuarios() {
               <p className="text-sm">Ajuste os filtros ou busca</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="space-y-3 p-4 md:hidden">
+              {filtered.map((user) => (
+                <article key={user.id} className={`rounded-xl border border-border bg-card p-4 ${selectedIds.has(user.user_id) ? "ring-2 ring-primary/30" : ""}`}>
+                  <div className="flex items-start gap-3">
+                    <Checkbox checked={selectedIds.has(user.user_id)} onCheckedChange={() => toggleSelect(user.user_id)} />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-foreground">{user.nome}</h3>
+                      <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                      <div className="mt-3 flex flex-wrap gap-2"><RoleBadge role={user.cargo} /><StatusBadge ativo={user.ativo !== false} /></div>
+                      <p className="mt-3 text-xs text-muted-foreground">{user.unidade} · {gerenciaLabels[user.gerencia] ?? user.gerencia}{user.setor ? ` · ${setorLabels[user.setor] ?? user.setor}` : ""}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditingUser(user)}><Pencil className="h-4 w-4" /> Editar</Button>
+                    <Button variant="ghost" size="sm" onClick={() => toggleStatus(user)}><Power className={`h-4 w-4 ${user.ativo !== false ? "text-success" : "text-muted-foreground"}`} /> {user.ativo !== false ? "Desativar" : "Ativar"}</Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -432,7 +452,7 @@ export default function GestaoUsuarios() {
                             className="h-8 w-8"
                             onClick={() => toggleStatus(user)}
                           >
-                            <Power className={`h-4 w-4 ${user.ativo !== false ? "text-emerald-600" : "text-muted-foreground"}`} />
+                            <Power className={`h-4 w-4 ${user.ativo !== false ? "text-success" : "text-muted-foreground"}`} />
                           </Button>
                         </div>
                       </TableCell>
@@ -441,6 +461,7 @@ export default function GestaoUsuarios() {
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>

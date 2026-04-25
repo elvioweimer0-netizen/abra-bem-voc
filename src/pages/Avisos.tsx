@@ -82,9 +82,9 @@ export default function Avisos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-destructive" /> Avisos
           </h1>
           <p className="text-muted-foreground text-sm">Avisos urgentes e comunicações importantes</p>
@@ -92,7 +92,7 @@ export default function Avisos() {
         {canEdit && (
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button variant="destructive" className="gap-2"><Plus className="w-4 h-4" /> Novo Aviso</Button>
+              <Button variant="destructive" className="w-full gap-2 sm:w-auto"><Plus className="w-4 h-4" /> Novo Aviso</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>{editing ? "Editar Aviso" : "Novo Aviso"}</DialogTitle></DialogHeader>
@@ -127,7 +127,22 @@ export default function Avisos() {
 
       <Card className="card-shadow">
         <CardContent className="pt-6">
-          <Table>
+          <div className="space-y-3 md:hidden">
+            {avisos.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhum aviso.</p>
+            ) : avisos.map((a) => (
+              <article key={a.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-semibold text-foreground">{a.titulo}</h3>
+                  <div className="flex shrink-0 gap-1">{a.urgente && <Badge variant="destructive">Urgente</Badge>}<Badge variant={a.ativo ? "default" : "secondary"}>{a.ativo ? "Ativo" : "Inativo"}</Badge></div>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{a.unidade || "Geral"} · {new Date(a.created_at).toLocaleDateString("pt-BR")}</p>
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{a.conteudo}</p>
+                {canEdit && <div className="mt-3 flex gap-2"><Button variant="outline" size="sm" onClick={() => openEdit(a)}><Pencil className="w-4 h-4" /> Editar</Button><Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)}><Trash2 className="w-4 h-4 text-destructive" /> Excluir</Button></div>}
+              </article>
+            ))}
+          </div>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
