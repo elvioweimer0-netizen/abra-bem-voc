@@ -54,15 +54,15 @@ export default function Suspensoes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Ban className="w-6 h-6 text-destructive" /> Suspensões</h1>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Ban className="w-6 h-6 text-destructive" /> Suspensões</h1>
           <p className="text-muted-foreground">Gerenciar suspensões de colaboradores</p>
         </div>
         {canEdit && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" /> Nova Suspensão</Button>
+              <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Nova Suspensão</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Cadastrar Suspensão</DialogTitle></DialogHeader>
@@ -103,7 +103,19 @@ export default function Suspensoes() {
 
       <Card className="card-shadow">
         <CardContent className="pt-6">
-          <Table>
+          <div className="space-y-3 md:hidden">
+            {suspensoes.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma suspensão encontrada.</p>
+            ) : suspensoes.map((s) => (
+              <article key={s.id} className="rounded-xl border border-border bg-card p-4">
+                <h3 className="font-semibold text-foreground">{s.colaboradores?.nome || "—"}</h3>
+                <p className="mt-1 text-xs text-muted-foreground">{new Date(s.data_inicio).toLocaleDateString("pt-BR")} até {new Date(s.data_fim).toLocaleDateString("pt-BR")}</p>
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{s.motivo}</p>
+                <p className="mt-3 text-xs font-medium text-foreground">Responsável: {s.responsavel}</p>
+              </article>
+            ))}
+          </div>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Colaborador</TableHead>
