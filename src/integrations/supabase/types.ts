@@ -1497,6 +1497,7 @@ export type Database = {
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
           is_test: boolean
+          login_count: number
           must_change_password: boolean
           nome: string
           permission_units: string[]
@@ -1523,6 +1524,7 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           is_test?: boolean
+          login_count?: number
           must_change_password?: boolean
           nome: string
           permission_units?: string[]
@@ -1549,6 +1551,7 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           is_test?: boolean
+          login_count?: number
           must_change_password?: boolean
           nome?: string
           permission_units?: string[]
@@ -2015,6 +2018,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_login_count: { Args: { _user_id: string }; Returns: number }
       is_central_adm_area: {
         Args: { _area: string; _user_id: string }
         Returns: boolean
