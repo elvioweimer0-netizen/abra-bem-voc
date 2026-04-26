@@ -522,7 +522,7 @@ function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRef
   );
 }
 
-function MeetingMinuteDetail({ meeting, minute, attendees, onBack, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; onBack: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+function MeetingMinuteDetail({ meeting, minute, attendees, suggestions, canReviewSuggestions, onApproveSuggestion, onDiscardSuggestion, onBack, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; suggestions: AiSuggestion[]; canReviewSuggestions: boolean; onApproveSuggestion: (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => void; onDiscardSuggestion: (suggestion: AiSuggestion) => void; onBack: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
   const decisions = Array.isArray(minute?.decisions) ? minute.decisions : [];
   const actionItems = Array.isArray(minute?.action_items) ? minute.action_items : [];
   const attentionPoints = Array.isArray(minute?.attention_points) ? minute.attention_points : [];
@@ -530,6 +530,7 @@ function MeetingMinuteDetail({ meeting, minute, attendees, onBack, onRefresh, on
   const sentiment = minute?.sentiment || "neutro";
   const SentimentIcon = sentiment === "positivo" ? Smile : sentiment === "tenso" ? Frown : Meh;
   const urgencyClass = (urgency?: string) => urgency === "alta" ? "border-destructive/30 bg-destructive/10 text-destructive" : urgency === "media" ? "border-warning/30 bg-warning/10 text-warning" : "border-success/30 bg-success/10 text-success";
+  const pendingSuggestions = suggestions.filter((suggestion) => suggestion.status === "pendente");
 
   return (
     <div className="space-y-4">
