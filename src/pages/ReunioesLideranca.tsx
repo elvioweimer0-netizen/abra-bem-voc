@@ -466,13 +466,19 @@ export default function ReunioesLideranca() {
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-3">
-          <div className="flex justify-end"><Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button></div>
-          {historyMeetings.map((meeting) => {
+          <div className="grid gap-2 rounded-xl bg-card p-3 sm:grid-cols-4">
+            <Select value={historyPeriod} onValueChange={setHistoryPeriod}><SelectTrigger><SelectValue placeholder="Período" /></SelectTrigger><SelectContent><SelectItem value="7">Últimos 7 dias</SelectItem><SelectItem value="30">Últimos 30 dias</SelectItem><SelectItem value="mes-passado">Mês passado</SelectItem><SelectItem value="todos">Todos</SelectItem></SelectContent></Select>
+            <Select value={historyType} onValueChange={setHistoryType}><SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem><SelectItem value="diaria">Diária</SelectItem><SelectItem value="semanal">Semanal</SelectItem><SelectItem value="individual">Individual</SelectItem></SelectContent></Select>
+            <Select value={historyUnit} onValueChange={setHistoryUnit} disabled={!canReviewSuggestions}><SelectTrigger><SelectValue placeholder="Unidade" /></SelectTrigger><SelectContent><SelectItem value="todos">Todas</SelectItem>{units.map((unit) => <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>)}</SelectContent></Select>
+            <Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button>
+          </div>
+          {filteredHistoryMeetings.map((meeting) => {
             const minute = minutes.find((item) => item.meeting_id === meeting.id);
             const pendingSuggestions = aiSuggestions.filter((item) => item.meeting_id === meeting.id && item.status === "pendente").length;
-            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} pendingSuggestions={pendingSuggestions} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
+            const meetingAttendees = attendees.filter((item) => item.meeting_id === meeting.id);
+            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} attendees={meetingAttendees} pendingSuggestions={pendingSuggestions} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
           })}
-          {!historyMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
+          {!filteredHistoryMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
         </TabsContent>
       </Tabs>
     </div>
