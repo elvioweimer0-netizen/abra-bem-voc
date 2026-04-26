@@ -40,9 +40,6 @@ serve(async (req) => {
       properties: {
         enable_chat: true,
         enable_screenshare: true,
-        enable_recording: "cloud",
-        start_cloud_recording: true,
-        eject_at_room_exp: true,
         start_video_off: false,
         start_audio_off: false,
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 6,
@@ -62,31 +59,11 @@ serve(async (req) => {
     if (!response.ok && response.status !== 409) {
       const details = await response.text();
       console.error("[Daily.co] create room error", details);
-      if (details.toLowerCase().includes("start_cloud_recording")) {
-        const retryPayload = { ...roomPayload, properties: { ...roomPayload.properties } };
-        delete (retryPayload.properties as Record<string, unknown>).start_cloud_recording;
-        response = await fetch("https://api.daily.co/v1/rooms", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${DAILY_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify(retryPayload),
-        });
-        console.log("[Daily.co] retry without start_cloud_recording status", response.status);
-        if (response.ok || response.status === 409) {
-          const room = response.status === 409
-            ? await (await fetch(`https://api.daily.co/v1/rooms/${name}`, { headers: { Authorization: `Bearer ${DAILY_API_KEY}` } })).json()
-            : await response.json();
-          return new Response(JSON.stringify({ url: room.url, name: room.name, title, recording_warning: "A Daily.co rejeitou start_cloud_recording; sala criada, mas a gravação automática pode precisar ser iniciada no painel Daily.co." }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-      }
-      const isPlanError = response.status === 402 || details.toLowerCase().includes("recording") || details.toLowerCase().includes("plan");
       return new Response(JSON.stringify({
-        error: isPlanError ? "Plano Daily.co não suporta gravação. Faça upgrade pra Pay-as-you-go." : "Erro ao criar sala Daily.co",
-        plan_error: isPlanError,
+        error: "Erro ao criar sala Daily.co",
         details,
       }), {
-        status: isPlanError ? 200 : response.status,
+        status: response.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
