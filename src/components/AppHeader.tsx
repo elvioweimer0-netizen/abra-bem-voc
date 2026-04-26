@@ -1,11 +1,12 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole, type CargoTipo } from "@/hooks/useRole";
 import { useViewAs } from "@/contexts/ViewAsContext";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Bell, MapPin, User, Eye, Building } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, User, Eye, Building } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 
@@ -44,18 +45,28 @@ const roleColorMap: Record<string, string> = {
 /* ─── component ─── */
 
 export function AppHeader() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useAuth();
   const { realCargo, isRealAdmin } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
 
   const badgeClass = roleColorMap[role] || "bg-muted text-muted-foreground";
+  const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", "/minha-equipe"];
+  const showBack = !rootRoutes.includes(location.pathname);
 
   return (
     <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="relative flex h-14 items-center justify-between px-3 md:h-16 md:px-6">
         {/* Left: Sidebar trigger + branding */}
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="h-12 w-12 md:h-10 md:w-10" />
+          {showBack ? (
+            <button className="flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted" onClick={() => navigate(-1)} aria-label="Voltar">
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+          ) : (
+            <SidebarTrigger className="h-12 w-12 md:h-10 md:w-10" />
+          )}
           <div className="hidden sm:flex items-center gap-2.5">
             <img src="/curio_logo_claro.png" alt="Curió Conecta" className="h-9 w-auto object-contain" />
             <div>

@@ -1026,6 +1026,7 @@ export type Database = {
           criado_em: string
           destinatario_id: string
           id: string
+          is_demo: boolean
           motivo: string
           publico: boolean
           unit_id: string
@@ -1038,6 +1039,7 @@ export type Database = {
           criado_em?: string
           destinatario_id: string
           id?: string
+          is_demo?: boolean
           motivo: string
           publico?: boolean
           unit_id: string
@@ -1050,6 +1052,7 @@ export type Database = {
           criado_em?: string
           destinatario_id?: string
           id?: string
+          is_demo?: boolean
           motivo?: string
           publico?: boolean
           unit_id?: string
@@ -1388,6 +1391,9 @@ export type Database = {
           data_admissao: string | null
           foto_url: string | null
           id: string
+          idade: number | null
+          is_demo: boolean
+          nome: string | null
           role: Database["public"]["Enums"]["team_member_role"]
           sector: Database["public"]["Enums"]["team_sector"]
           status: Database["public"]["Enums"]["team_member_status"]
@@ -1402,6 +1408,9 @@ export type Database = {
           data_admissao?: string | null
           foto_url?: string | null
           id?: string
+          idade?: number | null
+          is_demo?: boolean
+          nome?: string | null
           role?: Database["public"]["Enums"]["team_member_role"]
           sector?: Database["public"]["Enums"]["team_sector"]
           status?: Database["public"]["Enums"]["team_member_status"]
@@ -1416,6 +1425,9 @@ export type Database = {
           data_admissao?: string | null
           foto_url?: string | null
           id?: string
+          idade?: number | null
+          is_demo?: boolean
+          nome?: string | null
           role?: Database["public"]["Enums"]["team_member_role"]
           sector?: Database["public"]["Enums"]["team_sector"]
           status?: Database["public"]["Enums"]["team_member_status"]

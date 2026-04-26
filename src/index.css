@@ -39,6 +39,15 @@
     --highlight: 1 55% 46%;
     --highlight-foreground: 0 0% 100%;
 
+    --sector-acougue: 12 56% 51%;
+    --sector-padaria: 36 70% 61%;
+    --sector-hortifruti: 99 35% 41%;
+    --sector-mercearia: 217 40% 40%;
+    --sector-frente-caixa: 288 40% 40%;
+    --sector-deposito: 0 0% 36%;
+    --sector-geral: 18 54% 13%;
+    --gold: 46 64% 52%;
+
     --border: 13 27% 89%;
     --input: 13 27% 89%;
     --ring: 1 55% 46%;
