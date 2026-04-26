@@ -27,6 +27,7 @@ export default function Avisos() {
 
   const canEdit = profile?.cargo === "admin" || profile?.cargo === "gerente";
   const isAdmin = profile?.cargo === "admin";
+  const isCentralAdm = profile?.unidade?.includes("CENTRAL");
 
   const fetchData = async () => {
     const { data } = await supabase.from("avisos").select("*").order("created_at", { ascending: false });
@@ -66,6 +67,9 @@ export default function Avisos() {
     } else {
       const { error } = await supabase.from("avisos").insert(payload);
       if (error) { toast.error(error.message); return; }
+      if (isCentralAdm) {
+        await supabase.from("notification_events").insert({ type: "weekly_report", title: `Comunicado Central ADM: ${form.titulo}`, body: form.conteudo.slice(0, 180), payload: { origem: "central_adm", canal: "avisos" } });
+      }
       toast.success("Aviso criado!");
     }
     setOpen(false);
