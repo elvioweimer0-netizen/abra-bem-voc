@@ -343,6 +343,8 @@ export default function ReunioesLideranca() {
   const selectedMeeting = historyMeetings.find((meeting) => meeting.id === selectedHistoryId);
   const selectedMinute = selectedMeeting ? minutes.find((minute) => minute.meeting_id === selectedMeeting.id) : undefined;
   const selectedAttendees = selectedMeeting ? attendees.filter((attendee) => attendee.meeting_id === selectedMeeting.id) : [];
+  const selectedSuggestions = selectedMeeting ? aiSuggestions.filter((suggestion) => suggestion.meeting_id === selectedMeeting.id) : [];
+  const canReviewSuggestions = ["admin", "master", "supervisor"].includes(profile?.cargo || "");
 
   const retryMinute = async (minute: MeetingMinute) => {
     if (!minute.recording_url && !minute.recording_file_path) {
@@ -364,8 +366,30 @@ export default function ReunioesLideranca() {
     }
   };
 
+  const approveSuggestion = async (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => {
+    if (!canReviewSuggestions || !user) return;
+    const finalSuggestion = { ...suggestion, ...changes };
+    const status = changes ? "editada" : "aprovada";
+    try {
+      await db.from("meeting_action_items").insert({ meeting_id: finalSuggestion.meeting_id, descricao: finalSuggestion.descricao, responsavel: finalSuggestion.responsavel_sugerido, prazo: finalSuggestion.prazo_sugerido, status: "pendente" });
+      await db.from("notification_events").insert({ type: "meeting_minutes", title: `Ação aprovada: ${finalSuggestion.titulo}`, body: finalSuggestion.descricao, payload: { meeting_id: finalSuggestion.meeting_id, suggestion_id: finalSuggestion.id, audiencia: finalSuggestion.audiencia } });
+      await db.from("ai_suggestions").update({ ...changes, status, aprovada_por: user.id, aprovada_em: new Date().toISOString() }).eq("id", suggestion.id);
+      toast.success("Sugestão enviada para acompanhamento");
+      await loadHistory();
+    } catch (error) {
+      toast.error("Erro ao enviar sugestão", { description: error instanceof Error ? error.message : "Tente novamente." });
+    }
+  };
+
+  const discardSuggestion = async (suggestion: AiSuggestion) => {
+    if (!canReviewSuggestions || !user) return;
+    await db.from("ai_suggestions").update({ status: "descartada", aprovada_por: user.id, aprovada_em: new Date().toISOString() }).eq("id", suggestion.id);
+    toast.success("Sugestão descartada");
+    await loadHistory();
+  };
+
   if (selectedMeeting) {
-    return <MeetingMinuteDetail meeting={selectedMeeting} minute={selectedMinute} attendees={selectedAttendees} onBack={() => setSelectedHistoryId(null)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === selectedMinute?.id} />;
+    return <MeetingMinuteDetail meeting={selectedMeeting} minute={selectedMinute} attendees={selectedAttendees} suggestions={selectedSuggestions} canReviewSuggestions={canReviewSuggestions} onApproveSuggestion={approveSuggestion} onDiscardSuggestion={discardSuggestion} onBack={() => setSelectedHistoryId(null)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === selectedMinute?.id} />;
   }
 
   return (
