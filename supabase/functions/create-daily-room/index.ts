@@ -59,6 +59,21 @@ serve(async (req) => {
     if (!response.ok && response.status !== 409) {
       const details = await response.text();
       console.error("[Daily.co] create room error", details);
+      const roomAlreadyExists = response.status === 400 && details.toLowerCase().includes("already exists");
+
+      if (roomAlreadyExists) {
+        const existing = await fetch(`https://api.daily.co/v1/rooms/${name}`, {
+          headers: { Authorization: `Bearer ${DAILY_API_KEY}` },
+        });
+        const room = await existing.json();
+        if (existing.ok && room?.url) {
+          console.log("[Daily.co] existing room reused after 400", { name });
+          return new Response(JSON.stringify({ url: room.url, name: room.name, title, reused: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       return new Response(JSON.stringify({
         error: "Erro ao criar sala Daily.co",
         details,
