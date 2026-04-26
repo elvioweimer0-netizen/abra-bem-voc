@@ -119,7 +119,7 @@ export default function DocumentosLideranca() {
       const { data: doc, error } = await db.from("documents").insert({ type: selectedTemplate.type, colaborador_id: selectedMemberId || null, criado_por: user.id, dados_jsonb: { ...fields, texto_final: preview }, pdf_url: path, status: nextStatus, finalizado_em: flow.length ? null : new Date().toISOString() }).select("id").single();
       if (error) throw error;
       if (flow.length) await db.from("document_approvals").insert(flow.map((role: string) => ({ document_id: doc.id, role_required: role, status: "pendente" })));
-      await db.from("notification_events").insert({ type: "hr_messages", title: `Novo documento: ${selectedTemplate.titulo}`, body: `${profile?.nome || "Liderança"} enviou um documento para análise.`, payload: { document_id: doc.id, flow } });
+      await db.from("notification_events").insert({ type: "weekly_report", title: `Novo documento: ${selectedTemplate.titulo}`, body: `${profile?.nome || "Liderança"} enviou um documento para análise.`, payload: { document_id: doc.id, flow } });
       toast.success("Documento gerado e enviado ✅");
       setMode("list");
       await load();
