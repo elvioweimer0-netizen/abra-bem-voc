@@ -14,11 +14,16 @@ import { HojeNoCurio } from "@/components/dashboard/HojeNoCurio";
 import { MomentosCurio } from "@/components/dashboard/MomentosCurio";
 import { MissaoVisaoValores } from "@/components/dashboard/MissaoVisaoValores";
 import { CuriozinhoHomeCard } from "@/components/curiozinho";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { CalendarClock, CheckCircle2, ClipboardList, Gauge, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
-  const { isGerente, isAdmin } = useRole();
+  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador } = useRole();
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
   const [noticias, setNoticias] = useState<Noticia[]>([]);
@@ -62,10 +67,56 @@ export default function Dashboard() {
   }, [profile, showAdminMetrics]);
 
   const heroBanner = noticias.find((n) => n.importante) || noticias[0];
+  const firstName = profile?.nome?.split(" ")[0] || "time Curió";
+
+  const profileCards = isAdmin
+    ? ["Ranking das unidades hoje", "B.O.s urgentes da rede", "Resumo financeiro semanal"]
+    : isSupervisor
+      ? ["Agenda de visitas do dia", "Status das 6 unidades", "Próxima inspeção sugerida"]
+      : isGerenteAdm
+        ? ["Atalho para sua gerência", "Mensagens das lojas", "Pendências da área"]
+        : isGerente
+          ? ["Checklist da unidade", "B.O.s abertos", "Reunião 9:30"]
+          : isEncarregado
+            ? ["Pendências do setor", "Próxima reunião", "Faltas e ocorrências"]
+            : ["Sua escala", "Avisos importantes", "Elogios recentes"];
+
+  const mainAction = isAdmin
+    ? { label: "Visão Geral Completa", href: "/visao-geral-admin" }
+    : isSupervisor
+      ? { label: "Ver Minhas Unidades", href: "/minhas-unidades" }
+      : isGerenteAdm
+        ? { label: "Abrir Minha Gerência", href: "/central-adm/rh" }
+        : isColaborador
+          ? { label: "Ver minha agenda", href: "/escala-semana" }
+          : { label: "Iniciar Reunião 9:30", href: "/reunioes-lideranca" };
 
   return (
     <div className="space-y-6 md:space-y-8">
       <HeaderHome />
+      <Card className="border-border card-shadow">
+        <CardContent className="p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Bom dia, {firstName}</p>
+              <h2 className="mt-1 text-xl font-bold text-foreground">{isAdmin ? "Visão consolidada da rede" : isSupervisor ? "Operação das unidades hoje" : isGerenteAdm ? "Central ADM" : "Rotina de loja"}</h2>
+            </div>
+            <Button onClick={() => navigate(mainAction.href)}>{mainAction.label}</Button>
+          </div>
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {profileCards.map((label, index) => {
+              const Icon = [ClipboardList, Gauge, CalendarClock][index] || CheckCircle2;
+              return (
+                <div key={label} className="rounded-lg border border-border bg-muted/40 p-3">
+                  <Icon className="mb-2 h-5 w-5 text-primary" />
+                  <p className="text-sm font-semibold text-foreground">{label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground"><MapPin className="mr-1 inline h-3 w-3" />{isAdmin || isSupervisor ? "Todas as unidades" : profile?.unidade}</p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
       <AvisosBanner />
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
