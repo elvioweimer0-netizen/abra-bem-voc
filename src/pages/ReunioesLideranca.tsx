@@ -458,3 +458,62 @@ function MinutesCard({ minute }: { minute: MeetingMinute }) {
     </Card>
   );
 }
+
+function minuteStatus(minute?: MeetingMinute) {
+  if (!minute || minute.processing_status === "pending" || minute.processing_status === "processing") return { label: "⏳ Processando...", tone: "secondary" as const };
+  if (minute.processing_status === "failed") return { label: "❌ Erro no processamento", tone: "destructive" as const };
+  return { label: "✅ Ata pronta", tone: "default" as const };
+}
+
+function HistoryMeetingCard({ meeting, minute, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+  const status = minuteStatus(minute);
+  const isFailed = minute?.processing_status === "failed";
+  const isProcessing = !minute || minute.processing_status === "pending" || minute.processing_status === "processing";
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <button type="button" className="w-full text-left" onClick={onOpen}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-bold text-foreground">{formatMeetingType(meeting.type)}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
+              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {formatDuration(meeting)}</p>
+            </div>
+            <Badge variant={status.tone}>{status.label}</Badge>
+          </div>
+        </button>
+        {(isProcessing || isFailed) && <Button variant="outline" className="mt-3 min-h-11 w-full gap-2" onClick={isFailed && minute ? () => onRetry(minute) : onRefresh} disabled={retrying}><RefreshCw className="h-4 w-4" /> {isFailed ? (retrying ? "Tentando..." : "Tentar novamente") : "Atualizar"}</Button>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MeetingMinuteDetail({ meeting, minute, attendees, onBack, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; onBack: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+  const decisions = Array.isArray(minute?.decisions) ? minute.decisions : [];
+  const actionItems = Array.isArray(minute?.action_items) ? minute.action_items : [];
+  const attentionPoints = Array.isArray(minute?.attention_points) ? minute.attention_points : [];
+  const status = minuteStatus(minute);
+  const sentiment = minute?.sentiment || "neutro";
+  const SentimentIcon = sentiment === "positivo" ? Smile : sentiment === "tenso" ? Frown : Meh;
+  const urgencyClass = (urgency?: string) => urgency === "alta" ? "border-destructive/30 bg-destructive/10 text-destructive" : urgency === "media" ? "border-warning/30 bg-warning/10 text-warning" : "border-success/30 bg-success/10 text-success";
+
+  return (
+    <div className="space-y-4">
+      <Button variant="ghost" className="gap-2 px-0" onClick={onBack}><ArrowLeft className="h-5 w-5" /> Voltar</Button>
+      <section className="rounded-xl bg-card p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">{formatMeetingType(meeting.type)}</p><h1 className="mt-1 text-2xl font-bold text-foreground">Ata da reunião</h1></div><Badge variant={status.tone}>{status.label}</Badge></div>
+        <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3"><span>{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span><span>Duração: {formatDuration(meeting)}</span><span className="flex items-center gap-1"><Users className="h-4 w-4" /> {attendees.length || 1} participante(s)</span></div>
+      </section>
+
+      {(!minute || minute.processing_status === "pending" || minute.processing_status === "processing") && <Card><CardContent className="space-y-3 p-4 text-sm text-muted-foreground"><p>A ata ainda está em processamento.</p><Button variant="outline" className="w-full gap-2" onClick={onRefresh}><RefreshCw className="h-4 w-4" /> Atualizar</Button></CardContent></Card>}
+      {minute?.processing_status === "failed" && <Card className="border-destructive/30"><CardContent className="space-y-3 p-4 text-sm text-destructive"><p>{minute.error_message || "Erro no processamento da ata."}</p><Button variant="outline" className="w-full gap-2" onClick={() => onRetry(minute)} disabled={retrying}><RefreshCw className="h-4 w-4" /> {retrying ? "Tentando..." : "Tentar novamente"}</Button></CardContent></Card>}
+
+      <Card><CardHeader><CardTitle>Resumo Executivo</CardTitle></CardHeader><CardContent className="whitespace-pre-line text-sm text-muted-foreground">{minute?.executive_summary || "Aguardando processamento."}</CardContent></Card>
+      <Card><CardHeader><CardTitle>Decisões Tomadas</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground">{decisions.length ? decisions.map((item, index) => <p key={index}>• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""}</p>) : <p>Sem decisões registradas.</p>}</CardContent></Card>
+      <Card><CardHeader><CardTitle>Próximos Passos</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground">{actionItems.length ? actionItems.map((item, index) => <p key={index}>• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""} {item.prazo ? `(${item.prazo})` : ""}</p>) : <p>Sem próximos passos.</p>}</CardContent></Card>
+      <Card><CardHeader><CardTitle>Pontos de Atenção</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">{attentionPoints.length ? attentionPoints.map((item, index) => <div key={index} className={`rounded-lg border p-3 ${urgencyClass(item.urgencia)}`}>• {item.descricao} <Badge variant="outline" className="ml-1 text-[10px]">{item.urgencia || "baixa"}</Badge></div>) : <p className="text-muted-foreground">Sem pontos críticos.</p>}</CardContent></Card>
+      <Card><CardHeader><CardTitle>Sentimento</CardTitle></CardHeader><CardContent><Badge variant="secondary" className="gap-2"><SentimentIcon className="h-4 w-4" /> {sentiment}</Badge></CardContent></Card>
+      {minute?.transcript && <Card><CardContent className="p-4"><Collapsible><CollapsibleTrigger asChild><Button variant="outline" className="w-full gap-2">Transcript completo <ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent className="mt-3 max-h-96 overflow-auto rounded-lg bg-muted p-3 text-xs text-muted-foreground whitespace-pre-line">{minute.transcript}</CollapsibleContent></Collapsible></CardContent></Card>}
+    </div>
+  );
+}
