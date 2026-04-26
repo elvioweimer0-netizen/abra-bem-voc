@@ -6,7 +6,10 @@ import { useViewAs } from "@/contexts/ViewAsContext";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Bell, MapPin, User, Eye, Building } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Bell, Building, Eye, LogOut, MapPin, Settings, User, UserCircle } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 
@@ -47,13 +50,17 @@ const roleColorMap: Record<string, string> = {
 export function AppHeader() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile } = useAuth();
-  const { realCargo, isRealAdmin } = useRole();
+  const { profile, signOut } = useAuth();
+  const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
 
   const badgeClass = roleColorMap[role] || "bg-muted text-muted-foreground";
-  const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", "/minha-equipe"];
+  const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
   const showBack = !rootRoutes.includes(location.pathname);
+  const profileAny = profile as any;
+  const displayCargo = profileAny?.cargo_titulo || cargoLabels[realCargo]?.replace(/^.+\s/, "") || realCargo;
+  const displayUnit = isRealAdmin || isSupervisor || !profile?.unit_id ? "Todas as unidades" : profile?.unidade;
+  const initials = (profile?.nome || "Usuário").split(" ").filter(Boolean).slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 
   return (
     <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -146,15 +153,33 @@ export function AppHeader() {
                 <Bell className="h-5 w-5" />
                 <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
               </button>
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-semibold leading-none">{profile.nome}</p>
-                <p className="text-[11px] text-muted-foreground capitalize">
-                  {cargoLabels[realCargo]?.replace(/^.+\s/, "") || realCargo}
-                </p>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex min-h-11 items-center gap-2 rounded-lg px-1 text-left transition-colors hover:bg-muted sm:px-2" aria-label="Abrir menu do perfil">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-bold text-primary">
+                      {profileAny?.foto_url ? <img src={profileAny.foto_url} alt={profile.nome} className="h-full w-full object-cover" /> : initials || <User className="h-4 w-4" />}
+                    </div>
+                    <div className="hidden max-w-[210px] sm:block text-right">
+                      <p className="truncate text-sm font-semibold leading-none">{profile.nome}</p>
+                      <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                        {displayCargo} • {displayUnit}
+                      </p>
+                    </div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>
+                    <p className="truncate">{profile.nome}</p>
+                    <p className="truncate text-xs font-normal text-muted-foreground">{displayCargo} • {displayUnit}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/meu-perfil")}><UserCircle className="mr-2 h-4 w-4" /> Meu Perfil</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/gestao-usuarios")}><Settings className="mr-2 h-4 w-4" /> Configurações</DropdownMenuItem>
+                  {(isRealAdmin || isSupervisor) && <DropdownMenuItem onClick={() => navigate("/minhas-unidades")}><Eye className="mr-2 h-4 w-4" /> Trocar de visualização</DropdownMenuItem>}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}><LogOut className="mr-2 h-4 w-4" /> Sair</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>

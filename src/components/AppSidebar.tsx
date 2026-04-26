@@ -196,7 +196,7 @@ export function AppSidebar() {
   const { isAdmin, isGerente, isEncarregado, isSupervisor, isLeadershipPanel } = useRole();
 
   const showEncarregado = isEncarregado || isGerente || isAdmin || isSupervisor;
-  const showGerente = isGerente || isAdmin;
+  const showGerente = isGerente || isAdmin || isSupervisor;
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -259,7 +259,7 @@ export function AppSidebar() {
             label="Gestão da Unidade"
             items={[
               { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
-              { title: "Minha Equipe", url: "/minha-equipe", icon: Users },
+              { title: isSupervisor ? "Minhas Unidades" : "Minha Equipe", url: isSupervisor ? "/minhas-unidades" : "/minha-equipe", icon: Users },
               { title: "Escala da Semana", url: "/escala-semana", icon: CalendarDays },
               { title: "Avaliações", url: "/avaliacoes", icon: UserCheck },
               { title: "Reconhecer Alguém", url: "/reconhecimentos", icon: Trophy },
