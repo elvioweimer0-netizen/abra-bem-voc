@@ -1141,6 +1141,72 @@ export type Database = {
           },
         ]
       }
+      meeting_pauta_suggestions: {
+        Row: {
+          description: string
+          id: string
+          included_in_meeting_id: string | null
+          motivo_rejeicao: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          suggested_at: string
+          suggested_by: string
+          target_meeting_type: Database["public"]["Enums"]["meeting_type"]
+          title: string
+          unit_id: string | null
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          description: string
+          id?: string
+          included_in_meeting_id?: string | null
+          motivo_rejeicao?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_at?: string
+          suggested_by: string
+          target_meeting_type: Database["public"]["Enums"]["meeting_type"]
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          description?: string
+          id?: string
+          included_in_meeting_id?: string | null
+          motivo_rejeicao?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_at?: string
+          suggested_by?: string
+          target_meeting_type?: Database["public"]["Enums"]["meeting_type"]
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_pauta_suggestions_included_in_meeting_id_fkey"
+            columns: ["included_in_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_pauta_suggestions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       noticias: {
         Row: {
           conteudo: string
