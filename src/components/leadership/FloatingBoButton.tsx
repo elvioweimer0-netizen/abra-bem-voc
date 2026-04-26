@@ -10,14 +10,14 @@ export function FloatingBoButton() {
   const location = useLocation();
   const { isEncarregado, isGerente, isLeadershipPanel } = useRole();
   const canCreateBo = isEncarregado || isGerente || isLeadershipPanel;
-  const isBoPage = location.pathname === "/bo-eletronico";
+  const isBoPage = location.pathname === "/ocorrencias" || location.pathname === "/bo-eletronico";
   const rhUrl = "https://wa.me/5565990000000";
 
   return (
     <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 flex flex-col items-end gap-3 md:bottom-6">
       <div className="hidden flex-col items-end gap-3 md:flex">
         {canCreateBo && !isBoPage && (
-          <Button className="h-14 w-14 rounded-full p-0 shadow-lg" onClick={() => navigate("/bo-eletronico")} aria-label="Novo B.O.">
+          <Button className="h-14 w-14 rounded-full p-0 shadow-lg" onClick={() => navigate("/ocorrencias")} aria-label="Nova Ocorrência">
             <Plus className="h-7 w-7" />
           </Button>
         )}
@@ -30,8 +30,8 @@ export function FloatingBoButton() {
         {open && (
           <>
             {canCreateBo && !isBoPage && (
-              <Button className="h-12 gap-2 rounded-full px-4 shadow-lg" onClick={() => { setOpen(false); navigate("/bo-eletronico"); }}>
-                <Plus className="h-5 w-5" /> Novo B.O.
+              <Button className="h-12 gap-2 rounded-full px-4 shadow-lg" onClick={() => { setOpen(false); navigate("/ocorrencias"); }}>
+                <Plus className="h-5 w-5" /> Nova Ocorrência
               </Button>
             )}
             <Button asChild variant="secondary" className="h-12 gap-2 rounded-full px-4 shadow-lg">

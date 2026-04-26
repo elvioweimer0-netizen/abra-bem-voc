@@ -838,48 +838,72 @@ export type Database = {
           comments_count: number
           created_at: string
           criado_em: string
+          custo_estimado: number | null
           descricao: string
           foto_url: string | null
+          fotos: string[]
           gravidade: Database["public"]["Enums"]["occurrence_severity"]
           id: string
+          motivos: Json
+          observacao: string | null
+          prazo_desejado: string | null
           reportado_por: string
           resolvido_em: string | null
+          setor: string | null
           status: Database["public"]["Enums"]["occurrence_status"]
           tipo: Database["public"]["Enums"]["occurrence_type"]
+          titulo: string
           unit_id: string
           updated_at: string
+          urgencia: Database["public"]["Enums"]["occurrence_severity"]
         }
         Insert: {
           atribuido_a?: string | null
           comments_count?: number
           created_at?: string
           criado_em?: string
+          custo_estimado?: number | null
           descricao: string
           foto_url?: string | null
+          fotos?: string[]
           gravidade?: Database["public"]["Enums"]["occurrence_severity"]
           id?: string
+          motivos?: Json
+          observacao?: string | null
+          prazo_desejado?: string | null
           reportado_por: string
           resolvido_em?: string | null
+          setor?: string | null
           status?: Database["public"]["Enums"]["occurrence_status"]
           tipo?: Database["public"]["Enums"]["occurrence_type"]
+          titulo: string
           unit_id: string
           updated_at?: string
+          urgencia?: Database["public"]["Enums"]["occurrence_severity"]
         }
         Update: {
           atribuido_a?: string | null
           comments_count?: number
           created_at?: string
           criado_em?: string
+          custo_estimado?: number | null
           descricao?: string
           foto_url?: string | null
+          fotos?: string[]
           gravidade?: Database["public"]["Enums"]["occurrence_severity"]
           id?: string
+          motivos?: Json
+          observacao?: string | null
+          prazo_desejado?: string | null
           reportado_por?: string
           resolvido_em?: string | null
+          setor?: string | null
           status?: Database["public"]["Enums"]["occurrence_status"]
           tipo?: Database["public"]["Enums"]["occurrence_type"]
+          titulo?: string
           unit_id?: string
           updated_at?: string
+          urgencia?: Database["public"]["Enums"]["occurrence_severity"]
         }
         Relationships: [
           {
@@ -1998,6 +2022,10 @@ export type Database = {
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
       is_unit_manager: {
         Args: { _unit_id: string; _user_id: string }
+        Returns: boolean
+      }
+      profile_matches_occurrence_reason: {
+        Args: { _motivos: Json; _unit_id: string; _user_id: string }
         Returns: boolean
       }
       user_can_access_unit: {

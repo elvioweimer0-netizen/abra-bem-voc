@@ -70,13 +70,13 @@ export default function Dashboard() {
   const firstName = profile?.nome?.split(" ")[0] || "time Curió";
 
   const profileCards = isAdmin
-    ? ["Ranking das unidades hoje", "B.O.s urgentes da rede", "Resumo financeiro semanal"]
+    ? ["Ranking das unidades hoje", "Ocorrências urgentes da rede", "Resumo financeiro semanal"]
     : isSupervisor
       ? ["Agenda de visitas do dia", "Status das 6 unidades", "Próxima inspeção sugerida"]
       : isGerenteAdm
         ? ["Atalho para sua gerência", "Mensagens das lojas", "Pendências da área"]
         : isGerente
-          ? ["Checklist da unidade", "B.O.s abertos", "Reunião 9:30"]
+          ? ["Checklist da unidade", "Ocorrências abertas", "Reunião 9:30"]
           : isEncarregado
             ? ["Pendências do setor", "Próxima reunião", "Faltas e ocorrências"]
             : ["Sua escala", "Avisos importantes", "Elogios recentes"];
