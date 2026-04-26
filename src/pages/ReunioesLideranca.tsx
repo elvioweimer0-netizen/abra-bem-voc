@@ -214,3 +214,31 @@ export default function ReunioesLideranca() {
     </div>
   );
 }
+
+function MinutesCard({ minute }: { minute: MeetingMinute }) {
+  const decisions = Array.isArray(minute.decisions) ? minute.decisions : [];
+  const actionItems = Array.isArray(minute.action_items) ? minute.action_items : [];
+  const attentionPoints = Array.isArray(minute.attention_points) ? minute.attention_points : [];
+
+  if (minute.processing_status === "processing" || minute.processing_status === "pending") {
+    return <Card><CardContent className="p-4 text-sm text-muted-foreground">Ata em processamento. Ela aparecerá aqui automaticamente.</CardContent></Card>;
+  }
+
+  if (minute.processing_status === "failed") {
+    return <Card className="border-destructive/30"><CardContent className="p-4 text-sm text-destructive">Falha ao gerar ata: {minute.error_message || "tente subir a gravação manualmente."}</CardContent></Card>;
+  }
+
+  return (
+    <Card className="border-success/30 bg-success/5">
+      <CardHeader><CardTitle>Ata gerada</CardTitle></CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        <div><p className="font-semibold text-foreground">Resumo executivo</p><p className="mt-1 whitespace-pre-line text-muted-foreground">{minute.executive_summary}</p></div>
+        <div><p className="font-semibold text-foreground">Decisões</p>{decisions.length ? decisions.map((item, index) => <p key={index} className="text-muted-foreground">• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""}</p>) : <p className="text-muted-foreground">Sem decisões registradas.</p>}</div>
+        <div><p className="font-semibold text-foreground">Próximos passos</p>{actionItems.length ? actionItems.map((item, index) => <p key={index} className="text-muted-foreground">• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""} {item.prazo ? `(${item.prazo})` : ""}</p>) : <p className="text-muted-foreground">Sem próximos passos.</p>}</div>
+        <div><p className="font-semibold text-foreground">Pontos de atenção</p>{attentionPoints.length ? attentionPoints.map((item, index) => <p key={index} className="text-muted-foreground">• {item.descricao} <Badge variant="outline" className="ml-1 text-[10px]">{item.urgencia}</Badge></p>) : <p className="text-muted-foreground">Sem pontos críticos.</p>}</div>
+        <Badge variant="secondary">Sentimento: {minute.sentiment || "neutro"}</Badge>
+        {minute.transcript && <Collapsible><CollapsibleTrigger asChild><Button variant="outline" className="w-full gap-2">Ver transcript completo <ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent className="mt-3 max-h-72 overflow-auto rounded-lg bg-muted p-3 text-xs text-muted-foreground whitespace-pre-line">{minute.transcript}</CollapsibleContent></Collapsible>}
+      </CardContent>
+    </Card>
+  );
+}
