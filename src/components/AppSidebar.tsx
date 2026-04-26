@@ -105,6 +105,7 @@ function getCentralArea(profile: ReturnType<typeof useAuth>["profile"]): MenuIte
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
+  const menuCollapsed = isMobile ? false : collapsed;
   const { signOut, profile } = useAuth();
   const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
@@ -157,28 +158,28 @@ export function AppSidebar() {
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center gap-3 p-4">
         <img src="/curio_logo_escuro.png" alt="Curió" className="h-10 w-auto shrink-0 object-contain" />
-        {!collapsed && (
+        {!menuCollapsed && (
           <div className="min-w-0">
             <h2 className="truncate text-sm font-bold text-sidebar-foreground">Curió Conecta</h2>
           </div>
         )}
       </div>
 
-      {!collapsed && <Separator className="mx-4 w-auto opacity-30" />}
+      {!menuCollapsed && <Separator className="mx-4 w-auto opacity-30" />}
 
       <SidebarContent className="mt-1 px-2">
-        <MenuSection label="Principal" items={principal} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Comunicação" items={comunicacao} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Operação" items={operacao} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Gestão" items={gestao} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Central ADM" items={centralAdm} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Super Admin" items={superAdmin} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Comunicação" items={comunicacao} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
       </SidebarContent>
 
       <SidebarFooter className="p-2">
         <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground" onClick={signOut}>
           <LogOut className="h-5 w-5" />
-          {!collapsed && "Sair"}
+          {!menuCollapsed && "Sair"}
         </Button>
       </SidebarFooter>
     </Sidebar>
