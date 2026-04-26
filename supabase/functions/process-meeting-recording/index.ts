@@ -45,6 +45,13 @@ function extractRecordingUrl(payload: any) {
   return candidates.find((value) => typeof value === "string") || null;
 }
 
+function fallbackMeetingTitle(meeting?: { type?: string | null; scheduled_date?: string | null } | null) {
+  const labels: Record<string, string> = { diaria: "Diária", semanal: "Semanal", individual: "Individual" };
+  const type = labels[meeting?.type || ""] || "Manual";
+  const date = meeting?.scheduled_date ? meeting.scheduled_date.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
+  return `Reunião ${type} do dia ${date}`;
+}
+
 async function downloadRecording(url: string, dailyApiKey?: string) {
   const response = await fetch(url, { headers: dailyApiKey ? { Authorization: `Bearer ${dailyApiKey}` } : undefined });
   if (!response.ok) throw new Error(`Falha ao baixar gravação (${response.status})`);
@@ -143,15 +150,17 @@ serve(async (req) => {
         await supabase.storage.from("meeting-recordings").upload(recordingFilePath, recordingFile, { upsert: true });
       }
 
+      const { data: meetingInfo } = await supabase.from("leadership_meetings").select("type, scheduled_date, title").eq("id", meetingId).single();
       const transcript = await transcribeAudio(recordingFile, OPENAI_API_KEY);
       const generated = await generateMinutes(transcript, OPENAI_API_KEY);
       const actionItems = Array.isArray(generated.action_items) ? generated.action_items : [];
       const aiSuggestions = Array.isArray(generated.ai_suggestions) ? generated.ai_suggestions.slice(0, 7) : [];
+      const generatedTitle = generated.titulo?.trim() || meetingInfo?.title?.trim() || fallbackMeetingTitle(meetingInfo);
       const { data: savedMinute } = await supabase.from("meeting_minutes").upsert({
         meeting_id: meetingId,
         recording_url: recordingUrl,
         recording_file_path: recordingFilePath,
-        titulo: generated.titulo || "Ata da reunião",
+        titulo: generatedTitle,
         transcript,
         executive_summary: generated.executive_summary || "",
         decisions: generated.decisions || [],
@@ -182,7 +191,6 @@ serve(async (req) => {
         })));
       }
 
-      const generatedTitle = generated.titulo || "Ata da reunião";
       await supabase.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString(), title: generatedTitle, minutes: generated.executive_summary || "Ata gerada automaticamente" }).eq("id", meetingId);
       await supabase.from("notification_events").insert({ type: "meeting_minutes", title: "Ata da reunião está pronta!", body: "Toque para ver.", payload: { meeting_id: meetingId } });
       if (aiSuggestions.length) {
