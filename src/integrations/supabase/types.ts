@@ -1087,6 +1087,7 @@ export type Database = {
           foto_url: string | null
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
+          must_change_password: boolean
           nome: string
           permission_units: string[]
           role: Database["public"]["Enums"]["cargo_tipo"] | null
@@ -1096,6 +1097,7 @@ export type Database = {
           unit_id: string | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           ativo?: boolean
@@ -1108,6 +1110,7 @@ export type Database = {
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
+          must_change_password?: boolean
           nome: string
           permission_units?: string[]
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
@@ -1117,6 +1120,7 @@ export type Database = {
           unit_id?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           ativo?: boolean
@@ -1129,6 +1133,7 @@ export type Database = {
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
+          must_change_password?: boolean
           nome?: string
           permission_units?: string[]
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
@@ -1138,6 +1143,7 @@ export type Database = {
           unit_id?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: [
           {
