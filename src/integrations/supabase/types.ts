@@ -1468,6 +1468,7 @@ export type Database = {
           data_admissao: string | null
           descricao: string | null
           email: string
+          first_login_at: string | null
           foto_url: string | null
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
@@ -1483,6 +1484,7 @@ export type Database = {
           updated_at: string
           user_id: string
           username: string | null
+          welcome_banner_dismissed: boolean
         }
         Insert: {
           ativo?: boolean
@@ -1492,6 +1494,7 @@ export type Database = {
           data_admissao?: string | null
           descricao?: string | null
           email: string
+          first_login_at?: string | null
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
@@ -1507,6 +1510,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           username?: string | null
+          welcome_banner_dismissed?: boolean
         }
         Update: {
           ativo?: boolean
@@ -1516,6 +1520,7 @@ export type Database = {
           data_admissao?: string | null
           descricao?: string | null
           email?: string
+          first_login_at?: string | null
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
@@ -1531,6 +1536,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+          welcome_banner_dismissed?: boolean
         }
         Relationships: [
           {
