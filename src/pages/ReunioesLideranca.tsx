@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, FileText, Mic, Plus } from "lucide-react";
+import { CalendarClock, ChevronDown, FileText, Mic, Plus, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const db = supabase as any;
 
@@ -16,6 +17,7 @@ type Unit = { id: string; code: string; name: string };
 type Meeting = { id: string; type: string; unit_id: string | null; scheduled_date: string; scheduled_time: string; status: string; title: string; minutes?: string | null; is_monthly_in_person?: boolean };
 type Occurrence = { id: string; descricao: string; gravidade: string; unit_id: string; criado_em: string };
 type Notice = { id: string; titulo: string; created_at: string };
+type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null };
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -42,6 +44,8 @@ export default function ReunioesLideranca() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [sale, setSale] = useState("");
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
@@ -51,16 +55,18 @@ export default function ReunioesLideranca() {
     const load = async () => {
       const yesterday = yesterdayISO();
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const [{ data: unitData }, { data: meetingData }, { data: boData }, { data: noticeData }] = await Promise.all([
+      const [{ data: unitData }, { data: meetingData }, { data: boData }, { data: noticeData }, { data: minuteData }] = await Promise.all([
         db.from("units").select("id, code, name").eq("active", true).order("code"),
         db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, minutes, is_monthly_in_person").eq("scheduled_date", todayISO()).order("scheduled_time"),
         db.from("leadership_occurrences").select("id, descricao, gravidade, unit_id, criado_em").gte("criado_em", `${yesterday}T00:00:00`).lt("criado_em", `${todayISO()}T00:00:00`).in("gravidade", ["media", "alta"]),
         db.from("avisos").select("id, titulo, created_at").gte("created_at", since).eq("ativo", true).order("created_at", { ascending: false }),
+        db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
       ]);
       setUnits(unitData || []);
       setMeetings(meetingData || []);
       setOccurrences(boData || []);
       setNotices(noticeData || []);
+      setMinutes(minuteData || []);
     };
     load();
   }, []);
@@ -86,14 +92,43 @@ export default function ReunioesLideranca() {
     const { data, error } = await supabase.functions.invoke("create-daily-room", {
       body: { meetingId: meeting.id, title: meeting.title },
     });
+    if (data?.plan_error) {
+      toast({ title: "Gravação indisponível", description: data.error, variant: "destructive" });
+      return;
+    }
     if (error || !data?.url) {
-      toast({ title: "Erro ao iniciar sala", description: error?.message || "Não foi possível criar a sala Daily.co.", variant: "destructive" });
+      toast({ title: "Erro ao iniciar sala", description: error?.message || data?.error || "Não foi possível criar a sala Daily.co.", variant: "destructive" });
       return;
     }
     await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
     await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: true, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
     toast({ title: "Sala iniciada", description: "Abrindo a reunião diária no Daily.co." });
     window.open(data.url, "_blank", "noopener,noreferrer");
+  };
+
+  const uploadManualRecording = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    const meeting = dailyMeeting;
+    if (!file || !meeting) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("meetingId", meeting.id);
+      form.append("file", file);
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-meeting-recording`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: form,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Falha ao processar gravação");
+      toast({ title: "Gravação enviada", description: "A ata será gerada automaticamente em alguns minutos." });
+    } catch (error) {
+      toast({ title: "Erro no upload", description: error instanceof Error ? error.message : "Não foi possível enviar a gravação.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const closeMeeting = async (meeting?: Meeting) => {
@@ -116,6 +151,8 @@ export default function ReunioesLideranca() {
     const meeting = await ensureMeeting("semanal", "Reunião Semanal");
     if (meeting) await closeMeeting(meeting);
   };
+
+  const dailyMinute = dailyMeeting ? minutes.find((minute) => minute.meeting_id === dailyMeeting.id) : undefined;
 
   return (
     <div className="space-y-5">
