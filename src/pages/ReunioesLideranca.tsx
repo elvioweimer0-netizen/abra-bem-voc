@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, CheckCircle2, Clock, FileText, Mic, Plus, Users } from "lucide-react";
+import { CalendarClock, FileText, Mic, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -69,8 +69,6 @@ export default function ReunioesLideranca() {
   const dailyMeeting = meetings.find((m) => m.type === "diaria");
   const weeklyMeeting = meetings.find((m) => m.type === "semanal");
   const individualMeetings = meetings.filter((m) => m.type === "individual");
-  const canEnter = Math.abs(new Date().getHours() * 60 + new Date().getMinutes() - 570) <= 5 || (dailyMeeting?.status === "em_andamento");
-
   const weeklyStats = useMemo(() => units.map((unit, index) => ({ unit, percent: Math.max(45, 96 - index * 8) })), [units]);
 
   const ensureMeeting = async (type: "diaria" | "semanal", title: string) => {
@@ -85,9 +83,17 @@ export default function ReunioesLideranca() {
   const joinDaily = async () => {
     const meeting = await ensureMeeting("diaria", "Reunião Diária");
     if (!meeting || !user) return;
+    const { data, error } = await supabase.functions.invoke("create-daily-room", {
+      body: { meetingId: meeting.id, title: meeting.title },
+    });
+    if (error || !data?.url) {
+      toast({ title: "Erro ao iniciar sala", description: error?.message || "Não foi possível criar a sala Daily.co.", variant: "destructive" });
+      return;
+    }
     await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
     await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: true, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
-    toast({ title: "Presença marcada", description: "Você entrou na reunião diária." });
+    toast({ title: "Sala iniciada", description: "Abrindo a reunião diária no Daily.co." });
+    window.open(data.url, "_blank", "noopener,noreferrer");
   };
 
   const closeMeeting = async (meeting?: Meeting) => {
@@ -133,7 +139,7 @@ export default function ReunioesLideranca() {
                 <div><h2 className="text-xl font-bold text-foreground">Reunião Diária de hoje — 9:30</h2><p className="mt-1 text-sm text-muted-foreground">{minutesTo930()} restantes</p></div>
                 <CalendarClock className="h-8 w-8 text-primary" />
               </div>
-              <Button className="mt-4 min-h-12 w-full gap-2" disabled={!canEnter && !isTuesday} onClick={joinDaily}><Mic className="h-5 w-5" /> Entrar/Iniciar</Button>
+              <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily}><Mic className="h-5 w-5" /> Entrar/Iniciar</Button>
             </CardContent>
           </Card>
 
