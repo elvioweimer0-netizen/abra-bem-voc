@@ -32,19 +32,6 @@ const viewAsOptions: Enums<"cargo_tipo">[] = [
   "colaborador", "encarregado", "gerente", "admin",
 ];
 
-const roleColorMap: Record<string, string> = {
-  master: "bg-red-900/15 text-red-900",
-  admin: "bg-red-700/15 text-red-700",
-  encarregado: "bg-success/15 text-success",
-  supervisor: "bg-purple-700/15 text-purple-700",
-  adm_departamento: "bg-blue-700/15 text-blue-700",
-  gerente_adm: "bg-blue-700/15 text-blue-700",
-  gerente: "bg-amber-700/15 text-amber-700",
-  gerente_loja: "bg-amber-700/15 text-amber-700",
-  lider: "bg-emerald-700/15 text-emerald-700",
-  colaborador: "bg-teal-600/15 text-teal-700",
-};
-
 /* ─── component ─── */
 
 export function AppHeader() {
@@ -89,7 +76,7 @@ export function AppHeader() {
                 value={role}
                 onValueChange={(v) => setRole(v as Enums<"cargo_tipo">)}
               >
-                <SelectTrigger className="hidden h-10 w-[170px] text-xs sm:flex">
+                <SelectTrigger className="hidden h-10 w-[170px] text-xs lg:flex">
                   <Eye className="w-3.5 h-3.5 mr-1 shrink-0 text-muted-foreground" />
                   <SelectValue placeholder="Visualizar como" />
                 </SelectTrigger>
@@ -106,7 +93,7 @@ export function AppHeader() {
                 value={unidade}
                 onValueChange={(v) => setUnidade(v as Enums<"unidade_tipo">)}
               >
-                <SelectTrigger className="h-9 w-[160px] text-xs">
+                <SelectTrigger className="hidden h-9 w-[160px] text-xs lg:flex">
                   <Building className="w-3.5 h-3.5 mr-1 shrink-0 text-muted-foreground" />
                   <SelectValue placeholder="Unidade" />
                 </SelectTrigger>
@@ -121,7 +108,7 @@ export function AppHeader() {
 
           {profile && (
             <div className="flex items-center gap-2 ml-1">
-              <button className="relative flex h-12 w-12 items-center justify-center rounded-full text-muted-foreground md:hidden" aria-label="Notificações">
+              <button className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted" aria-label="Notificações">
                 <Bell className="h-5 w-5" />
                 <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
               </button>
@@ -130,12 +117,6 @@ export function AppHeader() {
                   <button className="flex min-h-11 items-center gap-2 rounded-lg px-1 text-left transition-colors hover:bg-muted sm:px-2" aria-label="Abrir menu do perfil">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-bold text-primary">
                       {profileAny?.foto_url ? <img src={profileAny.foto_url} alt={profile.nome} className="h-full w-full object-cover" /> : initials || <User className="h-4 w-4" />}
-                    </div>
-                    <div className="hidden max-w-[210px] sm:block text-right">
-                      <p className="truncate text-sm font-semibold leading-none">{profile.nome}</p>
-                      <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                        {displayCargo} • {displayUnit}
-                      </p>
                     </div>
                   </button>
                 </DropdownMenuTrigger>
