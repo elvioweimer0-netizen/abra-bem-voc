@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, UserCircle, Users, XCircle } from "lucide-react";
+import { format } from "date-fns";
+import { ArrowLeft, Bot, CalendarIcon, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, UserCircle, Users, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -22,6 +27,7 @@ type Notice = { id: string; titulo: string; created_at: string };
 type MeetingMinute = { id: string; meeting_id: string; titulo?: string | null; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
 type MeetingAttendee = { id: string; meeting_id: string; user_id: string; role_label: string | null; present: boolean; joined_at: string | null };
 type AiSuggestion = { id: string; meeting_id: string; tipo: string; titulo: string; descricao: string; responsavel_sugerido: string | null; prazo_sugerido: string | null; beneficio_esperado: string; audiencia: string[]; status: string; aprovada_por?: string | null; aprovada_em?: string | null };
+type ParticipantOption = { id: string; nome: string | null; cargo: string | null; foto_url: string | null; user_id: string | null; unit_id: string | null };
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
