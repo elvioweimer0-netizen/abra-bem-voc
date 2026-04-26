@@ -349,6 +349,16 @@ export default function ReunioesLideranca() {
   const selectedAttendees = selectedMeeting ? attendees.filter((attendee) => attendee.meeting_id === selectedMeeting.id) : [];
   const selectedSuggestions = selectedMeeting ? aiSuggestions.filter((suggestion) => suggestion.meeting_id === selectedMeeting.id) : [];
   const canReviewSuggestions = ["admin", "master", "supervisor"].includes(profile?.cargo || "");
+  const filteredHistoryMeetings = useMemo(() => historyMeetings.filter((meeting) => {
+    if (historyType !== "todos" && meeting.type !== historyType) return false;
+    if (historyUnit !== "todos" && meeting.unit_id !== historyUnit) return false;
+    if (historyPeriod === "todos") return true;
+    const date = new Date(meeting.ended_at || meeting.created_at || `${meeting.scheduled_date}T${meeting.scheduled_time}`);
+    const now = new Date();
+    if (historyPeriod === "mes-passado") return date.getMonth() === now.getMonth() - 1 && date.getFullYear() === now.getFullYear();
+    const days = Number(historyPeriod);
+    return date >= new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  }), [historyMeetings, historyType, historyUnit, historyPeriod]);
 
   const retryMinute = async (minute: MeetingMinute) => {
     if (!minute.recording_url && !minute.recording_file_path) {
