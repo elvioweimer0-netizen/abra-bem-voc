@@ -132,6 +132,10 @@ export default function ReunioesLideranca() {
           toast.success("Nova ata pronta! Tocar para ver.", { action: { label: "Ver", onClick: () => setSelectedHistoryId(payload.new.meeting_id) } });
         }
       })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "ai_suggestions" }, (payload: any) => {
+        loadHistory();
+        if (payload.new?.status === "pendente") toast("🤖 Curió Conecta sugeriu ações da reunião. Toque pra revisar.", { action: { label: "Ver", onClick: () => setSelectedHistoryId(payload.new.meeting_id) } });
+      })
       .subscribe();
     const interval = window.setInterval(() => loadHistory(true), 30000);
     return () => {
