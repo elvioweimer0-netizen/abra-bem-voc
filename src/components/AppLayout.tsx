@@ -10,7 +10,7 @@ import { FloatingBoButton } from "@/components/leadership/FloatingBoButton";
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <ViewAsProvider>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
