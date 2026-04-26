@@ -734,6 +734,57 @@ export type Database = {
           },
         ]
       }
+      meeting_action_items: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          meeting_id: string
+          minute_id: string | null
+          prazo: string | null
+          responsavel: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          meeting_id: string
+          minute_id?: string | null
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          meeting_id?: string
+          minute_id?: string | null
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_action_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_action_items_minute_id_fkey"
+            columns: ["minute_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_minutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_agenda_items: {
         Row: {
           content: string | null
@@ -818,6 +869,68 @@ export type Database = {
             foreignKeyName: "meeting_attendees_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
+            referencedRelation: "leadership_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_minutes: {
+        Row: {
+          action_items: Json
+          attention_points: Json
+          created_at: string
+          decisions: Json
+          error_message: string | null
+          executive_summary: string | null
+          id: string
+          meeting_id: string
+          processed_at: string | null
+          processing_status: string
+          recording_file_path: string | null
+          recording_url: string | null
+          sentiment: string | null
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_items?: Json
+          attention_points?: Json
+          created_at?: string
+          decisions?: Json
+          error_message?: string | null
+          executive_summary?: string | null
+          id?: string
+          meeting_id: string
+          processed_at?: string | null
+          processing_status?: string
+          recording_file_path?: string | null
+          recording_url?: string | null
+          sentiment?: string | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_items?: Json
+          attention_points?: Json
+          created_at?: string
+          decisions?: Json
+          error_message?: string | null
+          executive_summary?: string | null
+          id?: string
+          meeting_id?: string
+          processed_at?: string | null
+          processing_status?: string
+          recording_file_path?: string | null
+          recording_url?: string | null
+          sentiment?: string | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_minutes_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
             referencedRelation: "leadership_meetings"
             referencedColumns: ["id"]
           },
