@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, UserCircle, Users, XCircle } from "lucide-react";
+import { format } from "date-fns";
+import { ArrowLeft, Bot, CalendarIcon, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, UserCircle, Users, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -22,6 +27,7 @@ type Notice = { id: string; titulo: string; created_at: string };
 type MeetingMinute = { id: string; meeting_id: string; titulo?: string | null; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
 type MeetingAttendee = { id: string; meeting_id: string; user_id: string; role_label: string | null; present: boolean; joined_at: string | null };
 type AiSuggestion = { id: string; meeting_id: string; tipo: string; titulo: string; descricao: string; responsavel_sugerido: string | null; prazo_sugerido: string | null; beneficio_esperado: string; audiencia: string[]; status: string; aprovada_por?: string | null; aprovada_em?: string | null };
+type ParticipantOption = { id: string; nome: string | null; cargo: string | null; foto_url: string | null; user_id: string | null; unit_id: string | null };
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -59,12 +65,15 @@ export default function ReunioesLideranca() {
   const { user, profile } = useAuth();
   const [units, setUnits] = useState<Unit[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [scheduledMeetings, setScheduledMeetings] = useState<Meeting[]>([]);
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
   const [historyMeetings, setHistoryMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<MeetingAttendee[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+  const [participantOptions, setParticipantOptions] = useState<ParticipantOption[]>([]);
+  const [createMeetingOpen, setCreateMeetingOpen] = useState(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [retryingMinuteId, setRetryingMinuteId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -78,6 +87,17 @@ export default function ReunioesLideranca() {
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
   const [decisions, setDecisions] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newType, setNewType] = useState("diaria");
+  const [newDate, setNewDate] = useState<Date>(new Date());
+  const [newTime, setNewTime] = useState("09:30");
+  const [newDuration, setNewDuration] = useState("30");
+  const [newUnit, setNewUnit] = useState("none");
+  const [newParticipants, setNewParticipants] = useState<string[]>([]);
+  const [newAgenda, setNewAgenda] = useState("");
+  const [notifyParticipants, setNotifyParticipants] = useState(true);
+  const [recordAndGenerate, setRecordAndGenerate] = useState(true);
+  const [savingMeeting, setSavingMeeting] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -89,7 +109,7 @@ export default function ReunioesLideranca() {
     const [{ data: historyData }, { data: minuteData }, { data: attendeeData }, { data: suggestionData }] = await Promise.all([
       db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at, is_monthly_in_person").eq("status", "encerrada").order("ended_at", { ascending: false, nullsFirst: false }).limit(100),
       db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
-      db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").eq("present", true).order("joined_at", { ascending: true }),
+      db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").order("joined_at", { ascending: true }),
       db.from("ai_suggestions").select("id, meeting_id, tipo, titulo, descricao, responsavel_sugerido, prazo_sugerido, beneficio_esperado, audiencia, status, aprovada_por, aprovada_em").order("created_at", { ascending: false }).limit(500),
     ]);
     if (notifyReady) {
@@ -110,18 +130,22 @@ export default function ReunioesLideranca() {
     const load = async () => {
       const yesterday = yesterdayISO();
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const [{ data: unitData }, { data: meetingData }, { data: boData }, { data: noticeData }, { data: minuteData }] = await Promise.all([
+      const [{ data: unitData }, { data: meetingData }, { data: scheduledData }, { data: boData }, { data: noticeData }, { data: minuteData }, { data: teamData }] = await Promise.all([
         db.from("units").select("id, code, name").eq("active", true).order("code"),
         db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, minutes, is_monthly_in_person").eq("scheduled_date", todayISO()).order("scheduled_time"),
+        db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at").eq("status", "agendada").gte("scheduled_date", todayISO()).order("scheduled_date").order("scheduled_time"),
         db.from("leadership_occurrences").select("id, descricao, gravidade, unit_id, criado_em").gte("criado_em", `${yesterday}T00:00:00`).lt("criado_em", `${todayISO()}T00:00:00`).in("gravidade", ["media", "alta"]),
         db.from("avisos").select("id, titulo, created_at").gte("created_at", since).eq("ativo", true).order("created_at", { ascending: false }),
         db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
+        db.from("team_members").select("id, nome, cargo, foto_url, user_id, unit_id").eq("status", "ativo").order("nome"),
       ]);
       setUnits(unitData || []);
       setMeetings(meetingData || []);
+      setScheduledMeetings(scheduledData || []);
       setOccurrences(boData || []);
       setNotices(noticeData || []);
       setMinutes(minuteData || []);
+      setParticipantOptions(teamData || []);
       loadHistory();
     };
     load();
@@ -343,6 +367,46 @@ export default function ReunioesLideranca() {
     if (meeting) await closeMeeting(meeting);
   };
 
+  const startScheduledMeeting = async (meeting: Meeting) => {
+    await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
+    toast.success("Reunião iniciada");
+    setMeetings((current) => current.some((item) => item.id === meeting.id) ? current : [...current, meeting]);
+    setScheduledMeetings((current) => current.filter((item) => item.id !== meeting.id));
+  };
+
+  const cancelScheduledMeeting = async (meeting: Meeting) => {
+    await db.from("leadership_meetings").update({ status: "cancelada" }).eq("id", meeting.id);
+    toast.success("Agendamento cancelado");
+    setScheduledMeetings((current) => current.filter((item) => item.id !== meeting.id));
+  };
+
+  const scheduleManualMeeting = async () => {
+    if (!user || !newTitle.trim()) {
+      toast.error("Informe o título da reunião");
+      return;
+    }
+    setSavingMeeting(true);
+    try {
+      const scheduledDate = format(newDate, "yyyy-MM-dd");
+      const unitId = newUnit === "none" ? null : newUnit;
+      const { data: meeting, error } = await db.from("leadership_meetings").insert({ title: newTitle.trim(), type: newType === "semanal" ? "semanal" : newType === "individual" ? "individual" : "diaria", unit_id: unitId, scheduled_date: scheduledDate, scheduled_time: newTime, status: "agendada", created_by: user.id, agenda: [{ tipo: newType, duracao_minutos: Number(newDuration), pauta: newAgenda, gravar_gerar_ata: recordAndGenerate }] }).select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at").single();
+      if (error) throw error;
+      const selected = participantOptions.filter((item) => newParticipants.includes(item.id));
+      if (selected.length) await db.from("meeting_attendees").insert(selected.map((item) => ({ meeting_id: meeting.id, user_id: item.user_id || user.id, role_label: item.nome || item.cargo || "Participante", present: false })));
+      if (notifyParticipants) await db.from("notification_events").insert({ type: "meeting_reminder", unit_id: unitId, title: `Reunião agendada: ${newTitle.trim()}`, body: `${scheduledDate} às ${newTime}`, payload: { meeting_id: meeting.id, participant_ids: newParticipants, remind_at: new Date(`${scheduledDate}T${newTime}`).getTime() - 5 * 60 * 1000 } });
+      setScheduledMeetings((current) => [meeting, ...current]);
+      setCreateMeetingOpen(false);
+      setNewTitle("");
+      setNewAgenda("");
+      setNewParticipants([]);
+      toast.success("Reunião agendada com sucesso ✅");
+    } catch (error) {
+      toast.error("Erro ao agendar reunião", { description: error instanceof Error ? error.message : "Tente novamente." });
+    } finally {
+      setSavingMeeting(false);
+    }
+  };
+
   const dailyMinute = dailyMeeting ? minutes.find((minute) => minute.meeting_id === dailyMeeting.id) : undefined;
   const selectedMeeting = historyMeetings.find((meeting) => meeting.id === selectedHistoryId);
   const selectedMinute = selectedMeeting ? minutes.find((minute) => minute.meeting_id === selectedMeeting.id) : undefined;
@@ -410,8 +474,12 @@ export default function ReunioesLideranca() {
     <div className="space-y-5">
       <section className="rounded-xl bg-card p-4 shadow-sm">
         <p className="text-sm text-muted-foreground">Cobrança da Liderança</p>
-        <h1 className="mt-1 text-2xl font-bold text-foreground">Reuniões</h1>
+        <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h1 className="text-2xl font-bold text-foreground">Reuniões</h1><Button className="min-h-12 gap-2" onClick={() => setCreateMeetingOpen(true)}><Plus className="h-5 w-5" /> Nova Reunião</Button></div>
       </section>
+
+      <CreateMeetingDialog open={createMeetingOpen} onOpenChange={setCreateMeetingOpen} title={newTitle} setTitle={setNewTitle} type={newType} setType={setNewType} date={newDate} setDate={setNewDate} time={newTime} setTime={setNewTime} duration={newDuration} setDuration={setNewDuration} unit={newUnit} setUnit={setNewUnit} units={units} canChooseUnit={canReviewSuggestions} participants={participantOptions} selectedParticipants={newParticipants} setSelectedParticipants={setNewParticipants} agenda={newAgenda} setAgenda={setNewAgenda} notify={notifyParticipants} setNotify={setNotifyParticipants} record={recordAndGenerate} setRecord={setRecordAndGenerate} saving={savingMeeting} onSave={scheduleManualMeeting} />
+
+      <ScheduledMeetingsSection meetings={scheduledMeetings} attendees={attendees} canManage={canReviewSuggestions} onStart={startScheduledMeeting} onCancel={cancelScheduledMeeting} />
 
       <Tabs defaultValue="diaria" className="space-y-4">
         <TabsList className="grid h-auto w-full grid-cols-4 rounded-xl bg-muted p-1">
@@ -542,6 +610,16 @@ function HistoryMeetingCard({ meeting, minute, attendees, pendingSuggestions, on
       </CardContent>
     </Card>
   );
+}
+
+function ScheduledMeetingsSection({ meetings, attendees, canManage, onStart, onCancel }: { meetings: Meeting[]; attendees: MeetingAttendee[]; canManage: boolean; onStart: (meeting: Meeting) => void; onCancel: (meeting: Meeting) => void }) {
+  if (!meetings.length) return null;
+  return <section className="space-y-3"><h2 className="font-bold text-foreground">Agendadas</h2>{meetings.map((meeting) => <Card key={meeting.id}><CardContent className="p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">📅 {new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p><h3 className="mt-1 font-bold text-foreground">{meeting.title}</h3><p className="text-sm text-muted-foreground">🏷️ {formatMeetingType(meeting.type)}</p><div className="mt-2 flex flex-wrap gap-2">{attendees.filter((item) => item.meeting_id === meeting.id).slice(0, 6).map((attendee) => <Badge key={attendee.id} variant="outline" className="gap-1"><UserCircle className="h-3 w-3" /> {(attendee.role_label || "Participante").split(" ")[0]}</Badge>)}</div></div><Badge variant="secondary">Agendada</Badge></div>{canManage && <div className="mt-3 grid gap-2 sm:grid-cols-2"><Button className="gap-2" onClick={() => onStart(meeting)}><Mic className="h-4 w-4" /> Iniciar agora</Button><Button variant="outline" className="bg-card" onClick={() => onCancel(meeting)}>Cancelar agendamento</Button></div>}</CardContent></Card>)}</section>;
+}
+
+function CreateMeetingDialog({ open, onOpenChange, title, setTitle, type, setType, date, setDate, time, setTime, duration, setDuration, unit, setUnit, units, canChooseUnit, participants, selectedParticipants, setSelectedParticipants, agenda, setAgenda, notify, setNotify, record, setRecord, saving, onSave }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; setTitle: (value: string) => void; type: string; setType: (value: string) => void; date: Date; setDate: (value: Date) => void; time: string; setTime: (value: string) => void; duration: string; setDuration: (value: string) => void; unit: string; setUnit: (value: string) => void; units: Unit[]; canChooseUnit: boolean; participants: ParticipantOption[]; selectedParticipants: string[]; setSelectedParticipants: (value: string[]) => void; agenda: string; setAgenda: (value: string) => void; notify: boolean; setNotify: (value: boolean) => void; record: boolean; setRecord: (value: boolean) => void; saving: boolean; onSave: () => void }) {
+  const toggleParticipant = (id: string) => setSelectedParticipants(selectedParticipants.includes(id) ? selectedParticipants.filter((item) => item !== id) : [...selectedParticipants, id]);
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader><div className="space-y-3"><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título da reunião" /><Select value={type} onValueChange={setType}><SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger><SelectContent><SelectItem value="diaria">Diária Extra</SelectItem><SelectItem value="semanal">Semanal Extra</SelectItem><SelectItem value="individual">Individual</SelectItem><SelectItem value="treinamento">Treinamento</SelectItem><SelectItem value="emergencia">Emergência</SelectItem><SelectItem value="outra">Outra</SelectItem></SelectContent></Select><div className="grid gap-2 sm:grid-cols-2"><Popover><PopoverTrigger asChild><Button variant="outline" className={cn("justify-start bg-card text-left font-normal", !date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" /> {date ? format(date, "dd/MM/yyyy") : "Data"}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={date} onSelect={(value) => value && setDate(value)} initialFocus className={cn("p-3 pointer-events-auto")} /></PopoverContent></Popover><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div><Select value={duration} onValueChange={setDuration}><SelectTrigger><SelectValue placeholder="Duração" /></SelectTrigger><SelectContent><SelectItem value="15">15min</SelectItem><SelectItem value="30">30min</SelectItem><SelectItem value="45">45min</SelectItem><SelectItem value="60">1h</SelectItem><SelectItem value="90">1h30</SelectItem><SelectItem value="120">2h</SelectItem></SelectContent></Select><Select value={unit} onValueChange={setUnit} disabled={!canChooseUnit}><SelectTrigger><SelectValue placeholder="Unidade" /></SelectTrigger><SelectContent><SelectItem value="none">Sem unidade</SelectItem>{units.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select><div className="space-y-2"><p className="text-sm font-semibold text-foreground">Participantes</p><div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-border p-2">{participants.map((participant) => <button key={participant.id} type="button" onClick={() => toggleParticipant(participant.id)} className={cn("flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm transition-colors", selectedParticipants.includes(participant.id) ? "bg-primary/10 text-primary" : "hover:bg-muted")}><UserCircle className="h-6 w-6" /><span className="flex-1"><strong>{participant.nome || "Sem nome"}</strong><br /><span className="text-xs text-muted-foreground">{participant.cargo || "Cargo não informado"}</span></span>{selectedParticipants.includes(participant.id) && <CheckCircle className="h-4 w-4" />}</button>)}</div></div><Textarea value={agenda} onChange={(e) => setAgenda(e.target.value)} placeholder="Pauta inicial (opcional)" /><div className="flex items-center justify-between rounded-lg border border-border p-3"><span className="text-sm">Avisar participantes</span><Switch checked={notify} onCheckedChange={setNotify} /></div><div className="flex items-center justify-between rounded-lg border border-border p-3"><span className="text-sm">Gravar e gerar ata</span><Switch checked={record} onCheckedChange={setRecord} /></div><Button className="w-full" onClick={onSave} disabled={saving}>{saving ? "Agendando..." : "Agendar reunião"}</Button></div></DialogContent></Dialog>;
 }
 
 function MeetingMinuteDetail({ meeting, minute, attendees, suggestions, canReviewSuggestions, onApproveSuggestion, onDiscardSuggestion, onBack, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; suggestions: AiSuggestion[]; canReviewSuggestions: boolean; onApproveSuggestion: (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => void; onDiscardSuggestion: (suggestion: AiSuggestion) => void; onBack: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
