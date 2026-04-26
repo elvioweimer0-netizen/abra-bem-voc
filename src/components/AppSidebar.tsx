@@ -1,25 +1,49 @@
 import {
-  LayoutDashboard, Users, AlertTriangle, Ban, Building, FileText, LogOut,
-  Megaphone, Heart, Bell, Video, CalendarDays, Plus, History, Camera,
-  BookOpen, ClipboardList, FileCheck, UserCog, ChevronDown,
-  Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
-  Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
-  Settings, ScrollText, ClipboardCheck, Gauge, CalendarClock, ClipboardPlus, SearchCheck,
-  UserCheck, Trophy,
+  Bell,
+  Briefcase,
+  Building,
+  CalendarCheck,
+  CalendarClock,
+  Camera,
+  CheckSquare,
+  ClipboardCheck,
+  FileQuestion,
+  Gauge,
+  HardDrive,
+  Heart,
+  Home,
+  LogOut,
+  Megaphone,
+  MessageSquare,
+  ScrollText,
+  SearchCheck,
+  Settings,
+  ShoppingCart,
+  Star,
+  Trophy,
+  UserCircle,
+  UserCog,
+  Users,
+  Video,
+  Wrench,
 } from "lucide-react";
-import type { Enums } from "@/integrations/supabase/types";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NavLink } from "@/components/NavLink";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRole } from "@/hooks/useRole";
-import {
-  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
-} from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-/* ─── types ─── */
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/hooks/useRole";
 
 type MenuItem = {
   title: string;
@@ -27,26 +51,32 @@ type MenuItem = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
-/* ─── reusable section ─── */
+const centralAreas = [
+  { title: "RH", url: "/central-adm/rh", icon: Users, owner: "Gleisiane" },
+  { title: "DP", url: "/central-adm/dp", icon: Briefcase, owner: "Ygor" },
+  { title: "Financeiro", url: "/central-adm/financeiro", icon: Gauge, owner: "Regiane" },
+  { title: "TI", url: "/central-adm/ti", icon: HardDrive, owner: "Kildery" },
+  { title: "Manutenção", url: "/central-adm/manutencao", icon: Wrench, owner: "Hilton" },
+  { title: "Marketing", url: "/central-adm/marketing", icon: Megaphone, owner: "Marketing" },
+  { title: "Comercial", url: "/central-adm/comercial", icon: ShoppingCart, owner: "Comercial" },
+  { title: "Administrativo", url: "/central-adm/administrativo", icon: ScrollText, owner: "Administrativo" },
+] satisfies Array<MenuItem & { owner: string }>;
 
 function MenuSection({ label, items, collapsed }: { label: string; items: MenuItem[]; collapsed: boolean }) {
-  if (items.length === 0) return null;
+  if (!items.length) return null;
+
   return (
     <SidebarGroup>
-      {!collapsed && (
-        <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] tracking-widest font-semibold">
-          {label}
-        </SidebarGroupLabel>
-      )}
+      {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] font-semibold tracking-widest">{label}</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+            <SidebarMenuItem key={`${label}-${item.title}`}>
               <SidebarMenuButton asChild>
                 <NavLink
                   to={item.url}
                   end={item.url === "/"}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                 >
                   <item.icon className="h-4.5 w-4.5 shrink-0" />
@@ -61,233 +91,98 @@ function MenuSection({ label, items, collapsed }: { label: string; items: MenuIt
   );
 }
 
-/* ─── collapsible section ─── */
-
-function CollapsibleSection({ label, items, collapsed }: { label: string; items: MenuItem[]; collapsed: boolean }) {
-  if (items.length === 0) return null;
-  if (collapsed) {
-    return <MenuSection label={label} items={items} collapsed />;
-  }
-  return (
-    <SidebarGroup>
-      <Collapsible defaultOpen className="group/collapsible">
-        <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] tracking-widest font-semibold">
-          <CollapsibleTrigger className="flex items-center justify-between w-full">
-            {label}
-            <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-          </CollapsibleTrigger>
-        </SidebarGroupLabel>
-        <CollapsibleContent>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="h-4.5 w-4.5 shrink-0" />
-                      <span className="text-sm">{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </SidebarGroup>
-  );
+function getCentralArea(profile: ReturnType<typeof useAuth>["profile"]): MenuItem[] {
+  const text = `${profile?.nome ?? ""} ${profile?.cargo_titulo ?? ""} ${profile?.descricao ?? ""}`.toLowerCase();
+  if (text.includes("gleisiane") || text.includes("rh")) return centralAreas.filter((a) => a.title === "RH");
+  if (text.includes("ygor") || text.includes("departamento pessoal") || text.includes("dp")) return centralAreas.filter((a) => a.title === "DP");
+  if (text.includes("regiane") || text.includes("financeiro")) return centralAreas.filter((a) => a.title === "Financeiro");
+  if (text.includes("kildery") || text.includes("ti")) return centralAreas.filter((a) => a.title === "TI");
+  if (text.includes("hilton") || text.includes("manutenção") || text.includes("manutencao")) return centralAreas.filter((a) => a.title === "Manutenção");
+  return [];
 }
-
-/* ─── menu definitions ─── */
-
-const comunicacaoItems: MenuItem[] = [
-  { title: "Avisos", url: "/avisos", icon: Bell },
-  { title: "Notícias", url: "/noticias", icon: Megaphone },
-  { title: "Galeria do Curió", url: "/galeria", icon: Camera },
-];
-
-const endomarketingItem: MenuItem = { title: "Campanhas Internas", url: "/endomarketing", icon: Heart };
-
-const rhItems: MenuItem[] = [
-  { title: "Colaboradores", url: "/colaboradores", icon: Users },
-  { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
-  { title: "Suspensões", url: "/suspensoes", icon: Ban },
-];
-
-const rhDocsItems: MenuItem[] = [
-  { title: "Código de Ética", url: "/rh/codigo-etica", icon: BookOpen },
-  { title: "Cartilha Operacional", url: "/rh/cartilha", icon: ClipboardList },
-  { title: "Políticas Internas", url: "/rh/politicas", icon: FileCheck },
-];
-
-const colaboradorEssentials: MenuItem[] = [
-  { title: "Falar com RH", url: "/assistente", icon: Headphones },
-  { title: "Curiózinho", url: "/assistente", icon: FileQuestion },
-  { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
-];
-
-const encarregadoItems: MenuItem[] = [
-  { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
-  { title: "Reuniões", url: "/reunioes-lideranca", icon: CalendarClock },
-  { title: "+ Novo B.O.", url: "/bo-eletronico", icon: ClipboardPlus },
-  { title: "Meu Setor", url: "/meu-setor", icon: UserCheck },
-  { title: "Escala da Semana", url: "/escala-semana", icon: CalendarDays },
-  { title: "Meu Departamento", url: "/departamentos", icon: Building },
-  { title: "Registrar Ocorrência", url: "/departamentos", icon: AlertTriangle },
-  { title: "Solicitações", url: "/solicitacoes", icon: FileQuestion },
-];
-
-const gerenciaItems: MenuItem[] = [
-  { title: "Operação", url: "/gerencias/operacao", icon: Monitor },
-  { title: "RH", url: "/gerencias/rh", icon: Users },
-  { title: "DP", url: "/gerencias/dp", icon: Briefcase },
-  { title: "Financeiro", url: "/gerencias/financeiro", icon: DollarSign },
-  { title: "Marketing", url: "/gerencias/marketing", icon: TrendingUp },
-  { title: "Manutenção", url: "/gerencias/manutencao", icon: Wrench },
-  { title: "TI", url: "/gerencias/ti", icon: HardDrive },
-  { title: "Administrativo", url: "/gerencias/administrativo", icon: Briefcase },
-  { title: "Comercial", url: "/gerencias/comercial", icon: ShoppingCart },
-];
-
-const reunioesItems: MenuItem[] = [
-  { title: "Entrar na Sala", url: "/reunioes", icon: Video },
-  { title: "Criar Reunião", url: "/reunioes/criar", icon: Plus },
-  { title: "Agenda", url: "/agenda", icon: CalendarDays },
-  { title: "Histórico", url: "/reunioes/historico", icon: History },
-];
-
-const solicitacoesItems: MenuItem[] = [
-  { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion },
-  { title: "Chamados TI", url: "/chamados-ti", icon: Headphones },
-];
-
-const adminItems: MenuItem[] = [
-  { title: "Visão Geral", url: "/visao-geral-admin", icon: Gauge },
-  { title: "Inspeções", url: "/inspecoes", icon: SearchCheck },
-  { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
-  { title: "Gestão de Unidades", url: "/departamentos", icon: Building },
-  { title: "Configurações do App", url: "/gestao-usuarios", icon: Settings },
-  { title: "Logs do Sistema", url: "/relatorios", icon: ScrollText },
-];
-
-const cargoLabels: Record<Enums<"cargo_tipo">, string> = {
-  admin: "Admin",
-  encarregado: "Encarregado",
-  gerente: "Gerente",
-  lider: "Líder",
-  colaborador: "Colaborador",
-  master: "Master",
-  adm_departamento: "Adm. Departamento",
-  supervisor: "Supervisor",
-  gerente_adm: "Gerente Adm.",
-  gerente_loja: "Gerente Loja",
-};
-
-/* ─── component ─── */
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
-  const { isAdmin, isGerente, isEncarregado, isSupervisor, isLeadershipPanel } = useRole();
+  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm } = useRole();
+  const isCentralAdm = !isAdmin && isGerenteAdm;
 
-  const showEncarregado = isEncarregado || isGerente || isAdmin || isSupervisor;
-  const showGerente = isGerente || isAdmin || isSupervisor;
+  const principal: MenuItem[] = [
+    { title: "Início", url: "/", icon: Home },
+    { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
+    { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
+  ];
+
+  const comunicacao: MenuItem[] = [
+    { title: "Avisos", url: "/avisos", icon: Bell },
+    { title: "Notícias", url: "/noticias", icon: Megaphone },
+    { title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy },
+    { title: "Galeria do Curió", url: "/galeria", icon: Camera },
+    { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
+  ];
+
+  const operacao: MenuItem[] = isCentralAdm
+    ? []
+    : [
+        { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
+        ...(isColaborador ? [] : [{ title: isEncarregado && !isGerente ? "Meu Setor" : isSupervisor ? "Minhas Unidades" : "Minha Equipe", url: isSupervisor ? "/minhas-unidades" : isEncarregado && !isGerente ? "/meu-setor" : "/minha-equipe", icon: Users }]),
+        { title: "Escala da Semana", url: "/escala-semana", icon: CalendarCheck },
+        ...(isColaborador ? [] : [{ title: "B.O.s e Ocorrências", url: "/bo-eletronico", icon: FileQuestion }]),
+        { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
+        { title: "Tarefas", url: "/agenda", icon: CheckSquare },
+      ];
+
+  const gestao: MenuItem[] = [
+    ...(isSupervisor || isAdmin ? [{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }] : []),
+    ...(isGerente || isSupervisor || isAdmin ? [{ title: "Inspeções", url: "/inspecoes", icon: SearchCheck }] : []),
+    ...(isGerente ? [{ title: "Avaliações de Encarregado", url: "/avaliacoes", icon: Star }, { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion }, { title: "Relatórios da Unidade", url: "/relatorios", icon: Gauge }] : []),
+  ];
+
+  const centralAdm = isAdmin ? centralAreas : getCentralArea(profile);
+
+  const superAdmin: MenuItem[] = isAdmin
+    ? [
+        { title: "Visão Geral", url: "/visao-geral-admin", icon: Gauge },
+        { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
+        { title: "Gestão de Unidades", url: "/departamentos", icon: Building },
+        { title: "Configurações do App", url: "/gestao-usuarios", icon: Settings },
+        { title: "Logs do Sistema", url: "/relatorios", icon: ScrollText },
+      ]
+    : [];
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
-      {/* Logo */}
-      <div className="p-4 flex items-center gap-3">
-        <img
-          src="/curio_logo_escuro.png"
-          alt="Curió"
-          className="h-10 w-auto object-contain shrink-0"
-        />
+      <div className="flex items-center gap-3 p-4">
+        <img src="/curio_logo_escuro.png" alt="Curió" className="h-10 w-auto shrink-0 object-contain" />
         {!collapsed && (
           <div className="min-w-0">
-            <h2 className="font-bold text-sidebar-foreground text-sm truncate">
-              Curió Conecta
-            </h2>
-            <p className="text-[11px] text-sidebar-foreground/50 truncate">
-              {profile?.unidade || "Carregando..."}
-            </p>
+            <h2 className="truncate text-sm font-bold text-sidebar-foreground">Curió Conecta</h2>
+            <p className="truncate text-[11px] text-sidebar-foreground/50">{isAdmin || isSupervisor ? "Todas as unidades" : profile?.unidade || "Carregando..."}</p>
           </div>
         )}
       </div>
 
       {!collapsed && profile && (
         <div className="mx-4 mb-3 rounded-xl border border-sidebar-border bg-sidebar-accent/60 p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sidebar-primary/15 text-sidebar-primary">
-              <UserCircle className="h-6 w-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-sidebar-foreground">{profile.nome}</p>
-              <p className="truncate text-xs text-sidebar-foreground/60">
-                {cargoLabels[profile.cargo]} • {profile.unidade}
-              </p>
-            </div>
-          </div>
+          <p className="truncate text-sm font-semibold text-sidebar-foreground">{profile.nome}</p>
+          <p className="truncate text-xs text-sidebar-foreground/60">{profile.cargo_titulo || profile.cargo} • {isAdmin || isSupervisor ? "Todas as unidades" : profile.unidade}</p>
         </div>
       )}
 
       {!collapsed && <Separator className="mx-4 w-auto opacity-30" />}
 
-      <SidebarContent className="px-2 mt-1">
-        {/* Home */}
-        <MenuSection
-          label="Principal"
-          items={[{ title: "Início", url: "/", icon: LayoutDashboard }]}
-          collapsed={collapsed}
-        />
-
-        <MenuSection label="Comunicação" items={[...comunicacaoItems, ...(isAdmin ? [endomarketingItem] : [])]} collapsed={collapsed} />
-        <MenuSection label="Reconhecimento" items={[{ title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy }]} collapsed={collapsed} />
-        <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
-        <MenuSection label="Minha Área" items={colaboradorEssentials} collapsed={collapsed} />
-
-        {showEncarregado && <MenuSection label="Operação" items={encarregadoItems} collapsed={collapsed} />}
-
-        {isLeadershipPanel && <MenuSection label="Cobrança" items={[{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }, { title: "Reuniões", url: "/reunioes-lideranca", icon: CalendarClock }, { title: "+ Novo B.O.", url: "/bo-eletronico", icon: ClipboardPlus }, { title: "Inspeções", url: "/inspecoes", icon: SearchCheck }]} collapsed={collapsed} />}
-
-        {showGerente && (
-          <MenuSection
-            label="Gestão da Unidade"
-            items={[
-              { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
-              { title: isSupervisor ? "Minhas Unidades" : "Minha Equipe", url: isSupervisor ? "/minhas-unidades" : "/minha-equipe", icon: Users },
-              { title: "Escala da Semana", url: "/escala-semana", icon: CalendarDays },
-              { title: "Avaliações", url: "/avaliacoes", icon: UserCheck },
-              { title: "Reconhecer Alguém", url: "/reconhecimentos", icon: Trophy },
-              { title: "Colaboradores", url: "/colaboradores", icon: Users },
-              { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
-              { title: "Suspensões", url: "/suspensoes", icon: Ban },
-              { title: "Relatórios da Unidade", url: "/relatorios", icon: FileText },
-              ...solicitacoesItems,
-            ]}
-            collapsed={collapsed}
-          />
-        )}
-
-        {isAdmin && (
-          <>
-            <CollapsibleSection label="Gerências" items={gerenciaItems} collapsed={collapsed} />
-            <MenuSection label="Reuniões" items={reunioesItems} collapsed={collapsed} />
-            <MenuSection label="Administração" items={adminItems} collapsed={collapsed} />
-          </>
-        )}
+      <SidebarContent className="mt-1 px-2">
+        <MenuSection label="Principal" items={principal} collapsed={collapsed} />
+        <MenuSection label="Comunicação" items={comunicacao} collapsed={collapsed} />
+        <MenuSection label="Operação" items={operacao} collapsed={collapsed} />
+        <MenuSection label="Gestão" items={gestao} collapsed={collapsed} />
+        <MenuSection label="Central ADM" items={centralAdm} collapsed={collapsed} />
+        <MenuSection label="Super Admin" items={superAdmin} collapsed={collapsed} />
       </SidebarContent>
 
       <SidebarFooter className="p-2">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-          onClick={signOut}
-        >
+        <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground" onClick={signOut}>
           <LogOut className="h-5 w-5" />
           {!collapsed && "Sair"}
         </Button>

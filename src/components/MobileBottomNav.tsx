@@ -1,22 +1,40 @@
-import { Bell, CalendarClock, Home, Sparkles, Users } from "lucide-react";
+import { BarChart3, Bell, CheckSquare, FolderOpen, Home, Menu, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useSidebar } from "@/components/ui/sidebar";
 import { useRole } from "@/hooks/useRole";
 
 const items = [
   { label: "Início", href: "/", icon: Home },
   { label: "Avisos", href: "/avisos", icon: Bell, badge: true },
-  { label: "Reuniões", href: "/reunioes-lideranca", icon: CalendarClock },
+  { label: "Checklist", href: "/checklist-diario", icon: CheckSquare },
   { label: "Curiózinho", href: "/assistente", icon: Sparkles, featured: true },
-  { label: "Equipe", href: "/minha-equipe", icon: Users },
+  { label: "Mais", href: "/meu-perfil", icon: Menu },
 ];
 
 export function MobileBottomNav() {
-  const { isSupervisor } = useRole();
-  const navItems = items.map((item) => item.label === "Equipe" && isSupervisor ? { ...item, label: "Unidades", href: "/minhas-unidades" } : item);
+  const { toggleSidebar } = useSidebar();
+  const { isAdmin, isGerenteAdm } = useRole();
+  const navItems = items.map((item) => {
+    if (item.label !== "Checklist") return item;
+    if (isAdmin) return { ...item, label: "Visão", href: "/visao-geral-admin", icon: BarChart3 };
+    if (isGerenteAdm) return { ...item, label: "Gerência", href: "/central-adm/rh", icon: FolderOpen };
+    return item;
+  });
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/98 pb-safe shadow-[0_-4px_18px_hsl(var(--foreground)/0.08)] md:hidden">
       <div className="grid h-16 grid-cols-5 items-center px-1">
-        {navItems.map((item) => (
+        {navItems.map((item) => item.label === "Mais" ? (
+          <button
+            key={item.label}
+            type="button"
+            onClick={toggleSidebar}
+            className="relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-muted-foreground transition-colors"
+            aria-label="Abrir menu completo"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="text-[11px] leading-none">Mais</span>
+          </button>
+        ) : (
           <NavLink
             key={item.label}
             to={item.href}
