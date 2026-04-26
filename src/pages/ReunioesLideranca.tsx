@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, Users, XCircle } from "lucide-react";
+import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, UserCircle, Users, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -18,7 +19,7 @@ type Unit = { id: string; code: string; name: string };
 type Meeting = { id: string; type: string; unit_id: string | null; scheduled_date: string; scheduled_time: string; status: string; title: string; minutes?: string | null; is_monthly_in_person?: boolean; ended_at?: string | null; created_at?: string };
 type Occurrence = { id: string; descricao: string; gravidade: string; unit_id: string; criado_em: string };
 type Notice = { id: string; titulo: string; created_at: string };
-type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
+type MeetingMinute = { id: string; meeting_id: string; titulo?: string | null; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
 type MeetingAttendee = { id: string; meeting_id: string; user_id: string; role_label: string | null; present: boolean; joined_at: string | null };
 type AiSuggestion = { id: string; meeting_id: string; tipo: string; titulo: string; descricao: string; responsavel_sugerido: string | null; prazo_sugerido: string | null; beneficio_esperado: string; audiencia: string[]; status: string; aprovada_por?: string | null; aprovada_em?: string | null };
 
