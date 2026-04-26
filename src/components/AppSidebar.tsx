@@ -62,7 +62,7 @@ const centralAreas = [
   { title: "Administrativo", url: "/central-adm/administrativo", icon: ScrollText, owner: "Administrativo" },
 ] satisfies Array<MenuItem & { owner: string }>;
 
-function MenuSection({ label, items, collapsed }: { label: string; items: MenuItem[]; collapsed: boolean }) {
+function MenuSection({ label, items, collapsed, onNavigate }: { label: string; items: MenuItem[]; collapsed: boolean; onNavigate?: () => void }) {
   if (!items.length) return null;
 
   return (
@@ -76,6 +76,7 @@ function MenuSection({ label, items, collapsed }: { label: string; items: MenuIt
                 <NavLink
                   to={item.url}
                   end={item.url === "/"}
+                  onClick={onNavigate}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                 >
@@ -102,7 +103,7 @@ function getCentralArea(profile: ReturnType<typeof useAuth>["profile"]): MenuIte
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, profile } = useAuth();
   const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm } = useRole();
@@ -153,33 +154,25 @@ export function AppSidebar() {
     : [];
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
+    <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center gap-3 p-4">
         <img src="/curio_logo_escuro.png" alt="Curió" className="h-10 w-auto shrink-0 object-contain" />
         {!collapsed && (
           <div className="min-w-0">
             <h2 className="truncate text-sm font-bold text-sidebar-foreground">Curió Conecta</h2>
-            <p className="truncate text-[11px] text-sidebar-foreground/50">{isAdmin || isSupervisor ? "Todas as unidades" : profile?.unidade || "Carregando..."}</p>
           </div>
         )}
       </div>
 
-      {!collapsed && profile && (
-        <div className="mx-4 mb-3 rounded-xl border border-sidebar-border bg-sidebar-accent/60 p-3">
-          <p className="truncate text-sm font-semibold text-sidebar-foreground">{profile.nome}</p>
-          <p className="truncate text-xs text-sidebar-foreground/60">{profile.cargo_titulo || profile.cargo} • {isAdmin || isSupervisor ? "Todas as unidades" : profile.unidade}</p>
-        </div>
-      )}
-
       {!collapsed && <Separator className="mx-4 w-auto opacity-30" />}
 
       <SidebarContent className="mt-1 px-2">
-        <MenuSection label="Principal" items={principal} collapsed={collapsed} />
-        <MenuSection label="Comunicação" items={comunicacao} collapsed={collapsed} />
-        <MenuSection label="Operação" items={operacao} collapsed={collapsed} />
-        <MenuSection label="Gestão" items={gestao} collapsed={collapsed} />
-        <MenuSection label="Central ADM" items={centralAdm} collapsed={collapsed} />
-        <MenuSection label="Super Admin" items={superAdmin} collapsed={collapsed} />
+        <MenuSection label="Principal" items={principal} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Comunicação" items={comunicacao} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Operação" items={operacao} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Gestão" items={gestao} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Central ADM" items={centralAdm} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Super Admin" items={superAdmin} collapsed={collapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
       </SidebarContent>
 
       <SidebarFooter className="p-2">
