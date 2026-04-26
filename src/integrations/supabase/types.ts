@@ -404,6 +404,149 @@ export type Database = {
         }
         Relationships: []
       }
+      document_approvals: {
+        Row: {
+          aprovado_por: string | null
+          created_at: string
+          decidido_em: string | null
+          document_id: string
+          id: string
+          motivo: string | null
+          role_required: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          document_id: string
+          id?: string
+          motivo?: string | null
+          role_required: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          document_id?: string
+          id?: string
+          motivo?: string | null
+          role_required?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_approvals_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_templates: {
+        Row: {
+          active: boolean
+          approval_flow: Json
+          categoria: string
+          content_template: string
+          created_at: string
+          descricao: string
+          id: string
+          required_fields: Json
+          titulo: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          approval_flow?: Json
+          categoria?: string
+          content_template: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          required_fields?: Json
+          titulo: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          approval_flow?: Json
+          categoria?: string
+          content_template?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          required_fields?: Json
+          titulo?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          colaborador_id: string | null
+          criado_em: string
+          criado_por: string
+          dados_jsonb: Json
+          finalizado_em: string | null
+          id: string
+          motivo_rejeicao: string | null
+          pdf_url: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          colaborador_id?: string | null
+          criado_em?: string
+          criado_por?: string
+          dados_jsonb?: Json
+          finalizado_em?: string | null
+          id?: string
+          motivo_rejeicao?: string | null
+          pdf_url?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          colaborador_id?: string | null
+          criado_em?: string
+          criado_por?: string
+          dados_jsonb?: Json
+          finalizado_em?: string | null
+          id?: string
+          motivo_rejeicao?: string | null
+          pdf_url?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_type_fkey"
+            columns: ["type"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["type"]
+          },
+        ]
+      }
       employee_of_month: {
         Row: {
           anunciado_em: string | null
@@ -1742,6 +1885,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_review_document_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_document: {
+        Args: { _document_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_view_team_member: {
         Args: { _member_id: string; _user_id: string }
         Returns: boolean
@@ -1760,6 +1911,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["cargo_tipo"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_central_adm_area: {
+        Args: { _area: string; _user_id: string }
         Returns: boolean
       }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
