@@ -130,7 +130,7 @@ export function AppSidebar() {
         { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
         ...(isColaborador ? [] : [{ title: isEncarregado && !isGerente ? "Meu Setor" : isSupervisor ? "Minhas Unidades" : "Minha Equipe", url: isSupervisor ? "/minhas-unidades" : isEncarregado && !isGerente ? "/meu-setor" : "/minha-equipe", icon: Users }]),
         { title: "Escala da Semana", url: "/escala-semana", icon: CalendarCheck },
-        ...(isColaborador ? [] : [{ title: "B.O.s e Ocorrências", url: "/bo-eletronico", icon: FileQuestion }]),
+        ...(isColaborador ? [] : [{ title: "Ocorrências", url: "/ocorrencias", icon: FileQuestion }]),
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },

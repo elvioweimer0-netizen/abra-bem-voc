@@ -99,7 +99,8 @@ function ProtectedRoutes() {
         <Route path="/painel-cobranca" element={<PainelCobranca />} />
         <Route path="/reunioes-lideranca" element={<ReunioesLideranca />} />
         <Route path="/documentos-lideranca" element={<DocumentosLideranca />} />
-        <Route path="/bo-eletronico" element={<BoEletronico />} />
+        <Route path="/ocorrencias" element={<BoEletronico />} />
+        <Route path="/bo-eletronico" element={<Navigate to="/ocorrencias" replace />} />
         <Route path="/inspecoes" element={<Inspecoes />} />
         <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
         <Route path="/minha-equipe" element={<MinhaEquipe />} />
