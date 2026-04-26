@@ -37,6 +37,7 @@ import BoEletronico from "@/pages/BoEletronico";
 import Inspecoes from "@/pages/Inspecoes";
 import VisaoGeralAdmin from "@/pages/VisaoGeralAdmin";
 import MinhaEquipe from "@/pages/MinhaEquipe";
+import MinhasUnidades from "@/pages/MinhasUnidades";
 import MembroDetalhe from "@/pages/MembroDetalhe";
 import EscalaSemana from "@/pages/EscalaSemana";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
@@ -90,6 +91,7 @@ function ProtectedRoutes() {
         <Route path="/inspecoes" element={<Inspecoes />} />
         <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
         <Route path="/minha-equipe" element={<MinhaEquipe />} />
+        <Route path="/minhas-unidades" element={<MinhasUnidades />} />
         <Route path="/meu-setor" element={<MinhaEquipe setorOnly />} />
         <Route path="/equipe/:id" element={<MembroDetalhe />} />
         <Route path="/escala-semana" element={<EscalaSemana />} />
