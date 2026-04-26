@@ -9,7 +9,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Bell, Building, Eye, LogOut, MapPin, Settings, User, UserCircle } from "lucide-react";
+import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Settings, User, UserCircle } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 
@@ -54,7 +54,6 @@ export function AppHeader() {
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
 
-  const badgeClass = roleColorMap[role] || "bg-muted text-muted-foreground";
   const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
   const showBack = !rootRoutes.includes(location.pathname);
   const profileAny = profile as any;
@@ -64,52 +63,25 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="relative flex h-14 items-center justify-between px-3 md:h-16 md:px-6">
-        {/* Left: Sidebar trigger + branding */}
+      <div className="relative flex h-14 items-center justify-between px-3 md:px-6">
         <div className="flex items-center gap-3">
           {showBack ? (
             <button className="flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted" onClick={() => navigate(-1)} aria-label="Voltar">
               <ArrowLeft className="h-6 w-6" />
             </button>
           ) : (
-            <SidebarTrigger className="h-12 w-12 md:h-10 md:w-10" />
+            <SidebarTrigger className="h-11 w-11 rounded-full" aria-label="Abrir menu completo">
+              <Menu className="h-6 w-6" />
+            </SidebarTrigger>
           )}
-          <div className="hidden sm:flex items-center gap-2.5">
-            <img src="/curio_logo_claro.png" alt="Curió Conecta" className="h-9 w-auto object-contain" />
-            <div>
-              <h1 className="text-base font-bold text-primary leading-tight">
-                Curió Conecta
-              </h1>
-              <p className="text-[11px] text-muted-foreground">
-                Supermercado Curió
-              </p>
-            </div>
-          </div>
         </div>
 
         <img
           src="/curio_logo_claro.png"
           alt="Curió Conecta"
-          className="absolute left-1/2 h-8 w-auto -translate-x-1/2 object-contain sm:hidden"
+          className="absolute left-1/2 h-8 w-auto -translate-x-1/2 object-contain"
         />
-
-        {/* Center: Role + Unit badges */}
-        <div className="hidden lg:flex items-center gap-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}`}>
-            {cargoLabels[role] || role}
-          </span>
-          <span className="px-3 py-1 rounded-full text-xs bg-muted text-muted-foreground font-medium flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
-            {unidade}
-          </span>
-          {profile?.gerencia && (
-            <span className="px-3 py-1 rounded-full text-xs bg-muted text-muted-foreground font-medium">
-              {profile.gerencia.replace(/_/g, " ")}
-            </span>
-          )}
-        </div>
-
-        {/* Right: Selectors + User info */}
+        
         <div className="flex items-center gap-1 md:gap-3">
           {isRealAdmin && (
             <>
