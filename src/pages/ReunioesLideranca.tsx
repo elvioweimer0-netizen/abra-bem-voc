@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarClock, ChevronDown, FileText, Mic, Plus, Upload } from "lucide-react";
+import { ArrowLeft, CalendarClock, ChevronDown, Clock, FileText, Frown, Meh, Mic, Plus, RefreshCw, Smile, Upload, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,11 @@ import { toast } from "sonner";
 const db = supabase as any;
 
 type Unit = { id: string; code: string; name: string };
-type Meeting = { id: string; type: string; unit_id: string | null; scheduled_date: string; scheduled_time: string; status: string; title: string; minutes?: string | null; is_monthly_in_person?: boolean };
+type Meeting = { id: string; type: string; unit_id: string | null; scheduled_date: string; scheduled_time: string; status: string; title: string; minutes?: string | null; is_monthly_in_person?: boolean; ended_at?: string | null; created_at?: string };
 type Occurrence = { id: string; descricao: string; gravidade: string; unit_id: string; criado_em: string };
 type Notice = { id: string; titulo: string; created_at: string };
-type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null };
+type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
+type MeetingAttendee = { id: string; meeting_id: string; user_id: string; role_label: string | null; present: boolean; joined_at: string | null };
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -35,6 +36,20 @@ function minutesTo930() {
   target.setHours(9, 30, 0, 0);
   const diff = Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 60000));
   return `${String(Math.floor(diff / 60)).padStart(2, "0")}:${String(diff % 60).padStart(2, "0")}`;
+}
+
+function formatMeetingType(type: string) {
+  const labels: Record<string, string> = { diaria: "Diária", semanal: "Semanal", individual: "Individual" };
+  return labels[type] || type;
+}
+
+function formatDuration(meeting: Meeting) {
+  if (!meeting.ended_at) return "—";
+  const start = new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`);
+  const end = new Date(meeting.ended_at);
+  const minutes = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
+  if (!Number.isFinite(minutes)) return "—";
+  return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}min` : `${minutes}min`;
 }
 
 export default function ReunioesLideranca() {
