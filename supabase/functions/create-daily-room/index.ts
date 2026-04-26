@@ -51,9 +51,10 @@ serve(async (req) => {
       const isPlanError = response.status === 402 || details.toLowerCase().includes("recording") || details.toLowerCase().includes("plan");
       return new Response(JSON.stringify({
         error: isPlanError ? "Plano Daily.co não suporta gravação. Faça upgrade pra Pay-as-you-go." : "Erro ao criar sala Daily.co",
+        plan_error: isPlanError,
         details,
       }), {
-        status: response.status,
+        status: isPlanError ? 200 : response.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
