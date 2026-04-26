@@ -297,6 +297,7 @@ export default function ReunioesLideranca() {
                 <div><h2 className="text-xl font-bold text-foreground">Reunião Diária de hoje — 9:30</h2><p className="mt-1 text-sm text-muted-foreground">{minutesTo930()} restantes</p></div>
                 <CalendarClock className="h-8 w-8 text-primary" />
               </div>
+              {isRecording && <Badge className="mt-4 bg-destructive text-destructive-foreground">🔴 Gravando</Badge>}
               <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily} disabled={joiningDaily}><Mic className="h-5 w-5" /> {joiningDaily ? "Iniciando..." : "Entrar/Iniciar"}</Button>
               <div className="mt-3">
                 <Input id="manual-recording" type="file" accept="audio/*,video/*" className="hidden" onChange={uploadManualRecording} disabled={uploading || !dailyMeeting} />
@@ -315,7 +316,7 @@ export default function ReunioesLideranca() {
             <Input placeholder="3. Venda do dia anterior por loja" value={sale} onChange={(e) => setSale(e.target.value)} />
             <Input placeholder="4. Metas do dia por loja" value={goal} onChange={(e) => setGoal(e.target.value)} />
             <Textarea placeholder="Decisões tomadas" value={decisions} onChange={(e) => setDecisions(e.target.value)} />
-            <Button variant="outline" className="min-h-12 w-full gap-2" onClick={() => closeMeeting(dailyMeeting)}><FileText className="h-5 w-5" /> Encerrar reunião e gerar ATA</Button>
+            <Button variant="outline" className="min-h-12 w-full gap-2" onClick={isRecording ? stopRecordingAndProcess : () => closeMeeting(dailyMeeting)} disabled={processingRecording}><FileText className="h-5 w-5" /> {processingRecording ? "Processando..." : "Encerrar reunião e gerar ATA"}</Button>
           </CardContent></Card>
         </TabsContent>
 
