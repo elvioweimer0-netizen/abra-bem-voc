@@ -63,6 +63,7 @@ export default function ReunioesLideranca() {
   const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
   const [historyMeetings, setHistoryMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<MeetingAttendee[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [retryingMinuteId, setRetryingMinuteId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -81,10 +82,11 @@ export default function ReunioesLideranca() {
   const minuteStatusRef = useRef<Record<string, string>>({});
 
   const loadHistory = async (notifyReady = false) => {
-    const [{ data: historyData }, { data: minuteData }, { data: attendeeData }] = await Promise.all([
+    const [{ data: historyData }, { data: minuteData }, { data: attendeeData }, { data: suggestionData }] = await Promise.all([
       db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at, is_monthly_in_person").eq("status", "encerrada").order("ended_at", { ascending: false, nullsFirst: false }).limit(100),
       db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
       db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").eq("present", true).order("joined_at", { ascending: true }),
+      db.from("ai_suggestions").select("id, meeting_id, tipo, titulo, descricao, responsavel_sugerido, prazo_sugerido, beneficio_esperado, audiencia, status, aprovada_por, aprovada_em").order("created_at", { ascending: false }).limit(500),
     ]);
     if (notifyReady) {
       (minuteData || []).forEach((minute: MeetingMinute) => {
@@ -97,6 +99,7 @@ export default function ReunioesLideranca() {
     setHistoryMeetings(historyData || []);
     setMinutes(minuteData || []);
     setAttendees(attendeeData || []);
+    setAiSuggestions(suggestionData || []);
   };
 
   useEffect(() => {
