@@ -268,7 +268,8 @@ export default function ReunioesLideranca() {
   const individualMeetings = visibleByParticipation(meetings.filter((m) => m.type === "individual"));
   const visibleScheduledMeetings = visibleByParticipation(scheduledMeetings);
   const visibleHistoryMeetings = visibleByParticipation(historyMeetings);
-  const pendingPautaCount = pautaSuggestions.filter((suggestion) => suggestion.status === "pendente").length;
+  const displayedPautaSuggestions = isAdminSupervisor || !user ? pautaSuggestions : pautaSuggestions.filter((suggestion) => suggestion.suggested_by === user.id);
+  const pendingPautaCount = displayedPautaSuggestions.filter((suggestion) => suggestion.status === "pendente").length;
   const profileMap = useMemo(() => new Map(profiles.map((item) => [item.user_id, item])), [profiles]);
   const acceptedSuggestionsForDaily = pautaSuggestions.filter((suggestion) => suggestion.status === "aceita" && !suggestion.included_in_meeting_id && suggestion.target_meeting_type === "diaria");
 
@@ -622,7 +623,7 @@ export default function ReunioesLideranca() {
           </TabsContent>
 
           <TabsContent value="sugestoes" className="animate-fade-in space-y-5">
-            <PautaSuggestionsSection suggestions={pautaSuggestions} profiles={profileMap} canReview={isAdminSupervisor} onAccept={acceptPautaSuggestion} onReject={(suggestion) => setRejectionSuggestion(suggestion)} />
+            <PautaSuggestionsSection suggestions={displayedPautaSuggestions} profiles={profileMap} canReview={isAdminSupervisor} onAccept={acceptPautaSuggestion} onReject={(suggestion) => setRejectionSuggestion(suggestion)} />
           </TabsContent>
         </Tabs>
       )}
