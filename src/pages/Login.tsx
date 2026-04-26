@@ -35,7 +35,7 @@ export default function Login() {
             alt="Curió Supermercados"
             className="h-24 mx-auto mb-4 object-contain"
           />
-          <h1 className="text-2xl font-bold text-foreground">Conecta Curió</h1>
+          <h1 className="brand-script text-gradient-curio text-[32px] leading-tight">Conecta Curió</h1>
           <p className="text-muted-foreground mt-1">Portal interno de gestão</p>
         </div>
 
