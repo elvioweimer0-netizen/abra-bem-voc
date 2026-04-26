@@ -519,7 +519,7 @@ function minuteStatus(minute?: MeetingMinute) {
   return { label: "✅ Ata pronta", tone: "default" as const };
 }
 
-function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; pendingSuggestions: number; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+function HistoryMeetingCard({ meeting, minute, attendees, pendingSuggestions, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; pendingSuggestions: number; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
   const status = minuteStatus(minute);
   const isFailed = minute?.processing_status === "failed";
   const isProcessing = !minute || minute.processing_status === "pending" || minute.processing_status === "processing";
@@ -529,9 +529,11 @@ function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRef
         <button type="button" className="w-full text-left" onClick={onOpen}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-bold text-foreground">{formatMeetingType(meeting.type)}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
+              <p className="text-sm text-muted-foreground">📅 {new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
+              <h3 className="mt-1 font-bold text-foreground">📝 {minute?.titulo || meeting.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">🏷️ {formatMeetingType(meeting.type)}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {formatDuration(meeting)}</p>
+              <div className="mt-2 flex flex-wrap gap-2">{(attendees.length ? attendees : [{ id: "fallback", role_label: "Participante" } as MeetingAttendee]).slice(0, 6).map((attendee) => <Badge key={attendee.id} variant="outline" className="gap-1"><UserCircle className="h-3 w-3" /> {(attendee.role_label || "Participante").split(" ")[0]}</Badge>)}</div>
             </div>
             <div className="flex flex-col items-end gap-2"><Badge variant={status.tone}>{status.label}</Badge>{pendingSuggestions > 0 && <Badge variant="destructive">{pendingSuggestions} sugestõe(s)</Badge>}</div>
           </div>
