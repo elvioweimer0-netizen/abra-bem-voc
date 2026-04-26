@@ -5,6 +5,7 @@ import {
   Monitor, Wrench, TrendingUp, ShoppingCart, DollarSign,
   Briefcase, HardDrive, Headphones, FileQuestion, UserCircle,
   Settings, ScrollText, ClipboardCheck, Gauge, CalendarClock, ClipboardPlus, SearchCheck,
+  UserCheck, Trophy,
 } from "lucide-react";
 import type { Enums } from "@/integrations/supabase/types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -133,8 +134,9 @@ const encarregadoItems: MenuItem[] = [
   { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
   { title: "Reuniões", url: "/reunioes-lideranca", icon: CalendarClock },
   { title: "+ Novo B.O.", url: "/bo-eletronico", icon: ClipboardPlus },
+  { title: "Meu Setor", url: "/meu-setor", icon: UserCheck },
+  { title: "Escala da Semana", url: "/escala-semana", icon: CalendarDays },
   { title: "Meu Departamento", url: "/departamentos", icon: Building },
-  { title: "Minha Equipe", url: "/colaboradores", icon: Users },
   { title: "Registrar Ocorrência", url: "/departamentos", icon: AlertTriangle },
   { title: "Solicitações", url: "/solicitacoes", icon: FileQuestion },
 ];
@@ -244,6 +246,7 @@ export function AppSidebar() {
         />
 
         <MenuSection label="Comunicação" items={[...comunicacaoItems, ...(isAdmin ? [endomarketingItem] : [])]} collapsed={collapsed} />
+        <MenuSection label="Reconhecimento" items={[{ title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy }]} collapsed={collapsed} />
         <MenuSection label="Documentos" items={rhDocsItems} collapsed={collapsed} />
         <MenuSection label="Minha Área" items={colaboradorEssentials} collapsed={collapsed} />
 
@@ -256,6 +259,10 @@ export function AppSidebar() {
             label="Gestão da Unidade"
             items={[
               { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
+              { title: "Minha Equipe", url: "/minha-equipe", icon: Users },
+              { title: "Escala da Semana", url: "/escala-semana", icon: CalendarDays },
+              { title: "Avaliações", url: "/avaliacoes", icon: UserCheck },
+              { title: "Reconhecer Alguém", url: "/reconhecimentos", icon: Trophy },
               { title: "Colaboradores", url: "/colaboradores", icon: Users },
               { title: "Advertências", url: "/advertencias", icon: AlertTriangle },
               { title: "Suspensões", url: "/suspensoes", icon: Ban },
