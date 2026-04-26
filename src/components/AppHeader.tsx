@@ -1,7 +1,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRole, type CargoTipo } from "@/hooks/useRole";
+import { useRole } from "@/hooks/useRole";
 import { useViewAs } from "@/contexts/ViewAsContext";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -108,10 +108,21 @@ export function AppHeader() {
 
           {profile && (
             <div className="flex items-center gap-2 ml-1">
-              <button className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted" aria-label="Notificações">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted" aria-label="Abrir notificações">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <div className="px-3 py-4 text-sm text-muted-foreground">
+                    Nenhuma notificação nova no momento.
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex min-h-11 items-center gap-2 rounded-lg px-1 text-left transition-colors hover:bg-muted sm:px-2" aria-label="Abrir menu do perfil">
