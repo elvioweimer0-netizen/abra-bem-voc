@@ -599,24 +599,20 @@ export default function ReunioesLideranca() {
 
       {loading ? <PageSkeleton /> : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid h-auto w-full grid-cols-4 rounded-[1.25rem] bg-accent/40 p-1.5 shadow-sm">
+          <TabsList className="grid h-auto w-full grid-cols-3 rounded-[1.25rem] bg-accent/40 p-1.5 shadow-sm">
             <ProTab value="agenda" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
-            <ProTab value="hoje" icon={<Clock className="h-5 w-5" />} label="Hoje" />
             <ProTab value="historico" icon={<FileText className="h-5 w-5" />} label="Histórico" />
             <TabsTrigger value="sugestoes" className="relative min-h-14 rounded-2xl text-xs font-semibold transition-all data-[state=active]:bg-card data-[state=active]:shadow-lg sm:text-sm"><Lightbulb className="mr-1 h-5 w-5" /> Sugestões{pendingPautaCount > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-destructive px-2 py-0.5 text-[10px] text-destructive-foreground">{pendingPautaCount}</span>}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="agenda" className="animate-fade-in space-y-6">
-            <div className="flex items-center justify-between gap-3">
-              <div><h2 className="text-xl font-bold text-foreground">Agenda da semana</h2><p className="text-sm text-muted-foreground">Reuniões programadas por data e horário</p></div>
+            <div className="flex items-center justify-between gap-3 border-b border-border/70 pb-4 after:h-px after:flex-1 after:bg-gradient-to-r after:from-primary/30 after:to-transparent">
+              <div><h2 className="text-xl font-bold text-foreground">Agenda</h2><p className="text-sm text-muted-foreground">Hoje e próximas reuniões programadas</p></div>
               <div className="flex gap-2"><Button variant={calendarMode === "semana" ? "default" : "outline"} size="sm" onClick={() => setCalendarMode("semana")}>Semana</Button><Button variant={calendarMode === "mes" ? "default" : "outline"} size="sm" onClick={() => setCalendarMode("mes")}>Mês</Button></div>
             </div>
             <AgendaTimeline days={weekDays} meetings={visibleScheduledMeetings} attendees={attendees} onOpen={setSelectedAgendaMeeting} />
+            <TodaySection meetings={visibleByParticipation(meetings.filter((meeting) => meeting.status !== "encerrada"))} dailyMeeting={dailyMeeting} dailyMinute={undefined} isRecording={isRecording} joiningDaily={joiningDaily} uploading={uploading} processingRecording={processingRecording} occurrences={occurrences} notices={notices} sale={sale} setSale={setSale} goal={goal} setGoal={setGoal} decisions={decisions} setDecisions={setDecisions} acceptedSuggestions={acceptedSuggestionsForDaily} profiles={profileMap} canEndMeeting={isAdminSupervisor} onJoin={joinDaily} onUpload={uploadManualRecording} onCloseDaily={() => isRecording ? stopRecordingAndProcess() : closeMeeting(dailyMeeting)} onCloseMeeting={closeMeeting} onLeaveMeeting={leaveMeeting} />
             {canCreateMeeting && <Button className="fixed bottom-24 right-5 z-20 h-14 w-14 rounded-full shadow-xl transition-transform hover:scale-105 sm:hidden" size="icon" onClick={() => setCreateMeetingOpen(true)}><Plus className="h-7 w-7" /></Button>}
-          </TabsContent>
-
-          <TabsContent value="hoje" className="animate-fade-in space-y-6">
-            <TodaySection meetings={visibleByParticipation(meetings)} dailyMeeting={dailyMeeting} dailyMinute={dailyMeeting ? minutes.find((minute) => minute.meeting_id === dailyMeeting.id) : undefined} isRecording={isRecording} joiningDaily={joiningDaily} uploading={uploading} processingRecording={processingRecording} occurrences={occurrences} notices={notices} sale={sale} setSale={setSale} goal={goal} setGoal={setGoal} decisions={decisions} setDecisions={setDecisions} acceptedSuggestions={acceptedSuggestionsForDaily} profiles={profileMap} onJoin={joinDaily} onUpload={uploadManualRecording} onCloseDaily={() => isRecording ? stopRecordingAndProcess() : closeMeeting(dailyMeeting)} onCloseMeeting={closeMeeting} />
           </TabsContent>
 
           <TabsContent value="historico" className="animate-fade-in space-y-5">
