@@ -1,5 +1,6 @@
 import { BarChart3, Bell, CheckSquare, FolderOpen, Home, Menu, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useSidebar } from "@/components/ui/sidebar";
 import { useRole } from "@/hooks/useRole";
 
 const items = [
@@ -11,6 +12,7 @@ const items = [
 ];
 
 export function MobileBottomNav() {
+  const { toggleSidebar } = useSidebar();
   const { isAdmin, isGerenteAdm } = useRole();
   const navItems = items.map((item) => {
     if (item.label !== "Checklist") return item;
@@ -21,7 +23,18 @@ export function MobileBottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/98 pb-safe shadow-[0_-4px_18px_hsl(var(--foreground)/0.08)] md:hidden">
       <div className="grid h-16 grid-cols-5 items-center px-1">
-        {navItems.map((item) => (
+        {navItems.map((item) => item.label === "Mais" ? (
+          <button
+            key={item.label}
+            type="button"
+            onClick={toggleSidebar}
+            className="relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-muted-foreground transition-colors"
+            aria-label="Abrir menu completo"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="text-[11px] leading-none">Mais</span>
+          </button>
+        ) : (
           <NavLink
             key={item.label}
             to={item.href}
