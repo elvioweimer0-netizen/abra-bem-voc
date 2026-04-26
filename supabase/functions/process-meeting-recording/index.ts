@@ -80,6 +80,7 @@ Retorne APENAS JSON válido, sem markdown.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "GET") return jsonResponse({ ok: true });
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -106,7 +107,7 @@ serve(async (req) => {
       recordingUrl = extractRecordingUrl(payload);
     }
 
-    if (!meetingId) return jsonResponse({ error: "meeting_id não encontrado no webhook/upload" }, 400);
+    if (!meetingId) return jsonResponse({ ok: true, ignored: "meeting_id não encontrado no webhook/upload" });
     const { data: minute } = await supabase.from("meeting_minutes").upsert({ meeting_id: meetingId, recording_url: recordingUrl, processing_status: "processing" }, { onConflict: "meeting_id" }).select("id").single();
 
     try {
