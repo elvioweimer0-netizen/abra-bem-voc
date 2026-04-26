@@ -499,7 +499,7 @@ function minuteStatus(minute?: MeetingMinute) {
   return { label: "✅ Ata pronta", tone: "default" as const };
 }
 
-function HistoryMeetingCard({ meeting, minute, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; pendingSuggestions: number; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
   const status = minuteStatus(minute);
   const isFailed = minute?.processing_status === "failed";
   const isProcessing = !minute || minute.processing_status === "pending" || minute.processing_status === "processing";
@@ -513,7 +513,7 @@ function HistoryMeetingCard({ meeting, minute, onOpen, onRefresh, onRetry, retry
               <p className="mt-1 text-sm text-muted-foreground">{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {formatDuration(meeting)}</p>
             </div>
-            <Badge variant={status.tone}>{status.label}</Badge>
+            <div className="flex flex-col items-end gap-2"><Badge variant={status.tone}>{status.label}</Badge>{pendingSuggestions > 0 && <Badge variant="destructive">{pendingSuggestions} sugestõe(s)</Badge>}</div>
           </div>
         </button>
         {(isProcessing || isFailed) && <Button variant="outline" className="mt-3 min-h-11 w-full gap-2" onClick={isFailed && minute ? () => onRetry(minute) : onRefresh} disabled={retrying}><RefreshCw className="h-4 w-4" /> {isFailed ? (retrying ? "Tentando..." : "Tentar novamente") : "Atualizar"}</Button>}
