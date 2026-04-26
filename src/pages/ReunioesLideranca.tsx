@@ -177,8 +177,16 @@ export default function ReunioesLideranca() {
                 <CalendarClock className="h-8 w-8 text-primary" />
               </div>
               <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily}><Mic className="h-5 w-5" /> Entrar/Iniciar</Button>
+              <div className="mt-3">
+                <Input id="manual-recording" type="file" accept="audio/*,video/*" className="hidden" onChange={uploadManualRecording} disabled={uploading || !dailyMeeting} />
+                <Button variant="outline" className="min-h-12 w-full gap-2 bg-card" asChild disabled={uploading || !dailyMeeting}>
+                  <label htmlFor="manual-recording"><Upload className="h-5 w-5" /> {uploading ? "Processando..." : "Subir gravação manual"}</label>
+                </Button>
+              </div>
             </CardContent>
           </Card>
+
+          {dailyMinute && <MinutesCard minute={dailyMinute} />}
 
           <Card><CardHeader><CardTitle>Pauta automática</CardTitle></CardHeader><CardContent className="space-y-4">
             <div><p className="font-semibold">1. B.O. do dia anterior</p>{occurrences.length ? occurrences.map((o) => <p key={o.id} className="text-sm text-muted-foreground">• {o.descricao}</p>) : <p className="text-sm text-muted-foreground">Sem B.O.s médios/altos ontem.</p>}</div>
