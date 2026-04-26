@@ -1,5 +1,6 @@
 import { Bell, CalendarClock, Home, Sparkles, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useRole } from "@/hooks/useRole";
 
 const items = [
   { label: "Início", href: "/", icon: Home },
@@ -10,10 +11,12 @@ const items = [
 ];
 
 export function MobileBottomNav() {
+  const { isSupervisor } = useRole();
+  const navItems = items.map((item) => item.label === "Equipe" && isSupervisor ? { ...item, label: "Unidades", href: "/minhas-unidades" } : item);
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/98 pb-safe shadow-[0_-4px_18px_hsl(var(--foreground)/0.08)] md:hidden">
       <div className="grid h-16 grid-cols-5 items-center px-1">
-        {items.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.label}
             to={item.href}
