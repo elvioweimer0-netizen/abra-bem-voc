@@ -160,7 +160,7 @@ export function AppSidebar() {
         <img src="/curio_logo_escuro.png" alt="Curió" className="h-10 w-auto shrink-0 object-contain" />
         {!menuCollapsed && (
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-bold text-sidebar-foreground">Curió Conecta</h2>
+            <h2 className="truncate text-sm font-bold text-sidebar-foreground">Conecta Curió</h2>
           </div>
         )}
       </div>

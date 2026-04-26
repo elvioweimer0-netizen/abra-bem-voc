@@ -194,7 +194,7 @@ serve(async (req) => {
       await supabase.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString(), title: generatedTitle, minutes: generated.executive_summary || "Ata gerada automaticamente" }).eq("id", meetingId);
       await supabase.from("notification_events").insert({ type: "meeting_minutes", title: "Ata da reunião está pronta!", body: "Toque para ver.", payload: { meeting_id: meetingId } });
       if (aiSuggestions.length) {
-        await supabase.from("notification_events").insert({ type: "meeting_minutes", title: `🤖 Curió Conecta sugeriu ${aiSuggestions.length} ações da reunião '${generatedTitle}'`, body: "Toque pra revisar.", payload: { meeting_id: meetingId, pending_ai_suggestions: aiSuggestions.length } });
+        await supabase.from("notification_events").insert({ type: "meeting_minutes", title: `🤖 Conecta Curió sugeriu ${aiSuggestions.length} ações da reunião '${generatedTitle}'`, body: "Toque pra revisar.", payload: { meeting_id: meetingId, pending_ai_suggestions: aiSuggestions.length } });
       }
       return jsonResponse({ ok: true, meetingId });
     } catch (error) {

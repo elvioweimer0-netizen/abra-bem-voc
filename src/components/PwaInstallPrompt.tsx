@@ -44,7 +44,7 @@ export function PwaInstallPrompt() {
           <Download className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">Instale o Curió Conecta na tela inicial</p>
+          <p className="text-sm font-semibold text-foreground">Instale o Conecta Curió na tela inicial</p>
           <div className="mt-2 flex gap-2">
             <Button size="sm" onClick={install}>Instalar agora</Button>
             <Button size="sm" variant="ghost" onClick={dismiss}>Mais tarde</Button>
