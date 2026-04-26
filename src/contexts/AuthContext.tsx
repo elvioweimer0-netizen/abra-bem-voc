@@ -6,6 +6,8 @@ import type { Tables, Enums } from "@/integrations/supabase/types";
 type Profile = Tables<"profiles"> & {
   username?: string | null;
   must_change_password?: boolean | null;
+  first_login_at?: string | null;
+  welcome_banner_dismissed?: boolean | null;
 };
 
 interface AuthContextType {
