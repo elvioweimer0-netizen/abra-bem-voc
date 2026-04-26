@@ -58,6 +58,65 @@ export type Database = {
           },
         ]
       }
+      ai_suggestions: {
+        Row: {
+          aprovada_em: string | null
+          aprovada_por: string | null
+          audiencia: Json
+          beneficio_esperado: string
+          created_at: string
+          descricao: string
+          id: string
+          meeting_id: string
+          prazo_sugerido: string | null
+          responsavel_sugerido: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          aprovada_em?: string | null
+          aprovada_por?: string | null
+          audiencia?: Json
+          beneficio_esperado?: string
+          created_at?: string
+          descricao: string
+          id?: string
+          meeting_id: string
+          prazo_sugerido?: string | null
+          responsavel_sugerido?: string | null
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          aprovada_em?: string | null
+          aprovada_por?: string | null
+          audiencia?: Json
+          beneficio_esperado?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          meeting_id?: string
+          prazo_sugerido?: string | null
+          responsavel_sugerido?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           assignment_id: string | null
