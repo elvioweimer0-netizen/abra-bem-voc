@@ -455,7 +455,8 @@ export default function ReunioesLideranca() {
           <div className="flex justify-end"><Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button></div>
           {historyMeetings.map((meeting) => {
             const minute = minutes.find((item) => item.meeting_id === meeting.id);
-            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
+            const pendingSuggestions = aiSuggestions.filter((item) => item.meeting_id === meeting.id && item.status === "pendente").length;
+            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} pendingSuggestions={pendingSuggestions} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
           })}
           {!historyMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
         </TabsContent>
