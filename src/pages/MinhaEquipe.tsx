@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, ChevronRight, ClipboardCheck, HeartPulse, MessageCircle, PalmTree, Plus, Search, Upload, UserCheck, Users } from "lucide-react";
+import { AlertTriangle, ChevronRight, ClipboardCheck, HeartPulse, MessageCircle, Palmtree, Plus, Search, Upload, UserCheck, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
@@ -186,7 +186,7 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <MiniStat icon={<Users className="h-4 w-4" />} label="Total Ativos" value={stats.active} tone="bg-success/10 text-success" />
-          <MiniStat icon={<PalmTree className="h-4 w-4" />} label="Em Férias" value={stats.vacation} tone="bg-warning/10 text-warning" />
+          <MiniStat icon={<Palmtree className="h-4 w-4" />} label="Em Férias" value={stats.vacation} tone="bg-warning/10 text-warning" />
           <MiniStat icon={<HeartPulse className="h-4 w-4" />} label="Afastados" value={stats.away} tone="bg-muted text-muted-foreground" />
           <MiniStat icon={<ClipboardCheck className="h-4 w-4" />} label="Semana" value={`${stats.compliance}%`} tone="bg-primary/10 text-primary" />
         </div>
