@@ -71,6 +71,9 @@ export default function ReunioesLideranca() {
   const [joiningDaily, setJoiningDaily] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [processingRecording, setProcessingRecording] = useState(false);
+  const [historyPeriod, setHistoryPeriod] = useState("30");
+  const [historyType, setHistoryType] = useState("todos");
+  const [historyUnit, setHistoryUnit] = useState("todos");
   const [sale, setSale] = useState("");
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
@@ -85,7 +88,7 @@ export default function ReunioesLideranca() {
   const loadHistory = async (notifyReady = false) => {
     const [{ data: historyData }, { data: minuteData }, { data: attendeeData }, { data: suggestionData }] = await Promise.all([
       db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at, is_monthly_in_person").eq("status", "encerrada").order("ended_at", { ascending: false, nullsFirst: false }).limit(100),
-      db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
+      db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
       db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").eq("present", true).order("joined_at", { ascending: true }),
       db.from("ai_suggestions").select("id, meeting_id, tipo, titulo, descricao, responsavel_sugerido, prazo_sugerido, beneficio_esperado, audiencia, status, aprovada_por, aprovada_em").order("created_at", { ascending: false }).limit(500),
     ]);
@@ -112,7 +115,7 @@ export default function ReunioesLideranca() {
         db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, minutes, is_monthly_in_person").eq("scheduled_date", todayISO()).order("scheduled_time"),
         db.from("leadership_occurrences").select("id, descricao, gravidade, unit_id, criado_em").gte("criado_em", `${yesterday}T00:00:00`).lt("criado_em", `${todayISO()}T00:00:00`).in("gravidade", ["media", "alta"]),
         db.from("avisos").select("id, titulo, created_at").gte("created_at", since).eq("ativo", true).order("created_at", { ascending: false }),
-        db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
+        db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
       ]);
       setUnits(unitData || []);
       setMeetings(meetingData || []);
