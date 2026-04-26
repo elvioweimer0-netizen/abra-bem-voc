@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { PushPermission } from "@/components/PushPermission";
 import Login from "@/pages/Login";
+import TrocarSenha from "@/pages/TrocarSenha";
 import Dashboard from "@/pages/Dashboard";
 import Colaboradores from "@/pages/Colaboradores";
 import ColaboradorPerfil from "@/pages/ColaboradorPerfil";
@@ -48,7 +49,7 @@ import NotFound from "@/pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { session, loading } = useAuth();
+  const { session, profile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -59,6 +60,7 @@ function ProtectedRoutes() {
   }
 
   if (!session) return <Navigate to="/login" replace />;
+  if (profile?.must_change_password) return <Navigate to="/trocar-senha" replace />;
 
   return (
     <AppLayout>
@@ -106,10 +108,17 @@ function ProtectedRoutes() {
 }
 
 function AuthRoute() {
+  const { session, profile, loading } = useAuth();
+  if (loading) return null;
+  if (session) return <Navigate to={profile?.must_change_password ? "/trocar-senha" : "/"} replace />;
+  return <Login />;
+}
+
+function ChangePasswordRoute() {
   const { session, loading } = useAuth();
   if (loading) return null;
-  if (session) return <Navigate to="/" replace />;
-  return <Login />;
+  if (!session) return <Navigate to="/login" replace />;
+  return <TrocarSenha />;
 }
 
 const App = () => (
@@ -123,6 +132,7 @@ const App = () => (
           <PwaInstallPrompt />
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
+            <Route path="/trocar-senha" element={<ChangePasswordRoute />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </AuthProvider>
