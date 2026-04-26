@@ -367,6 +367,46 @@ export default function ReunioesLideranca() {
     if (meeting) await closeMeeting(meeting);
   };
 
+  const startScheduledMeeting = async (meeting: Meeting) => {
+    await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
+    toast.success("Reunião iniciada");
+    setMeetings((current) => current.some((item) => item.id === meeting.id) ? current : [...current, meeting]);
+    setScheduledMeetings((current) => current.filter((item) => item.id !== meeting.id));
+  };
+
+  const cancelScheduledMeeting = async (meeting: Meeting) => {
+    await db.from("leadership_meetings").update({ status: "cancelada" }).eq("id", meeting.id);
+    toast.success("Agendamento cancelado");
+    setScheduledMeetings((current) => current.filter((item) => item.id !== meeting.id));
+  };
+
+  const scheduleManualMeeting = async () => {
+    if (!user || !newTitle.trim()) {
+      toast.error("Informe o título da reunião");
+      return;
+    }
+    setSavingMeeting(true);
+    try {
+      const scheduledDate = format(newDate, "yyyy-MM-dd");
+      const unitId = newUnit === "none" ? null : newUnit;
+      const { data: meeting, error } = await db.from("leadership_meetings").insert({ title: newTitle.trim(), type: newType === "semanal" ? "semanal" : newType === "individual" ? "individual" : "diaria", unit_id: unitId, scheduled_date: scheduledDate, scheduled_time: newTime, status: "agendada", created_by: user.id, agenda: [{ tipo: newType, duracao_minutos: Number(newDuration), pauta: newAgenda, gravar_gerar_ata: recordAndGenerate }] }).select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at").single();
+      if (error) throw error;
+      const selected = participantOptions.filter((item) => newParticipants.includes(item.id));
+      if (selected.length) await db.from("meeting_attendees").insert(selected.map((item) => ({ meeting_id: meeting.id, user_id: item.user_id || user.id, role_label: item.nome || item.cargo || "Participante", present: false })));
+      if (notifyParticipants) await db.from("notification_events").insert({ type: "meeting_reminder", unit_id: unitId, title: `Reunião agendada: ${newTitle.trim()}`, body: `${scheduledDate} às ${newTime}`, payload: { meeting_id: meeting.id, participant_ids: newParticipants, remind_at: new Date(`${scheduledDate}T${newTime}`).getTime() - 5 * 60 * 1000 } });
+      setScheduledMeetings((current) => [meeting, ...current]);
+      setCreateMeetingOpen(false);
+      setNewTitle("");
+      setNewAgenda("");
+      setNewParticipants([]);
+      toast.success("Reunião agendada com sucesso ✅");
+    } catch (error) {
+      toast.error("Erro ao agendar reunião", { description: error instanceof Error ? error.message : "Tente novamente." });
+    } finally {
+      setSavingMeeting(false);
+    }
+  };
+
   const dailyMinute = dailyMeeting ? minutes.find((minute) => minute.meeting_id === dailyMeeting.id) : undefined;
   const selectedMeeting = historyMeetings.find((meeting) => meeting.id === selectedHistoryId);
   const selectedMinute = selectedMeeting ? minutes.find((minute) => minute.meeting_id === selectedMeeting.id) : undefined;
