@@ -558,7 +558,7 @@ function MeetingMinuteDetail({ meeting, minute, attendees, suggestions, canRevie
     <div className="space-y-4">
       <Button variant="ghost" className="gap-2 px-0" onClick={onBack}><ArrowLeft className="h-5 w-5" /> Voltar</Button>
       <section className="rounded-xl bg-card p-4 shadow-sm">
-        <div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">{formatMeetingType(meeting.type)}</p><h1 className="mt-1 text-2xl font-bold text-foreground">Ata da reunião</h1></div><Badge variant={status.tone}>{status.label}</Badge></div>
+        <div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">{formatMeetingType(meeting.type)}</p><h1 className="mt-1 text-2xl font-bold text-foreground">{minute?.titulo || meeting.title || "Ata da reunião"}</h1></div><Badge variant={status.tone}>{status.label}</Badge></div>
         <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3"><span>{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span><span>Duração: {formatDuration(meeting)}</span><span className="flex items-center gap-1"><Users className="h-4 w-4" /> {attendees.length || 1} participante(s)</span></div>
       </section>
 
