@@ -3,6 +3,7 @@ import {
   Video, FileText, CalendarDays, Headphones,
   Bell, MessageSquare, Camera, Bot,
   ClipboardCheck, Gauge, ClipboardPlus, SearchCheck,
+  Users, CalendarDays as CalendarWeek, Trophy, UserCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/hooks/useRole";
@@ -21,6 +22,10 @@ const allActions: QuickAction[] = [
   { label: "Meu Checklist", icon: ClipboardCheck, href: "/checklist-diario", color: "bg-primary/10 text-primary", liderancaOnly: true },
   { label: "Painel de Cobrança", icon: Gauge, href: "/painel-cobranca", color: "bg-warning/10 text-warning", painelOnly: true },
   { label: "Novo B.O.", icon: ClipboardPlus, href: "/bo-eletronico", color: "bg-primary/10 text-primary", liderancaOnly: true },
+  { label: "Minha Equipe", icon: Users, href: "/minha-equipe", color: "bg-success/10 text-success", gestaoOnly: true },
+  { label: "Meu Setor", icon: UserCheck, href: "/meu-setor", color: "bg-success/10 text-success", liderancaOnly: true },
+  { label: "Escala", icon: CalendarWeek, href: "/escala-semana", color: "bg-warning/10 text-warning" },
+  { label: "Reconhecimentos", icon: Trophy, href: "/reconhecimentos", color: "bg-primary/10 text-primary" },
   { label: "Inspeções", icon: SearchCheck, href: "/inspecoes", color: "bg-success/10 text-success", painelOnly: true },
   { label: "Entrar na Reunião", icon: Video, href: "/reunioes", color: "bg-primary/10 text-primary" },
   { label: "Avisos Importantes", icon: Bell, href: "/avisos", color: "bg-warning/10 text-warning" },
