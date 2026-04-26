@@ -36,6 +36,9 @@ serve(async (req) => {
         properties: {
           enable_chat: true,
           enable_screenshare: true,
+          enable_recording: "cloud",
+          start_cloud_recording: true,
+          eject_at_room_exp: true,
           start_video_off: false,
           start_audio_off: false,
           exp: Math.floor(Date.now() / 1000) + 60 * 60 * 6,
@@ -45,8 +48,13 @@ serve(async (req) => {
 
     if (!response.ok && response.status !== 409) {
       const details = await response.text();
-      return new Response(JSON.stringify({ error: "Erro ao criar sala Daily.co", details }), {
-        status: response.status,
+      const isPlanError = response.status === 402 || details.toLowerCase().includes("recording") || details.toLowerCase().includes("plan");
+      return new Response(JSON.stringify({
+        error: isPlanError ? "Plano Daily.co não suporta gravação. Faça upgrade pra Pay-as-you-go." : "Erro ao criar sala Daily.co",
+        plan_error: isPlanError,
+        details,
+      }), {
+        status: isPlanError ? 200 : response.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

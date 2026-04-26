@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, FileText, Mic, Plus } from "lucide-react";
+import { CalendarClock, ChevronDown, FileText, Mic, Plus, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const db = supabase as any;
 
@@ -16,6 +17,7 @@ type Unit = { id: string; code: string; name: string };
 type Meeting = { id: string; type: string; unit_id: string | null; scheduled_date: string; scheduled_time: string; status: string; title: string; minutes?: string | null; is_monthly_in_person?: boolean };
 type Occurrence = { id: string; descricao: string; gravidade: string; unit_id: string; criado_em: string };
 type Notice = { id: string; titulo: string; created_at: string };
+type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null };
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -42,6 +44,8 @@ export default function ReunioesLideranca() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [sale, setSale] = useState("");
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
@@ -51,16 +55,18 @@ export default function ReunioesLideranca() {
     const load = async () => {
       const yesterday = yesterdayISO();
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const [{ data: unitData }, { data: meetingData }, { data: boData }, { data: noticeData }] = await Promise.all([
+      const [{ data: unitData }, { data: meetingData }, { data: boData }, { data: noticeData }, { data: minuteData }] = await Promise.all([
         db.from("units").select("id, code, name").eq("active", true).order("code"),
         db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, minutes, is_monthly_in_person").eq("scheduled_date", todayISO()).order("scheduled_time"),
         db.from("leadership_occurrences").select("id, descricao, gravidade, unit_id, criado_em").gte("criado_em", `${yesterday}T00:00:00`).lt("criado_em", `${todayISO()}T00:00:00`).in("gravidade", ["media", "alta"]),
         db.from("avisos").select("id, titulo, created_at").gte("created_at", since).eq("ativo", true).order("created_at", { ascending: false }),
+        db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
       ]);
       setUnits(unitData || []);
       setMeetings(meetingData || []);
       setOccurrences(boData || []);
       setNotices(noticeData || []);
+      setMinutes(minuteData || []);
     };
     load();
   }, []);
@@ -86,14 +92,43 @@ export default function ReunioesLideranca() {
     const { data, error } = await supabase.functions.invoke("create-daily-room", {
       body: { meetingId: meeting.id, title: meeting.title },
     });
+    if (data?.plan_error) {
+      toast({ title: "Gravação indisponível", description: data.error, variant: "destructive" });
+      return;
+    }
     if (error || !data?.url) {
-      toast({ title: "Erro ao iniciar sala", description: error?.message || "Não foi possível criar a sala Daily.co.", variant: "destructive" });
+      toast({ title: "Erro ao iniciar sala", description: error?.message || data?.error || "Não foi possível criar a sala Daily.co.", variant: "destructive" });
       return;
     }
     await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
     await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: true, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
     toast({ title: "Sala iniciada", description: "Abrindo a reunião diária no Daily.co." });
     window.open(data.url, "_blank", "noopener,noreferrer");
+  };
+
+  const uploadManualRecording = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    const meeting = dailyMeeting;
+    if (!file || !meeting) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("meetingId", meeting.id);
+      form.append("file", file);
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-meeting-recording`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: form,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Falha ao processar gravação");
+      toast({ title: "Gravação enviada", description: "A ata será gerada automaticamente em alguns minutos." });
+    } catch (error) {
+      toast({ title: "Erro no upload", description: error instanceof Error ? error.message : "Não foi possível enviar a gravação.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const closeMeeting = async (meeting?: Meeting) => {
@@ -116,6 +151,8 @@ export default function ReunioesLideranca() {
     const meeting = await ensureMeeting("semanal", "Reunião Semanal");
     if (meeting) await closeMeeting(meeting);
   };
+
+  const dailyMinute = dailyMeeting ? minutes.find((minute) => minute.meeting_id === dailyMeeting.id) : undefined;
 
   return (
     <div className="space-y-5">
@@ -140,8 +177,16 @@ export default function ReunioesLideranca() {
                 <CalendarClock className="h-8 w-8 text-primary" />
               </div>
               <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily}><Mic className="h-5 w-5" /> Entrar/Iniciar</Button>
+              <div className="mt-3">
+                <Input id="manual-recording" type="file" accept="audio/*,video/*" className="hidden" onChange={uploadManualRecording} disabled={uploading || !dailyMeeting} />
+                <Button variant="outline" className="min-h-12 w-full gap-2 bg-card" asChild disabled={uploading || !dailyMeeting}>
+                  <label htmlFor="manual-recording"><Upload className="h-5 w-5" /> {uploading ? "Processando..." : "Subir gravação manual"}</label>
+                </Button>
+              </div>
             </CardContent>
           </Card>
+
+          {dailyMinute && <MinutesCard minute={dailyMinute} />}
 
           <Card><CardHeader><CardTitle>Pauta automática</CardTitle></CardHeader><CardContent className="space-y-4">
             <div><p className="font-semibold">1. B.O. do dia anterior</p>{occurrences.length ? occurrences.map((o) => <p key={o.id} className="text-sm text-muted-foreground">• {o.descricao}</p>) : <p className="text-sm text-muted-foreground">Sem B.O.s médios/altos ontem.</p>}</div>
@@ -167,5 +212,33 @@ export default function ReunioesLideranca() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function MinutesCard({ minute }: { minute: MeetingMinute }) {
+  const decisions = Array.isArray(minute.decisions) ? minute.decisions : [];
+  const actionItems = Array.isArray(minute.action_items) ? minute.action_items : [];
+  const attentionPoints = Array.isArray(minute.attention_points) ? minute.attention_points : [];
+
+  if (minute.processing_status === "processing" || minute.processing_status === "pending") {
+    return <Card><CardContent className="p-4 text-sm text-muted-foreground">Ata em processamento. Ela aparecerá aqui automaticamente.</CardContent></Card>;
+  }
+
+  if (minute.processing_status === "failed") {
+    return <Card className="border-destructive/30"><CardContent className="p-4 text-sm text-destructive">Falha ao gerar ata: {minute.error_message || "tente subir a gravação manualmente."}</CardContent></Card>;
+  }
+
+  return (
+    <Card className="border-success/30 bg-success/5">
+      <CardHeader><CardTitle>Ata gerada</CardTitle></CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        <div><p className="font-semibold text-foreground">Resumo executivo</p><p className="mt-1 whitespace-pre-line text-muted-foreground">{minute.executive_summary}</p></div>
+        <div><p className="font-semibold text-foreground">Decisões</p>{decisions.length ? decisions.map((item, index) => <p key={index} className="text-muted-foreground">• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""}</p>) : <p className="text-muted-foreground">Sem decisões registradas.</p>}</div>
+        <div><p className="font-semibold text-foreground">Próximos passos</p>{actionItems.length ? actionItems.map((item, index) => <p key={index} className="text-muted-foreground">• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""} {item.prazo ? `(${item.prazo})` : ""}</p>) : <p className="text-muted-foreground">Sem próximos passos.</p>}</div>
+        <div><p className="font-semibold text-foreground">Pontos de atenção</p>{attentionPoints.length ? attentionPoints.map((item, index) => <p key={index} className="text-muted-foreground">• {item.descricao} <Badge variant="outline" className="ml-1 text-[10px]">{item.urgencia}</Badge></p>) : <p className="text-muted-foreground">Sem pontos críticos.</p>}</div>
+        <Badge variant="secondary">Sentimento: {minute.sentiment || "neutro"}</Badge>
+        {minute.transcript && <Collapsible><CollapsibleTrigger asChild><Button variant="outline" className="w-full gap-2">Ver transcript completo <ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent className="mt-3 max-h-72 overflow-auto rounded-lg bg-muted p-3 text-xs text-muted-foreground whitespace-pre-line">{minute.transcript}</CollapsibleContent></Collapsible>}
+      </CardContent>
+    </Card>
   );
 }
