@@ -62,6 +62,8 @@ type TeamMember = {
   units?: { name: string; code: string } | null;
 };
 
+type Unit = { id: string; code: string; name: string };
+
 function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 }
@@ -84,11 +86,13 @@ function whatsappUrl(phone: string) {
 
 export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { profile, user } = useAuth();
   const { isGerente, isAdmin, isSupervisor, isEncarregado } = useRole();
   const { toast } = useToast();
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [selectedUnitId, setSelectedUnitId] = useState(searchParams.get("unit") || profile?.unit_id || "");
   const [roleFilter, setRoleFilter] = useState("todos");
   const [sectorFilter, setSectorFilter] = useState("todos");
   const [search, setSearch] = useState("");
@@ -96,7 +100,24 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
   const [preview, setPreview] = useState<string | null>(null);
   const [form, setForm] = useState({ nome: "", cargo: "", telefone: "", sector: "geral", role: "colaborador", data_admissao: "", status: "ativo", foto_url: "" });
   const canEdit = isGerente || isAdmin || isSupervisor;
-  const selectedUnitId = searchParams.get("unit") || profile?.unit_id;
+  const canSelectUnit = isAdmin || isSupervisor;
+
+  useEffect(() => {
+    const loadUnits = async () => {
+      const db = supabase as any;
+      const { data } = await db.from("units").select("id, code, name").eq("active", true).order("code");
+      const activeUnits = (data || []) as Unit[];
+      setUnits(activeUnits);
+      if (canSelectUnit && !selectedUnitId) {
+        setSelectedUnitId(activeUnits.find((unit) => unit.code === "L01")?.id || activeUnits[0]?.id || "");
+      }
+    };
+    loadUnits();
+  }, [canSelectUnit, selectedUnitId]);
+
+  useEffect(() => {
+    if (!canSelectUnit && profile?.unit_id) setSelectedUnitId(profile.unit_id);
+  }, [canSelectUnit, profile?.unit_id]);
 
   useEffect(() => {
     fetchMembers();
@@ -106,7 +127,7 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
     const db = supabase as any;
     let query = db.from("team_members").select("*, units(name, code)").order("role").order("cargo");
     if (selectedUnitId) query = query.eq("unit_id", selectedUnitId);
-    if (setorOnly && profile?.setor) query = query.eq("sector", profile.setor === "frente_de_caixa" ? "frente_caixa" : profile.setor);
+    if ((setorOnly || (isEncarregado && !isGerente && !canSelectUnit)) && profile?.setor) query = query.eq("sector", profile.setor === "frente_de_caixa" ? "frente_caixa" : profile.setor);
     const { data, error } = await query;
     if (error) {
       toast({ title: "Não foi possível carregar a equipe", description: error.message, variant: "destructive" });
@@ -178,15 +199,30 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
     else toast({ title: "Checklist assumido temporariamente" });
   }
 
-  const unitName = members[0]?.units?.name || profile?.unidade || "Minha unidade";
+  const selectedUnit = units.find((unit) => unit.id === selectedUnitId);
+  const unitName = selectedUnit?.name || members[0]?.units?.name || profile?.unidade || "Minha unidade";
+  const pageTitle = `${setorOnly ? "Meu Setor" : "Minha Equipe"} — ${unitName.replace(" - ", " ")}`;
+
+  const handleUnitChange = (unitId: string) => {
+    setSelectedUnitId(unitId);
+    setSearchParams({ unit: unitId });
+  };
 
   return (
     <div className="space-y-4 pb-20">
       <div className="space-y-3">
         <div>
-          <p className="text-sm font-semibold text-primary">{setorOnly ? "Meu Setor" : "Minha Equipe"}</p>
-          <h1 className="text-2xl font-bold text-foreground">{unitName}</h1>
+          <p className="text-sm font-semibold text-primary">Operação de loja</p>
+          <h1 className="text-2xl font-bold text-foreground">{pageTitle}</h1>
         </div>
+        {canSelectUnit && units.length > 0 && (
+          <Select value={selectedUnitId} onValueChange={handleUnitChange}>
+            <SelectTrigger className="min-h-12"><SelectValue placeholder="Selecionar unidade" /></SelectTrigger>
+            <SelectContent>
+              {units.map((unit) => <SelectItem key={unit.id} value={unit.id}>{unit.name.replace(" - ", " ")}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <MiniStat icon={<Users className="h-4 w-4" />} label="Total Ativos" value={stats.active} tone="bg-success/10 text-success" />
           <MiniStat icon={<Palmtree className="h-4 w-4" />} label="Em Férias" value={stats.vacation} tone="bg-warning/10 text-warning" />

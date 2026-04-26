@@ -3,15 +3,19 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
-type Profile = Tables<"profiles">;
+type Profile = Tables<"profiles"> & {
+  username?: string | null;
+  must_change_password?: boolean | null;
+};
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, nome: string, unidade: Enums<"unidade_tipo">) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -58,9 +62,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
+    const email = `${username.trim().toLowerCase()}@curio.app`;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+  };
+
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    if (user?.id) {
+      const { error: profileError } = await (supabase as any)
+        .from("profiles")
+        .update({ must_change_password: false })
+        .eq("user_id", user.id);
+      if (profileError) throw profileError;
+      setProfile((current) => current ? { ...current, must_change_password: false } : current);
+    }
   };
 
   const signUp = async (email: string, password: string, nome: string, unidade: Enums<"unidade_tipo">) => {
@@ -80,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, signIn, signUp, updatePassword, signOut }}>
       {children}
     </AuthContext.Provider>
   );
