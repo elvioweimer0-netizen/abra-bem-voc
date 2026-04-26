@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, Users, XCircle } from "lucide-react";
+import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, UserCircle, Users, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -18,7 +19,7 @@ type Unit = { id: string; code: string; name: string };
 type Meeting = { id: string; type: string; unit_id: string | null; scheduled_date: string; scheduled_time: string; status: string; title: string; minutes?: string | null; is_monthly_in_person?: boolean; ended_at?: string | null; created_at?: string };
 type Occurrence = { id: string; descricao: string; gravidade: string; unit_id: string; criado_em: string };
 type Notice = { id: string; titulo: string; created_at: string };
-type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
+type MeetingMinute = { id: string; meeting_id: string; titulo?: string | null; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
 type MeetingAttendee = { id: string; meeting_id: string; user_id: string; role_label: string | null; present: boolean; joined_at: string | null };
 type AiSuggestion = { id: string; meeting_id: string; tipo: string; titulo: string; descricao: string; responsavel_sugerido: string | null; prazo_sugerido: string | null; beneficio_esperado: string; audiencia: string[]; status: string; aprovada_por?: string | null; aprovada_em?: string | null };
 
@@ -70,6 +71,9 @@ export default function ReunioesLideranca() {
   const [joiningDaily, setJoiningDaily] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [processingRecording, setProcessingRecording] = useState(false);
+  const [historyPeriod, setHistoryPeriod] = useState("30");
+  const [historyType, setHistoryType] = useState("todos");
+  const [historyUnit, setHistoryUnit] = useState("todos");
   const [sale, setSale] = useState("");
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
@@ -84,7 +88,7 @@ export default function ReunioesLideranca() {
   const loadHistory = async (notifyReady = false) => {
     const [{ data: historyData }, { data: minuteData }, { data: attendeeData }, { data: suggestionData }] = await Promise.all([
       db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at, is_monthly_in_person").eq("status", "encerrada").order("ended_at", { ascending: false, nullsFirst: false }).limit(100),
-      db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
+      db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
       db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").eq("present", true).order("joined_at", { ascending: true }),
       db.from("ai_suggestions").select("id, meeting_id, tipo, titulo, descricao, responsavel_sugerido, prazo_sugerido, beneficio_esperado, audiencia, status, aprovada_por, aprovada_em").order("created_at", { ascending: false }).limit(500),
     ]);
@@ -111,7 +115,7 @@ export default function ReunioesLideranca() {
         db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, minutes, is_monthly_in_person").eq("scheduled_date", todayISO()).order("scheduled_time"),
         db.from("leadership_occurrences").select("id, descricao, gravidade, unit_id, criado_em").gte("criado_em", `${yesterday}T00:00:00`).lt("criado_em", `${todayISO()}T00:00:00`).in("gravidade", ["media", "alta"]),
         db.from("avisos").select("id, titulo, created_at").gte("created_at", since).eq("ativo", true).order("created_at", { ascending: false }),
-        db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
+        db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
       ]);
       setUnits(unitData || []);
       setMeetings(meetingData || []);
@@ -345,6 +349,16 @@ export default function ReunioesLideranca() {
   const selectedAttendees = selectedMeeting ? attendees.filter((attendee) => attendee.meeting_id === selectedMeeting.id) : [];
   const selectedSuggestions = selectedMeeting ? aiSuggestions.filter((suggestion) => suggestion.meeting_id === selectedMeeting.id) : [];
   const canReviewSuggestions = ["admin", "master", "supervisor"].includes(profile?.cargo || "");
+  const filteredHistoryMeetings = useMemo(() => historyMeetings.filter((meeting) => {
+    if (historyType !== "todos" && meeting.type !== historyType) return false;
+    if (historyUnit !== "todos" && meeting.unit_id !== historyUnit) return false;
+    if (historyPeriod === "todos") return true;
+    const date = new Date(meeting.ended_at || meeting.created_at || `${meeting.scheduled_date}T${meeting.scheduled_time}`);
+    const now = new Date();
+    if (historyPeriod === "mes-passado") return date.getMonth() === now.getMonth() - 1 && date.getFullYear() === now.getFullYear();
+    const days = Number(historyPeriod);
+    return date >= new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  }), [historyMeetings, historyType, historyUnit, historyPeriod]);
 
   const retryMinute = async (minute: MeetingMinute) => {
     if (!minute.recording_url && !minute.recording_file_path) {
@@ -452,13 +466,19 @@ export default function ReunioesLideranca() {
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-3">
-          <div className="flex justify-end"><Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button></div>
-          {historyMeetings.map((meeting) => {
+          <div className="grid gap-2 rounded-xl bg-card p-3 sm:grid-cols-4">
+            <Select value={historyPeriod} onValueChange={setHistoryPeriod}><SelectTrigger><SelectValue placeholder="Período" /></SelectTrigger><SelectContent><SelectItem value="7">Últimos 7 dias</SelectItem><SelectItem value="30">Últimos 30 dias</SelectItem><SelectItem value="mes-passado">Mês passado</SelectItem><SelectItem value="todos">Todos</SelectItem></SelectContent></Select>
+            <Select value={historyType} onValueChange={setHistoryType}><SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem><SelectItem value="diaria">Diária</SelectItem><SelectItem value="semanal">Semanal</SelectItem><SelectItem value="individual">Individual</SelectItem></SelectContent></Select>
+            <Select value={historyUnit} onValueChange={setHistoryUnit} disabled={!canReviewSuggestions}><SelectTrigger><SelectValue placeholder="Unidade" /></SelectTrigger><SelectContent><SelectItem value="todos">Todas</SelectItem>{units.map((unit) => <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>)}</SelectContent></Select>
+            <Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button>
+          </div>
+          {filteredHistoryMeetings.map((meeting) => {
             const minute = minutes.find((item) => item.meeting_id === meeting.id);
             const pendingSuggestions = aiSuggestions.filter((item) => item.meeting_id === meeting.id && item.status === "pendente").length;
-            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} pendingSuggestions={pendingSuggestions} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
+            const meetingAttendees = attendees.filter((item) => item.meeting_id === meeting.id);
+            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} attendees={meetingAttendees} pendingSuggestions={pendingSuggestions} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
           })}
-          {!historyMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
+          {!filteredHistoryMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
         </TabsContent>
       </Tabs>
     </div>
@@ -499,7 +519,7 @@ function minuteStatus(minute?: MeetingMinute) {
   return { label: "✅ Ata pronta", tone: "default" as const };
 }
 
-function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; pendingSuggestions: number; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+function HistoryMeetingCard({ meeting, minute, attendees, pendingSuggestions, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; pendingSuggestions: number; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
   const status = minuteStatus(minute);
   const isFailed = minute?.processing_status === "failed";
   const isProcessing = !minute || minute.processing_status === "pending" || minute.processing_status === "processing";
@@ -509,9 +529,11 @@ function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRef
         <button type="button" className="w-full text-left" onClick={onOpen}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-bold text-foreground">{formatMeetingType(meeting.type)}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
+              <p className="text-sm text-muted-foreground">📅 {new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
+              <h3 className="mt-1 font-bold text-foreground">📝 {minute?.titulo || meeting.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">🏷️ {formatMeetingType(meeting.type)}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {formatDuration(meeting)}</p>
+              <div className="mt-2 flex flex-wrap gap-2">{(attendees.length ? attendees : [{ id: "fallback", role_label: "Participante" } as MeetingAttendee]).slice(0, 6).map((attendee) => <Badge key={attendee.id} variant="outline" className="gap-1"><UserCircle className="h-3 w-3" /> {(attendee.role_label || "Participante").split(" ")[0]}</Badge>)}</div>
             </div>
             <div className="flex flex-col items-end gap-2"><Badge variant={status.tone}>{status.label}</Badge>{pendingSuggestions > 0 && <Badge variant="destructive">{pendingSuggestions} sugestõe(s)</Badge>}</div>
           </div>
@@ -536,7 +558,7 @@ function MeetingMinuteDetail({ meeting, minute, attendees, suggestions, canRevie
     <div className="space-y-4">
       <Button variant="ghost" className="gap-2 px-0" onClick={onBack}><ArrowLeft className="h-5 w-5" /> Voltar</Button>
       <section className="rounded-xl bg-card p-4 shadow-sm">
-        <div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">{formatMeetingType(meeting.type)}</p><h1 className="mt-1 text-2xl font-bold text-foreground">Ata da reunião</h1></div><Badge variant={status.tone}>{status.label}</Badge></div>
+        <div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">{formatMeetingType(meeting.type)}</p><h1 className="mt-1 text-2xl font-bold text-foreground">{minute?.titulo || meeting.title || "Ata da reunião"}</h1></div><Badge variant={status.tone}>{status.label}</Badge></div>
         <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3"><span>{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span><span>Duração: {formatDuration(meeting)}</span><span className="flex items-center gap-1"><Users className="h-4 w-4" /> {attendees.length || 1} participante(s)</span></div>
       </section>
 

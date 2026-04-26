@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 type GeneratedMinutes = {
+  titulo?: string;
   executive_summary?: string;
   decisions?: Array<{ descricao?: string; responsavel?: string | null }>;
   action_items?: Array<{ descricao?: string; responsavel?: string | null; prazo?: string | null; metrica_sucesso?: string | null }>;
@@ -66,6 +67,7 @@ async function generateMinutes(transcript: string, openAiKey: string): Promise<G
   const prompt = `Você é o assistente IA do Supermercado Curió. Analisou uma reunião operacional. Gere JSON válido com:
 
 {
+  'titulo': string curto e claro descrevendo o tema principal da reunião (ex: 'Alinhamento Vendas Semana / B.O. Loja 04', 'Treinamento Atendimento Frente Caixa'),
   'executive_summary': string (5 linhas),
   'decisions': [{descricao, responsavel}],
   'action_items': [{descricao, responsavel, prazo (YYYY-MM-DD ou null), metrica_sucesso}],
@@ -149,6 +151,7 @@ serve(async (req) => {
         meeting_id: meetingId,
         recording_url: recordingUrl,
         recording_file_path: recordingFilePath,
+        titulo: generated.titulo || "Ata da reunião",
         transcript,
         executive_summary: generated.executive_summary || "",
         decisions: generated.decisions || [],
@@ -179,10 +182,11 @@ serve(async (req) => {
         })));
       }
 
-      await supabase.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString(), minutes: generated.executive_summary || "Ata gerada automaticamente" }).eq("id", meetingId);
+      const generatedTitle = generated.titulo || "Ata da reunião";
+      await supabase.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString(), title: generatedTitle, minutes: generated.executive_summary || "Ata gerada automaticamente" }).eq("id", meetingId);
       await supabase.from("notification_events").insert({ type: "meeting_minutes", title: "Ata da reunião está pronta!", body: "Toque para ver.", payload: { meeting_id: meetingId } });
       if (aiSuggestions.length) {
-        await supabase.from("notification_events").insert({ type: "meeting_minutes", title: `🤖 Curió Conecta sugeriu ${aiSuggestions.length} ações da reunião`, body: "Toque pra revisar.", payload: { meeting_id: meetingId, pending_ai_suggestions: aiSuggestions.length } });
+        await supabase.from("notification_events").insert({ type: "meeting_minutes", title: `🤖 Curió Conecta sugeriu ${aiSuggestions.length} ações da reunião '${generatedTitle}'`, body: "Toque pra revisar.", payload: { meeting_id: meetingId, pending_ai_suggestions: aiSuggestions.length } });
       }
       return jsonResponse({ ok: true, meetingId });
     } catch (error) {

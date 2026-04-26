@@ -948,6 +948,7 @@ export type Database = {
           recording_file_path: string | null
           recording_url: string | null
           sentiment: string | null
+          titulo: string | null
           transcript: string | null
           updated_at: string
         }
@@ -965,6 +966,7 @@ export type Database = {
           recording_file_path?: string | null
           recording_url?: string | null
           sentiment?: string | null
+          titulo?: string | null
           transcript?: string | null
           updated_at?: string
         }
@@ -982,6 +984,7 @@ export type Database = {
           recording_file_path?: string | null
           recording_url?: string | null
           sentiment?: string | null
+          titulo?: string | null
           transcript?: string | null
           updated_at?: string
         }
