@@ -144,6 +144,7 @@ serve(async (req) => {
       const transcript = await transcribeAudio(recordingFile, OPENAI_API_KEY);
       const generated = await generateMinutes(transcript, OPENAI_API_KEY);
       const actionItems = Array.isArray(generated.action_items) ? generated.action_items : [];
+      const aiSuggestions = Array.isArray(generated.ai_suggestions) ? generated.ai_suggestions.slice(0, 7) : [];
       const { data: savedMinute } = await supabase.from("meeting_minutes").upsert({
         meeting_id: meetingId,
         recording_url: recordingUrl,
@@ -164,8 +165,25 @@ serve(async (req) => {
         await supabase.from("meeting_action_items").insert(actionItems.map((item) => ({ meeting_id: meetingId, minute_id: savedMinute.id, descricao: item.descricao || "Próximo passo", responsavel: item.responsavel || null, prazo: item.prazo || null })));
       }
 
+      await supabase.from("ai_suggestions").delete().eq("meeting_id", meetingId).eq("status", "pendente");
+      if (aiSuggestions.length) {
+        await supabase.from("ai_suggestions").insert(aiSuggestions.map((item) => ({
+          meeting_id: meetingId,
+          tipo: item.tipo || "ideia",
+          titulo: item.titulo || "Sugestão da IA",
+          descricao: item.descricao || "Revisar oportunidade identificada na reunião.",
+          responsavel_sugerido: item.responsavel_sugerido || null,
+          prazo_sugerido: item.prazo_sugerido || null,
+          beneficio_esperado: item.beneficio_esperado || "Melhorar a execução operacional.",
+          audiencia: Array.isArray(item.pra_quem_avisar) ? item.pra_quem_avisar : [],
+        })));
+      }
+
       await supabase.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString(), minutes: generated.executive_summary || "Ata gerada automaticamente" }).eq("id", meetingId);
       await supabase.from("notification_events").insert({ type: "meeting_minutes", title: "Ata da reunião está pronta!", body: "Toque para ver.", payload: { meeting_id: meetingId } });
+      if (aiSuggestions.length) {
+        await supabase.from("notification_events").insert({ type: "meeting_minutes", title: `🤖 Curió Conecta sugeriu ${aiSuggestions.length} ações da reunião`, body: "Toque pra revisar.", payload: { meeting_id: meetingId, pending_ai_suggestions: aiSuggestions.length } });
+      }
       return jsonResponse({ ok: true, meetingId });
     } catch (error) {
       await supabase.from("meeting_minutes").update({ processing_status: "failed", error_message: error instanceof Error ? error.message : "Erro desconhecido" }).eq("id", minute?.id);
