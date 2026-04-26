@@ -60,6 +60,13 @@ function ProtectedRoutes() {
   }
 
   if (!session) return <Navigate to="/login" replace />;
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
   if (profile?.must_change_password) return <Navigate to="/trocar-senha" replace />;
 
   return (
@@ -110,14 +117,16 @@ function ProtectedRoutes() {
 function AuthRoute() {
   const { session, profile, loading } = useAuth();
   if (loading) return null;
+  if (session && !profile) return null;
   if (session) return <Navigate to={profile?.must_change_password ? "/trocar-senha" : "/"} replace />;
   return <Login />;
 }
 
 function ChangePasswordRoute() {
-  const { session, loading } = useAuth();
+  const { session, profile, loading } = useAuth();
   if (loading) return null;
   if (!session) return <Navigate to="/login" replace />;
+  if (!profile) return null;
   return <TrocarSenha />;
 }
 
