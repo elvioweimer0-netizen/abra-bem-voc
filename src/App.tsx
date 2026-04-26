@@ -42,6 +42,7 @@ import MembroDetalhe from "@/pages/MembroDetalhe";
 import EscalaSemana from "@/pages/EscalaSemana";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
+import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -97,6 +98,7 @@ function ProtectedRoutes() {
         <Route path="/escala-semana" element={<EscalaSemana />} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
+        <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
