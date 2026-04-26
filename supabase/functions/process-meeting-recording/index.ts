@@ -31,7 +31,7 @@ function extractMeetingId(payload: any) {
 }
 
 function extractRecordingUrl(payload: any) {
-  const candidates = [payload?.recording_url, payload?.download_url, payload?.url, payload?.data?.recording_url, payload?.data?.download_url, payload?.data?.url, payload?.recording?.download_url, payload?.data?.recording?.download_url];
+  const candidates = [payload?.recording_url, payload?.audio_url, payload?.storage_url, payload?.download_url, payload?.url, payload?.data?.recording_url, payload?.data?.download_url, payload?.data?.url, payload?.recording?.download_url, payload?.data?.recording?.download_url];
   return candidates.find((value) => typeof value === "string") || null;
 }
 
@@ -105,6 +105,7 @@ serve(async (req) => {
       const payload = await req.json().catch(() => ({}));
       meetingId = extractMeetingId(payload);
       recordingUrl = extractRecordingUrl(payload);
+      recordingFilePath = typeof payload?.recording_file_path === "string" ? payload.recording_file_path : null;
     }
 
     if (!meetingId) return jsonResponse({ ok: true, ignored: "meeting_id não encontrado no webhook/upload" });
