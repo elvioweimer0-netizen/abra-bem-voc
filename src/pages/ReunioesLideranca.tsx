@@ -130,18 +130,22 @@ export default function ReunioesLideranca() {
     const load = async () => {
       const yesterday = yesterdayISO();
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const [{ data: unitData }, { data: meetingData }, { data: boData }, { data: noticeData }, { data: minuteData }] = await Promise.all([
+      const [{ data: unitData }, { data: meetingData }, { data: scheduledData }, { data: boData }, { data: noticeData }, { data: minuteData }, { data: teamData }] = await Promise.all([
         db.from("units").select("id, code, name").eq("active", true).order("code"),
         db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, minutes, is_monthly_in_person").eq("scheduled_date", todayISO()).order("scheduled_time"),
+        db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at").eq("status", "agendada").gte("scheduled_date", todayISO()).order("scheduled_date").order("scheduled_time"),
         db.from("leadership_occurrences").select("id, descricao, gravidade, unit_id, criado_em").gte("criado_em", `${yesterday}T00:00:00`).lt("criado_em", `${todayISO()}T00:00:00`).in("gravidade", ["media", "alta"]),
         db.from("avisos").select("id, titulo, created_at").gte("created_at", since).eq("ativo", true).order("created_at", { ascending: false }),
         db.from("meeting_minutes").select("id, meeting_id, titulo, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message").order("created_at", { ascending: false }).limit(20),
+        db.from("team_members").select("id, nome, cargo, foto_url, user_id, unit_id").eq("status", "ativo").order("nome"),
       ]);
       setUnits(unitData || []);
       setMeetings(meetingData || []);
+      setScheduledMeetings(scheduledData || []);
       setOccurrences(boData || []);
       setNotices(noticeData || []);
       setMinutes(minuteData || []);
+      setParticipantOptions(teamData || []);
       loadHistory();
     };
     load();
