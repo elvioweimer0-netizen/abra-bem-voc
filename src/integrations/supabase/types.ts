@@ -58,6 +58,54 @@ export type Database = {
           },
         ]
       }
+      attendance_records: {
+        Row: {
+          assignment_id: string | null
+          created_at: string
+          id: string
+          marked_at: string
+          marked_by: string
+          observacao: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          team_member_id: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          marked_at?: string
+          marked_by: string
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          team_member_id: string
+        }
+        Update: {
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          marked_at?: string
+          marked_by?: string
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          team_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "shift_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avisos: {
         Row: {
           ativo: boolean
@@ -297,6 +345,113 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_of_month: {
+        Row: {
+          anunciado_em: string | null
+          checklist_compliance_pct: number
+          created_at: string
+          id: string
+          mes: string
+          score_final: number
+          team_member_id: string
+          total_praises: number
+          unit_id: string
+        }
+        Insert: {
+          anunciado_em?: string | null
+          checklist_compliance_pct?: number
+          created_at?: string
+          id?: string
+          mes: string
+          score_final?: number
+          team_member_id: string
+          total_praises?: number
+          unit_id: string
+        }
+        Update: {
+          anunciado_em?: string | null
+          checklist_compliance_pct?: number
+          created_at?: string
+          id?: string
+          mes?: string
+          score_final?: number
+          team_member_id?: string
+          total_praises?: number
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_of_month_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_of_month_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      encarregado_evaluations: {
+        Row: {
+          created_at: string
+          criado_em: string
+          encarregado_id: string
+          gerente_id: string
+          id: string
+          mes: string
+          nota_atendimento: number
+          nota_atitude: number
+          nota_geral: number
+          nota_pontualidade: number
+          nota_postura: number
+          observacoes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_em?: string
+          encarregado_id: string
+          gerente_id: string
+          id?: string
+          mes: string
+          nota_atendimento: number
+          nota_atitude: number
+          nota_geral?: number
+          nota_pontualidade: number
+          nota_postura: number
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_em?: string
+          encarregado_id?: string
+          gerente_id?: string
+          id?: string
+          mes?: string
+          nota_atendimento?: number
+          nota_atitude?: number
+          nota_geral?: number
+          nota_pontualidade?: number
+          nota_postura?: number
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encarregado_evaluations_encarregado_id_fkey"
+            columns: ["encarregado_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       endomarketing: {
         Row: {
           created_at: string
@@ -527,6 +682,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "leadership_occurrences_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manager_substitutions: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          manager_user_id: string | null
+          reason: string
+          substitute_member_id: string
+          unit_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          manager_user_id?: string | null
+          reason?: string
+          substitute_member_id: string
+          unit_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          manager_user_id?: string | null
+          reason?: string
+          substitute_member_id?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_substitutions_substitute_member_id_fkey"
+            columns: ["substitute_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_substitutions_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
@@ -789,6 +989,89 @@ export type Database = {
         }
         Relationships: []
       }
+      praise_applause: {
+        Row: {
+          created_at: string
+          id: string
+          praise_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          praise_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          praise_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "praise_applause_praise_id_fkey"
+            columns: ["praise_id"]
+            isOneToOne: false
+            referencedRelation: "praises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      praises: {
+        Row: {
+          autor_id: string
+          categoria: Database["public"]["Enums"]["praise_category"]
+          created_at: string
+          criado_em: string
+          destinatario_id: string
+          id: string
+          motivo: string
+          publico: boolean
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          autor_id: string
+          categoria?: Database["public"]["Enums"]["praise_category"]
+          created_at?: string
+          criado_em?: string
+          destinatario_id: string
+          id?: string
+          motivo: string
+          publico?: boolean
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          autor_id?: string
+          categoria?: Database["public"]["Enums"]["praise_category"]
+          created_at?: string
+          criado_em?: string
+          destinatario_id?: string
+          id?: string
+          motivo?: string
+          publico?: boolean
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "praises_destinatario_id_fkey"
+            columns: ["destinatario_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "praises_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           ativo: boolean
@@ -929,6 +1212,134 @@ export type Database = {
         }
         Relationships: []
       }
+      shift_assignments: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          id: string
+          observacao: string | null
+          schedule_id: string
+          sector: Database["public"]["Enums"]["team_sector"]
+          shift_end: string
+          shift_start: string
+          team_member_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          id?: string
+          observacao?: string | null
+          schedule_id: string
+          sector?: Database["public"]["Enums"]["team_sector"]
+          shift_end: string
+          shift_start: string
+          team_member_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          observacao?: string | null
+          schedule_id?: string
+          sector?: Database["public"]["Enums"]["team_sector"]
+          shift_end?: string
+          shift_start?: string
+          team_member_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_assignments_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "work_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_assignments_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_swap_requests: {
+        Row: {
+          aprovado_por: string | null
+          created_at: string
+          criado_em: string
+          id: string
+          motivo: string
+          original_assignment_id: string
+          requester_id: string
+          resolvido_em: string | null
+          status: Database["public"]["Enums"]["swap_request_status"]
+          target_assignment_id: string | null
+          target_member_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          created_at?: string
+          criado_em?: string
+          id?: string
+          motivo: string
+          original_assignment_id: string
+          requester_id: string
+          resolvido_em?: string | null
+          status?: Database["public"]["Enums"]["swap_request_status"]
+          target_assignment_id?: string | null
+          target_member_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          created_at?: string
+          criado_em?: string
+          id?: string
+          motivo?: string
+          original_assignment_id?: string
+          requester_id?: string
+          resolvido_em?: string | null
+          status?: Database["public"]["Enums"]["swap_request_status"]
+          target_assignment_id?: string | null
+          target_member_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swap_requests_original_assignment_id_fkey"
+            columns: ["original_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "shift_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_assignment_id_fkey"
+            columns: ["target_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "shift_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_member_id_fkey"
+            columns: ["target_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suspensoes: {
         Row: {
           colaborador_id: string
@@ -966,6 +1377,59 @@ export type Database = {
             columns: ["colaborador_id"]
             isOneToOne: false
             referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          cargo: string
+          created_at: string
+          data_admissao: string | null
+          foto_url: string | null
+          id: string
+          role: Database["public"]["Enums"]["team_member_role"]
+          sector: Database["public"]["Enums"]["team_sector"]
+          status: Database["public"]["Enums"]["team_member_status"]
+          telefone: string | null
+          unit_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cargo?: string
+          created_at?: string
+          data_admissao?: string | null
+          foto_url?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["team_member_role"]
+          sector?: Database["public"]["Enums"]["team_sector"]
+          status?: Database["public"]["Enums"]["team_member_status"]
+          telefone?: string | null
+          unit_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          data_admissao?: string | null
+          foto_url?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["team_member_role"]
+          sector?: Database["public"]["Enums"]["team_sector"]
+          status?: Database["public"]["Enums"]["team_member_status"]
+          telefone?: string | null
+          unit_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -1024,11 +1488,53 @@ export type Database = {
         }
         Relationships: []
       }
+      work_schedules: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          status: Database["public"]["Enums"]["schedule_status"]
+          unit_id: string
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          unit_id: string
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          unit_id?: string
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_schedules_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_view_team_member: {
+        Args: { _member_id: string; _user_id: string }
+        Returns: boolean
+      }
       get_user_departamento: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["setor_tipo"]
@@ -1037,6 +1543,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["unidade_tipo"]
       }
+      get_user_unit_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["cargo_tipo"]
@@ -1045,6 +1552,10 @@ export type Database = {
         Returns: boolean
       }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
+      is_unit_manager: {
+        Args: { _unit_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_can_access_unit: {
         Args: { _unit_id: string; _user_id: string }
         Returns: boolean
@@ -1062,6 +1573,7 @@ export type Database = {
         | "livre"
         | "convidado"
         | "decisao"
+      attendance_status: "presente" | "falta" | "atraso"
       cargo_tipo:
         | "admin"
         | "gerente"
@@ -1118,8 +1630,15 @@ export type Database = {
         | "disciplina"
         | "outro"
       ocorrencia_status: "aberta" | "em_andamento" | "concluida"
+      praise_category:
+        | "atendimento"
+        | "equipe"
+        | "iniciativa"
+        | "melhoria"
+        | "outro"
       reuniao_status: "agendada" | "em_andamento" | "finalizada" | "cancelada"
       reuniao_tipo: "online" | "presencial" | "hibrida"
+      schedule_status: "rascunho" | "publicada"
       setor_tipo:
         | "acougue"
         | "padaria"
@@ -1127,6 +1646,17 @@ export type Database = {
         | "mercearia"
         | "frente_de_caixa"
         | "deposito"
+      swap_request_status: "pendente" | "aprovada" | "rejeitada"
+      team_member_role: "gerente" | "encarregado" | "colaborador"
+      team_member_status: "ativo" | "ferias" | "afastado" | "desligado"
+      team_sector:
+        | "acougue"
+        | "padaria"
+        | "hortifruti"
+        | "mercearia"
+        | "frente_caixa"
+        | "deposito"
+        | "geral"
       unidade_tipo:
         | "CIDADE ALTA"
         | "GOIABEIRAS"
@@ -1274,6 +1804,7 @@ export const Constants = {
         "convidado",
         "decisao",
       ],
+      attendance_status: ["presente", "falta", "atraso"],
       cargo_tipo: [
         "admin",
         "gerente",
@@ -1336,8 +1867,16 @@ export const Constants = {
         "outro",
       ],
       ocorrencia_status: ["aberta", "em_andamento", "concluida"],
+      praise_category: [
+        "atendimento",
+        "equipe",
+        "iniciativa",
+        "melhoria",
+        "outro",
+      ],
       reuniao_status: ["agendada", "em_andamento", "finalizada", "cancelada"],
       reuniao_tipo: ["online", "presencial", "hibrida"],
+      schedule_status: ["rascunho", "publicada"],
       setor_tipo: [
         "acougue",
         "padaria",
@@ -1345,6 +1884,18 @@ export const Constants = {
         "mercearia",
         "frente_de_caixa",
         "deposito",
+      ],
+      swap_request_status: ["pendente", "aprovada", "rejeitada"],
+      team_member_role: ["gerente", "encarregado", "colaborador"],
+      team_member_status: ["ativo", "ferias", "afastado", "desligado"],
+      team_sector: [
+        "acougue",
+        "padaria",
+        "hortifruti",
+        "mercearia",
+        "frente_caixa",
+        "deposito",
+        "geral",
       ],
       unidade_tipo: [
         "CIDADE ALTA",

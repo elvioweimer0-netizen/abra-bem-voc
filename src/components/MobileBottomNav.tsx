@@ -1,4 +1,4 @@
-import { Bell, CalendarClock, Home, MoreHorizontal, Sparkles } from "lucide-react";
+import { Bell, CalendarClock, Home, Sparkles, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const items = [
@@ -6,7 +6,7 @@ const items = [
   { label: "Avisos", href: "/avisos", icon: Bell, badge: true },
   { label: "Reuniões", href: "/reunioes-lideranca", icon: CalendarClock },
   { label: "Curiózinho", href: "/assistente", icon: Sparkles, featured: true },
-  { label: "Mais", href: "/departamentos", icon: MoreHorizontal },
+  { label: "Equipe", href: "/minha-equipe", icon: Users },
 ];
 
 export function MobileBottomNav() {

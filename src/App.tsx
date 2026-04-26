@@ -36,6 +36,11 @@ import ReunioesLideranca from "@/pages/ReunioesLideranca";
 import BoEletronico from "@/pages/BoEletronico";
 import Inspecoes from "@/pages/Inspecoes";
 import VisaoGeralAdmin from "@/pages/VisaoGeralAdmin";
+import MinhaEquipe from "@/pages/MinhaEquipe";
+import MembroDetalhe from "@/pages/MembroDetalhe";
+import EscalaSemana from "@/pages/EscalaSemana";
+import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
+import Reconhecimentos from "@/pages/Reconhecimentos";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +89,12 @@ function ProtectedRoutes() {
         <Route path="/bo-eletronico" element={<BoEletronico />} />
         <Route path="/inspecoes" element={<Inspecoes />} />
         <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
+        <Route path="/minha-equipe" element={<MinhaEquipe />} />
+        <Route path="/meu-setor" element={<MinhaEquipe setorOnly />} />
+        <Route path="/equipe/:id" element={<MembroDetalhe />} />
+        <Route path="/escala-semana" element={<EscalaSemana />} />
+        <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
+        <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
