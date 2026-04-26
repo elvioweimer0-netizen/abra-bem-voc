@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarClock, ChevronDown, FileText, Mic, Plus, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,10 +46,17 @@ export default function ReunioesLideranca() {
   const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
   const [uploading, setUploading] = useState(false);
   const [joiningDaily, setJoiningDaily] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [processingRecording, setProcessingRecording] = useState(false);
   const [sale, setSale] = useState("");
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
   const [decisions, setDecisions] = useState("");
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const recordingMeetingRef = useRef<Meeting | null>(null);
+  const maxRecordingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -71,6 +78,17 @@ export default function ReunioesLideranca() {
     load();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (maxRecordingTimerRef.current) window.clearTimeout(maxRecordingTimerRef.current);
+      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      recorderRef.current = null;
+      streamRef.current = null;
+      chunksRef.current = [];
+    };
+  }, []);
+
   const isTuesday = new Date().getDay() === 2;
   const dailyMeeting = meetings.find((m) => m.type === "diaria");
   const weeklyMeeting = meetings.find((m) => m.type === "semanal");
@@ -86,6 +104,85 @@ export default function ReunioesLideranca() {
     return data;
   };
 
+  const startLocalRecording = async (meeting: Meeting) => {
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      throw new Error("Este navegador não suporta gravação local. Use o botão Subir gravação manual.");
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "audio/webm";
+    const recorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 64000 });
+    chunksRef.current = [];
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) chunksRef.current.push(event.data);
+    };
+    recorder.onstop = () => {
+      stream.getTracks().forEach((track) => track.stop());
+      setIsRecording(false);
+    };
+    recorderRef.current = recorder;
+    streamRef.current = stream;
+    recordingMeetingRef.current = meeting;
+    recorder.start(1000);
+    setIsRecording(true);
+    maxRecordingTimerRef.current = window.setTimeout(() => {
+      if (recorderRef.current?.state === "recording") {
+        toast.warning("Limite de gravação atingido", { description: "A gravação foi encerrada automaticamente após 90 minutos." });
+        stopRecordingAndProcess();
+      }
+    }, 90 * 60 * 1000);
+  };
+
+  const processRecordingBlob = async (meeting: Meeting, audioBlob: Blob) => {
+    const path = `${meeting.id}/${Date.now()}-reuniao-diaria.webm`;
+    const file = new File([audioBlob], "reuniao-diaria.webm", { type: audioBlob.type || "audio/webm" });
+    const { error: uploadError } = await supabase.storage.from("meeting-recordings").upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) throw uploadError;
+
+    const { data: signed, error: signedError } = await supabase.storage.from("meeting-recordings").createSignedUrl(path, 60 * 60);
+    if (signedError || !signed?.signedUrl) throw signedError || new Error("Não foi possível gerar URL da gravação.");
+
+    const { data, error } = await supabase.functions.invoke("process-meeting-recording", {
+      body: { meetingId: meeting.id, recording_url: signed.signedUrl, recording_file_path: path },
+    });
+    if (error || data?.error) throw new Error(error?.message || data.error);
+
+    await db.from("leadership_meetings").update({ status: "encerrada", decisions, ended_at: new Date().toISOString() }).eq("id", meeting.id);
+    setMinutes((current) => [{ id: `processing-${meeting.id}`, meeting_id: meeting.id, executive_summary: null, decisions: [], action_items: [], attention_points: [], sentiment: null, transcript: null, processing_status: "processing", error_message: null }, ...current.filter((minute) => minute.meeting_id !== meeting.id)]);
+  };
+
+  const stopRecordingAndProcess = async () => {
+    const meeting = recordingMeetingRef.current || dailyMeeting;
+    if (!meeting) return;
+    setProcessingRecording(true);
+    try {
+      if (maxRecordingTimerRef.current) window.clearTimeout(maxRecordingTimerRef.current);
+      const recorder = recorderRef.current;
+      if (!recorder || recorder.state === "inactive") throw new Error("Nenhuma gravação local ativa encontrada.");
+      const stopped = new Promise<void>((resolve) => {
+        const previous = recorder.onstop;
+        recorder.onstop = (event) => {
+          previous?.call(recorder, event);
+          resolve();
+        };
+      });
+      recorder.stop();
+      await stopped;
+      const audioBlob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+      if (!audioBlob.size) throw new Error("A gravação ficou vazia. Use o upload manual como fallback.");
+      await processRecordingBlob(meeting, audioBlob);
+      toast.success("Processando ata... aguarde 2-3 min");
+    } catch (error) {
+      toast.error("Erro ao processar gravação", { description: error instanceof Error ? error.message : "Use o upload manual como fallback." });
+    } finally {
+      recorderRef.current = null;
+      streamRef.current = null;
+      chunksRef.current = [];
+      recordingMeetingRef.current = null;
+      setProcessingRecording(false);
+    }
+  };
+
   const joinDaily = async () => {
     if (joiningDaily) return;
     setJoiningDaily(true);
@@ -93,6 +190,8 @@ export default function ReunioesLideranca() {
     try {
       const meeting = await ensureMeeting("diaria", "Reunião Diária");
       if (!meeting || !user) return;
+
+      await startLocalRecording(meeting);
 
       await db.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString() }).eq("type", "diaria").eq("status", "em_andamento").neq("id", meeting.id);
 
@@ -115,11 +214,13 @@ export default function ReunioesLideranca() {
 
       await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
       await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: true, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
-      if (data.recording_warning) toast.warning("Sala aberta sem gravação automática", { description: data.recording_warning });
-      else toast.success("Sala iniciada", { description: "Abrindo a reunião diária no Daily.co." });
+      toast.success("Sala iniciada", { description: "Gravação local ativa no navegador." });
       window.open(data.url, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("[Daily.co] Falha no clique Entrar/Iniciar", error);
+      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      setIsRecording(false);
       toast.error("Erro ao iniciar sala", { description: error instanceof Error ? error.message : "Erro desconhecido." });
     } finally {
       setJoiningDaily(false);
