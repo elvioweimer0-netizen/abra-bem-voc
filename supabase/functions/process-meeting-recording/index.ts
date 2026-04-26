@@ -74,7 +74,7 @@ async function generateMinutes(transcript: string, openAiKey: string): Promise<G
   const prompt = `Você é o assistente IA do Supermercado Curió. Analisou uma reunião operacional. Gere JSON válido com:
 
 {
-  'titulo': string curto e claro descrevendo o tema principal da reunião (ex: 'Alinhamento Vendas Semana / B.O. Loja 04', 'Treinamento Atendimento Frente Caixa'),
+  'titulo': string curto e claro descrevendo o tema principal da reunião (ex: 'Alinhamento Vendas Semana / Ocorrência Loja 04', 'Treinamento Atendimento Frente Caixa'),
   'executive_summary': string (5 linhas),
   'decisions': [{descricao, responsavel}],
   'action_items': [{descricao, responsavel, prazo (YYYY-MM-DD ou null), metrica_sucesso}],

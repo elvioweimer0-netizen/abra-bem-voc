@@ -86,10 +86,10 @@ export default function MeuPerfil() {
   }
 
   const stats = useMemo(() => {
-    if (isAdmin) return [{ label: "Cumprimento rede", value: "87%" }, { label: "B.O.s abertos", value: 12 }, { label: "Ranking", value: "Top 3" }, { label: "Unidades", value: units.length }];
-    if (isSupervisor) return [{ label: "Inspeções no mês", value: 18 }, { label: "Cobranças", value: 24 }, { label: "B.O.s acompanhados", value: 9 }, { label: "Reuniões", value: 16 }];
-    if (isGerente) return [{ label: "Checklist 30 dias", value: "91%" }, { label: "B.O.s registrados", value: 7 }, { label: "Reuniões mês", value: 12 }, { label: "Elogios", value: `${givenPraises}/${receivedPraises.length}` }];
-    if (isEncarregado) return [{ label: "Cumprimento", value: "89%" }, { label: "Avaliação média", value: evaluations[0]?.nota_geral?.toFixed(1) || "—" }, { label: "Elogios", value: receivedPraises.length }, { label: "Resposta B.O.", value: "2h" }];
+    if (isAdmin) return [{ label: "Cumprimento rede", value: "87%" }, { label: "Ocorrências abertas", value: 12 }, { label: "Ranking", value: "Top 3" }, { label: "Unidades", value: units.length }];
+    if (isSupervisor) return [{ label: "Inspeções no mês", value: 18 }, { label: "Cobranças", value: 24 }, { label: "Ocorrências acompanhadas", value: 9 }, { label: "Reuniões", value: 16 }];
+    if (isGerente) return [{ label: "Checklist 30 dias", value: "91%" }, { label: "Ocorrências registradas", value: 7 }, { label: "Reuniões mês", value: 12 }, { label: "Elogios", value: `${givenPraises}/${receivedPraises.length}` }];
+    if (isEncarregado) return [{ label: "Cumprimento", value: "89%" }, { label: "Avaliação média", value: evaluations[0]?.nota_geral?.toFixed(1) || "—" }, { label: "Elogios", value: receivedPraises.length }, { label: "Resposta Ocorrência", value: "2h" }];
     return [{ label: "Elogios recebidos", value: receivedPraises.length }, { label: "Tempo de casa", value: tenure(admissionDate).split(" na ")[0] }, { label: "Setor", value: sectorLabels[sector || "geral"] || "Geral" }, { label: "Status", value: "Ativo" }];
   }, [isAdmin, isSupervisor, isGerente, isEncarregado, units.length, givenPraises, receivedPraises.length, evaluations, admissionDate, sector]);
 
