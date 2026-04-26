@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { toast } from "sonner";
 
 const db = supabase as any;
 
@@ -39,13 +39,13 @@ function minutesTo930() {
 
 export default function ReunioesLideranca() {
   const { user, profile } = useAuth();
-  const { toast } = useToast();
   const [units, setUnits] = useState<Unit[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [joiningDaily, setJoiningDaily] = useState(false);
   const [sale, setSale] = useState("");
   const [goal, setGoal] = useState("");
   const [freeAgenda, setFreeAgenda] = useState("");
@@ -87,23 +87,43 @@ export default function ReunioesLideranca() {
   };
 
   const joinDaily = async () => {
-    const meeting = await ensureMeeting("diaria", "Reunião Diária");
-    if (!meeting || !user) return;
-    const { data, error } = await supabase.functions.invoke("create-daily-room", {
-      body: { meetingId: meeting.id, title: meeting.title },
-    });
-    if (data?.plan_error) {
-      toast({ title: "Gravação indisponível", description: data.error, variant: "destructive" });
-      return;
+    if (joiningDaily) return;
+    setJoiningDaily(true);
+    console.log("[Daily.co] Entrar/Iniciar clicado");
+    try {
+      const meeting = await ensureMeeting("diaria", "Reunião Diária");
+      if (!meeting || !user) return;
+
+      await db.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString() }).eq("type", "diaria").eq("status", "em_andamento").neq("id", meeting.id);
+
+      const payload = { meetingId: meeting.id, title: meeting.title, type: meeting.type };
+      console.log("[Daily.co] Payload enviado", payload);
+      const { data, error } = await supabase.functions.invoke("create-daily-room", { body: payload });
+      console.log("[Daily.co] Resposta da API", { data, error });
+
+      if (data?.plan_error) {
+        const message = `${data.error || "Plano Daily.co não suporta gravação."}${data.details ? ` Detalhes: ${data.details}` : ""}`;
+        toast.error("Gravação indisponível", { description: message });
+        return;
+      }
+      if (error || !data?.url) {
+        const message = error?.message || data?.error || "Não foi possível criar a sala Daily.co.";
+        console.error("[Daily.co] Erro ao criar sala", { error, data });
+        toast.error("Erro ao iniciar sala", { description: message });
+        return;
+      }
+
+      await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
+      await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: true, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
+      if (data.recording_warning) toast.warning("Sala aberta sem gravação automática", { description: data.recording_warning });
+      else toast.success("Sala iniciada", { description: "Abrindo a reunião diária no Daily.co." });
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("[Daily.co] Falha no clique Entrar/Iniciar", error);
+      toast.error("Erro ao iniciar sala", { description: error instanceof Error ? error.message : "Erro desconhecido." });
+    } finally {
+      setJoiningDaily(false);
     }
-    if (error || !data?.url) {
-      toast({ title: "Erro ao iniciar sala", description: error?.message || data?.error || "Não foi possível criar a sala Daily.co.", variant: "destructive" });
-      return;
-    }
-    await db.from("leadership_meetings").update({ status: "em_andamento" }).eq("id", meeting.id);
-    await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: true, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
-    toast({ title: "Sala iniciada", description: "Abrindo a reunião diária no Daily.co." });
-    window.open(data.url, "_blank", "noopener,noreferrer");
   };
 
   const uploadManualRecording = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,9 +143,9 @@ export default function ReunioesLideranca() {
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "Falha ao processar gravação");
-      toast({ title: "Gravação enviada", description: "A ata será gerada automaticamente em alguns minutos." });
+      toast.success("Gravação enviada", { description: "A ata será gerada automaticamente em alguns minutos." });
     } catch (error) {
-      toast({ title: "Erro no upload", description: error instanceof Error ? error.message : "Não foi possível enviar a gravação.", variant: "destructive" });
+      toast.error("Erro no upload", { description: error instanceof Error ? error.message : "Não foi possível enviar a gravação." });
     } finally {
       setUploading(false);
     }
@@ -144,7 +164,7 @@ export default function ReunioesLideranca() {
     ].join("\n");
     await db.from("leadership_meetings").update({ status: "encerrada", minutes, decisions, ended_at: new Date().toISOString() }).eq("id", meeting.id);
     await db.from("notification_events").insert({ type: "meeting_minutes", title: "ATA disponível", body: `A ata de ${meeting.title} foi gerada.`, payload: { meeting_id: meeting.id } });
-    toast({ title: "ATA gerada", description: "Registro salvo e notificação preparada." });
+    toast.success("ATA gerada", { description: "Registro salvo e notificação preparada." });
   };
 
   const generateWeekly = async () => {
@@ -176,7 +196,7 @@ export default function ReunioesLideranca() {
                 <div><h2 className="text-xl font-bold text-foreground">Reunião Diária de hoje — 9:30</h2><p className="mt-1 text-sm text-muted-foreground">{minutesTo930()} restantes</p></div>
                 <CalendarClock className="h-8 w-8 text-primary" />
               </div>
-              <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily}><Mic className="h-5 w-5" /> Entrar/Iniciar</Button>
+              <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily} disabled={joiningDaily}><Mic className="h-5 w-5" /> {joiningDaily ? "Iniciando..." : "Entrar/Iniciar"}</Button>
               <div className="mt-3">
                 <Input id="manual-recording" type="file" accept="audio/*,video/*" className="hidden" onChange={uploadManualRecording} disabled={uploading || !dailyMeeting} />
                 <Button variant="outline" className="min-h-12 w-full gap-2 bg-card" asChild disabled={uploading || !dailyMeeting}>
