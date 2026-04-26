@@ -48,9 +48,9 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  const data = event.data?.json?.() || { title: "Curió Conecta", body: "Nova atualização disponível." };
+  const data = event.data?.json?.() || { title: "Conecta Curió", body: "Nova atualização disponível." };
   event.waitUntil(
-    self.registration.showNotification(data.title || "Curió Conecta", {
+    self.registration.showNotification(data.title || "Conecta Curió", {
       body: data.body || "Nova atualização disponível.",
       icon: "/curio_app_icon_192.png",
       badge: "/curio_app_icon_192.png",

@@ -8,6 +8,7 @@ type Profile = Tables<"profiles"> & {
   must_change_password?: boolean | null;
   first_login_at?: string | null;
   welcome_banner_dismissed?: boolean | null;
+  login_count?: number | null;
 };
 
 interface AuthContextType {
@@ -40,10 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
+          if (event === "SIGNED_IN") {
+            await (supabase as any).rpc("increment_login_count", { _user_id: session.user.id });
+          }
           setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
           setProfile(null);
