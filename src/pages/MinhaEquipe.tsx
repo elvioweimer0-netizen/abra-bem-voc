@@ -100,7 +100,7 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
 
   useEffect(() => {
     fetchMembers();
-  }, [setorOnly]);
+  }, [setorOnly, selectedUnitId]);
 
   async function fetchMembers() {
     const db = supabase as any;
