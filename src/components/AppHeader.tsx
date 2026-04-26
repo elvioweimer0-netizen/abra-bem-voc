@@ -63,11 +63,12 @@ export function AppHeader() {
           )}
         </div>
 
-        <img
-          src="/curio_logo_claro.png"
-          alt="Curió Conecta"
-          className="absolute left-1/2 h-8 w-auto -translate-x-1/2 object-contain"
-        />
+        <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
+          <span className="brand-script text-gradient-curio relative inline-block text-[20px] leading-none sm:text-[22px]">
+            <span className="absolute -left-2 -top-2 text-[10px]">🐦</span>
+            Conecta Curió
+          </span>
+        </div>
         
         <div className="flex items-center gap-1 md:gap-3">
           {isRealAdmin && (
