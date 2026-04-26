@@ -130,6 +130,7 @@ export function AppSidebar() {
         { title: "Escala da Semana", url: "/escala-semana", icon: CalendarCheck },
         ...(isColaborador ? [] : [{ title: "B.O.s e Ocorrências", url: "/bo-eletronico", icon: FileQuestion }]),
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
+        ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },
       ];
 

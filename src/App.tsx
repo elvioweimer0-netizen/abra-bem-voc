@@ -44,6 +44,7 @@ import EscalaSemana from "@/pages/EscalaSemana";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
+import DocumentosLideranca from "@/pages/DocumentosLideranca";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -97,6 +98,7 @@ function ProtectedRoutes() {
         <Route path="/checklist-diario" element={<ChecklistDiario />} />
         <Route path="/painel-cobranca" element={<PainelCobranca />} />
         <Route path="/reunioes-lideranca" element={<ReunioesLideranca />} />
+        <Route path="/documentos-lideranca" element={<DocumentosLideranca />} />
         <Route path="/bo-eletronico" element={<BoEletronico />} />
         <Route path="/inspecoes" element={<Inspecoes />} />
         <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
