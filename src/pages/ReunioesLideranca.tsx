@@ -381,6 +381,10 @@ export default function ReunioesLideranca() {
   };
 
   const scheduleManualMeeting = async () => {
+    if (!["admin", "master", "supervisor"].includes(profile?.cargo || "")) {
+      toast.error("Apenas admin e supervisor podem agendar reuniões.");
+      return;
+    }
     if (!user || !newTitle.trim()) {
       toast.error("Informe o título da reunião");
       return;
@@ -413,6 +417,7 @@ export default function ReunioesLideranca() {
   const selectedAttendees = selectedMeeting ? attendees.filter((attendee) => attendee.meeting_id === selectedMeeting.id) : [];
   const selectedSuggestions = selectedMeeting ? aiSuggestions.filter((suggestion) => suggestion.meeting_id === selectedMeeting.id) : [];
   const canReviewSuggestions = ["admin", "master", "supervisor"].includes(profile?.cargo || "");
+  const canCreateMeeting = canReviewSuggestions;
   const filteredHistoryMeetings = useMemo(() => historyMeetings.filter((meeting) => {
     if (historyType !== "todos" && meeting.type !== historyType) return false;
     if (historyUnit !== "todos" && meeting.unit_id !== historyUnit) return false;
