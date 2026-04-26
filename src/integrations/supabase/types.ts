@@ -1405,6 +1405,7 @@ export type Database = {
           foto_url: string | null
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
+          is_test: boolean
           must_change_password: boolean
           nome: string
           permission_units: string[]
@@ -1428,6 +1429,7 @@ export type Database = {
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
+          is_test?: boolean
           must_change_password?: boolean
           nome: string
           permission_units?: string[]
@@ -1451,6 +1453,7 @@ export type Database = {
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
+          is_test?: boolean
           must_change_password?: boolean
           nome?: string
           permission_units?: string[]
@@ -1733,6 +1736,7 @@ export type Database = {
           id: string
           idade: number | null
           is_demo: boolean
+          is_test: boolean
           nome: string | null
           role: Database["public"]["Enums"]["team_member_role"]
           sector: Database["public"]["Enums"]["team_sector"]
@@ -1751,6 +1755,7 @@ export type Database = {
           id?: string
           idade?: number | null
           is_demo?: boolean
+          is_test?: boolean
           nome?: string | null
           role?: Database["public"]["Enums"]["team_member_role"]
           sector?: Database["public"]["Enums"]["team_sector"]
@@ -1769,6 +1774,7 @@ export type Database = {
           id?: string
           idade?: number | null
           is_demo?: boolean
+          is_test?: boolean
           nome?: string | null
           role?: Database["public"]["Enums"]["team_member_role"]
           sector?: Database["public"]["Enums"]["team_sector"]
