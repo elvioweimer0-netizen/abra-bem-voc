@@ -76,13 +76,22 @@ export default function ReunioesLideranca() {
   const chunksRef = useRef<Blob[]>([]);
   const recordingMeetingRef = useRef<Meeting | null>(null);
   const maxRecordingTimerRef = useRef<number | null>(null);
+  const minuteStatusRef = useRef<Record<string, string>>({});
 
-  const loadHistory = async () => {
+  const loadHistory = async (notifyReady = false) => {
     const [{ data: historyData }, { data: minuteData }, { data: attendeeData }] = await Promise.all([
       db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at, is_monthly_in_person").eq("status", "encerrada").order("ended_at", { ascending: false, nullsFirst: false }).limit(100),
       db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
       db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").eq("present", true).order("joined_at", { ascending: true }),
     ]);
+    if (notifyReady) {
+      (minuteData || []).forEach((minute: MeetingMinute) => {
+        if (minute.processing_status === "completed" && minuteStatusRef.current[minute.meeting_id] && minuteStatusRef.current[minute.meeting_id] !== "completed") {
+          toast.success("Nova ata pronta! Tocar para ver.", { action: { label: "Ver", onClick: () => setSelectedHistoryId(minute.meeting_id) } });
+        }
+      });
+    }
+    minuteStatusRef.current = Object.fromEntries((minuteData || []).map((minute: MeetingMinute) => [minute.meeting_id, minute.processing_status]));
     setHistoryMeetings(historyData || []);
     setMinutes(minuteData || []);
     setAttendees(attendeeData || []);
@@ -114,12 +123,14 @@ export default function ReunioesLideranca() {
       .channel("meeting-minutes-ready")
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "meeting_minutes" }, (payload: any) => {
         if (payload.new?.processing_status === "completed" && payload.old?.processing_status !== "completed") {
-          loadHistory();
+          loadHistory(true);
           toast.success("Nova ata pronta! Tocar para ver.", { action: { label: "Ver", onClick: () => setSelectedHistoryId(payload.new.meeting_id) } });
         }
       })
       .subscribe();
+    const interval = window.setInterval(() => loadHistory(true), 30000);
     return () => {
+      window.clearInterval(interval);
       db.removeChannel(channel);
     };
   }, []);
