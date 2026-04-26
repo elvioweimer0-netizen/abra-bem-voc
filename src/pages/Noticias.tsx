@@ -27,6 +27,7 @@ export default function Noticias() {
 
   const canEdit = profile?.cargo === "admin" || profile?.cargo === "gerente";
   const isAdmin = profile?.cargo === "admin";
+  const isCentralAdm = profile?.unidade?.includes("CENTRAL");
 
   const fetchData = async () => {
     const { data } = await supabase.from("noticias").select("*").order("created_at", { ascending: false });
@@ -67,6 +68,9 @@ export default function Noticias() {
     } else {
       const { error } = await supabase.from("noticias").insert(payload);
       if (error) { toast.error(error.message); return; }
+      if (isCentralAdm) {
+        await supabase.from("notification_events").insert({ type: "weekly_report", title: `Comunicado Central ADM: ${form.titulo}`, body: form.conteudo.slice(0, 180), payload: { origem: "central_adm", canal: "noticias" } });
+      }
       toast.success("Notícia criada!");
     }
 
