@@ -479,10 +479,10 @@ export default function ReunioesLideranca() {
     <div className="space-y-5">
       <section className="rounded-xl bg-card p-4 shadow-sm">
         <p className="text-sm text-muted-foreground">Cobrança da Liderança</p>
-        <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h1 className="text-2xl font-bold text-foreground">Reuniões</h1><Button className="min-h-12 gap-2" onClick={() => setCreateMeetingOpen(true)}><Plus className="h-5 w-5" /> Nova Reunião</Button></div>
+        <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h1 className="text-2xl font-bold text-foreground">Reuniões</h1>{canCreateMeeting && <Button className="min-h-12 gap-2" onClick={() => setCreateMeetingOpen(true)}><Plus className="h-5 w-5" /> Nova Reunião</Button>}</div>
       </section>
 
-      <CreateMeetingDialog open={createMeetingOpen} onOpenChange={setCreateMeetingOpen} title={newTitle} setTitle={setNewTitle} type={newType} setType={setNewType} date={newDate} setDate={setNewDate} time={newTime} setTime={setNewTime} duration={newDuration} setDuration={setNewDuration} unit={newUnit} setUnit={setNewUnit} units={units} canChooseUnit={canReviewSuggestions} participants={participantOptions} selectedParticipants={newParticipants} setSelectedParticipants={setNewParticipants} agenda={newAgenda} setAgenda={setNewAgenda} notify={notifyParticipants} setNotify={setNotifyParticipants} record={recordAndGenerate} setRecord={setRecordAndGenerate} saving={savingMeeting} onSave={scheduleManualMeeting} />
+      {canCreateMeeting && <CreateMeetingDialog open={createMeetingOpen} onOpenChange={setCreateMeetingOpen} title={newTitle} setTitle={setNewTitle} type={newType} setType={setNewType} date={newDate} setDate={setNewDate} time={newTime} setTime={setNewTime} duration={newDuration} setDuration={setNewDuration} unit={newUnit} setUnit={setNewUnit} units={units} canChooseUnit={canReviewSuggestions} participants={participantOptions} selectedParticipants={newParticipants} setSelectedParticipants={setNewParticipants} agenda={newAgenda} setAgenda={setNewAgenda} notify={notifyParticipants} setNotify={setNotifyParticipants} record={recordAndGenerate} setRecord={setRecordAndGenerate} saving={savingMeeting} onSave={scheduleManualMeeting} />}
 
       <ScheduledMeetingsSection meetings={scheduledMeetings} attendees={attendees} canManage={canReviewSuggestions} onStart={startScheduledMeeting} onCancel={cancelScheduledMeeting} />
 
