@@ -9,9 +9,18 @@ const corsHeaders = {
 type GeneratedMinutes = {
   executive_summary?: string;
   decisions?: Array<{ descricao?: string; responsavel?: string | null }>;
-  action_items?: Array<{ descricao?: string; responsavel?: string | null; prazo?: string | null }>;
+  action_items?: Array<{ descricao?: string; responsavel?: string | null; prazo?: string | null; metrica_sucesso?: string | null }>;
   attention_points?: Array<{ descricao?: string; urgencia?: "baixa" | "media" | "alta" }>;
   sentiment?: "positivo" | "neutro" | "tenso";
+  ai_suggestions?: Array<{
+    tipo?: "ideia" | "plano" | "melhoria_operacional" | "risco_detectado";
+    titulo?: string;
+    descricao?: string;
+    responsavel_sugerido?: string | null;
+    prazo_sugerido?: string | null;
+    beneficio_esperado?: string;
+    pra_quem_avisar?: string[];
+  }>;
 };
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -54,15 +63,28 @@ async function transcribeAudio(audioFile: File, openAiKey: string) {
 }
 
 async function generateMinutes(transcript: string, openAiKey: string): Promise<GeneratedMinutes> {
-  const prompt = `Você analisou uma reunião operacional de supermercado. A partir do transcript, gere JSON válido:
+  const prompt = `Você é o assistente IA do Supermercado Curió. Analisou uma reunião operacional. Gere JSON válido com:
 
 {
   'executive_summary': string (5 linhas),
   'decisions': [{descricao, responsavel}],
-  'action_items': [{descricao, responsavel, prazo (YYYY-MM-DD ou null)}],
+  'action_items': [{descricao, responsavel, prazo (YYYY-MM-DD ou null), metrica_sucesso}],
   'attention_points': [{descricao, urgencia: 'baixa'|'media'|'alta'}],
-  'sentiment': 'positivo'|'neutro'|'tenso'
+  'sentiment': 'positivo'|'neutro'|'tenso',
+  'ai_suggestions': [
+    {
+      'tipo': 'ideia'|'plano'|'melhoria_operacional'|'risco_detectado',
+      'titulo': string curto,
+      'descricao': string detalhada (até 3 linhas),
+      'responsavel_sugerido': string ou null,
+      'prazo_sugerido': YYYY-MM-DD ou null,
+      'beneficio_esperado': string,
+      'pra_quem_avisar': ['admin','supervisor','gerentes','equipe','setor:acougue', etc.]
+    }
+  ]
 }
+
+Seja PROATIVO: gere 3-7 sugestões mesmo que a reunião tenha sido curta. Use seu conhecimento de varejo de supermercado.
 
 TRANSCRIPT: ${transcript}
 
@@ -122,6 +144,7 @@ serve(async (req) => {
       const transcript = await transcribeAudio(recordingFile, OPENAI_API_KEY);
       const generated = await generateMinutes(transcript, OPENAI_API_KEY);
       const actionItems = Array.isArray(generated.action_items) ? generated.action_items : [];
+      const aiSuggestions = Array.isArray(generated.ai_suggestions) ? generated.ai_suggestions.slice(0, 7) : [];
       const { data: savedMinute } = await supabase.from("meeting_minutes").upsert({
         meeting_id: meetingId,
         recording_url: recordingUrl,
@@ -142,8 +165,25 @@ serve(async (req) => {
         await supabase.from("meeting_action_items").insert(actionItems.map((item) => ({ meeting_id: meetingId, minute_id: savedMinute.id, descricao: item.descricao || "Próximo passo", responsavel: item.responsavel || null, prazo: item.prazo || null })));
       }
 
+      await supabase.from("ai_suggestions").delete().eq("meeting_id", meetingId).eq("status", "pendente");
+      if (aiSuggestions.length) {
+        await supabase.from("ai_suggestions").insert(aiSuggestions.map((item) => ({
+          meeting_id: meetingId,
+          tipo: item.tipo || "ideia",
+          titulo: item.titulo || "Sugestão da IA",
+          descricao: item.descricao || "Revisar oportunidade identificada na reunião.",
+          responsavel_sugerido: item.responsavel_sugerido || null,
+          prazo_sugerido: item.prazo_sugerido || null,
+          beneficio_esperado: item.beneficio_esperado || "Melhorar a execução operacional.",
+          audiencia: Array.isArray(item.pra_quem_avisar) ? item.pra_quem_avisar : [],
+        })));
+      }
+
       await supabase.from("leadership_meetings").update({ status: "encerrada", ended_at: new Date().toISOString(), minutes: generated.executive_summary || "Ata gerada automaticamente" }).eq("id", meetingId);
       await supabase.from("notification_events").insert({ type: "meeting_minutes", title: "Ata da reunião está pronta!", body: "Toque para ver.", payload: { meeting_id: meetingId } });
+      if (aiSuggestions.length) {
+        await supabase.from("notification_events").insert({ type: "meeting_minutes", title: `🤖 Curió Conecta sugeriu ${aiSuggestions.length} ações da reunião`, body: "Toque pra revisar.", payload: { meeting_id: meetingId, pending_ai_suggestions: aiSuggestions.length } });
+      }
       return jsonResponse({ ok: true, meetingId });
     } catch (error) {
       await supabase.from("meeting_minutes").update({ processing_status: "failed", error_message: error instanceof Error ? error.message : "Erro desconhecido" }).eq("id", minute?.id);

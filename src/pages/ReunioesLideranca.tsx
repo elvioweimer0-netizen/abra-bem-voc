@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CalendarClock, ChevronDown, Clock, FileText, Frown, Meh, Mic, Plus, RefreshCw, Smile, Upload, Users } from "lucide-react";
+import { ArrowLeft, Bot, CalendarClock, CheckCircle, ChevronDown, Clock, FileText, Frown, Meh, Mic, Pencil, Plus, RefreshCw, Smile, Upload, Users, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -19,6 +20,7 @@ type Occurrence = { id: string; descricao: string; gravidade: string; unit_id: s
 type Notice = { id: string; titulo: string; created_at: string };
 type MeetingMinute = { id: string; meeting_id: string; executive_summary: string | null; decisions: any[]; action_items: any[]; attention_points: any[]; sentiment: string | null; transcript: string | null; processing_status: string; error_message: string | null; recording_url?: string | null; recording_file_path?: string | null };
 type MeetingAttendee = { id: string; meeting_id: string; user_id: string; role_label: string | null; present: boolean; joined_at: string | null };
+type AiSuggestion = { id: string; meeting_id: string; tipo: string; titulo: string; descricao: string; responsavel_sugerido: string | null; prazo_sugerido: string | null; beneficio_esperado: string; audiencia: string[]; status: string; aprovada_por?: string | null; aprovada_em?: string | null };
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -61,6 +63,7 @@ export default function ReunioesLideranca() {
   const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
   const [historyMeetings, setHistoryMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<MeetingAttendee[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [retryingMinuteId, setRetryingMinuteId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -79,10 +82,11 @@ export default function ReunioesLideranca() {
   const minuteStatusRef = useRef<Record<string, string>>({});
 
   const loadHistory = async (notifyReady = false) => {
-    const [{ data: historyData }, { data: minuteData }, { data: attendeeData }] = await Promise.all([
+    const [{ data: historyData }, { data: minuteData }, { data: attendeeData }, { data: suggestionData }] = await Promise.all([
       db.from("leadership_meetings").select("id, type, unit_id, scheduled_date, scheduled_time, status, title, ended_at, created_at, is_monthly_in_person").eq("status", "encerrada").order("ended_at", { ascending: false, nullsFirst: false }).limit(100),
       db.from("meeting_minutes").select("id, meeting_id, executive_summary, decisions, action_items, attention_points, sentiment, transcript, processing_status, error_message, recording_url, recording_file_path").order("created_at", { ascending: false }).limit(100),
       db.from("meeting_attendees").select("id, meeting_id, user_id, role_label, present, joined_at").eq("present", true).order("joined_at", { ascending: true }),
+      db.from("ai_suggestions").select("id, meeting_id, tipo, titulo, descricao, responsavel_sugerido, prazo_sugerido, beneficio_esperado, audiencia, status, aprovada_por, aprovada_em").order("created_at", { ascending: false }).limit(500),
     ]);
     if (notifyReady) {
       (minuteData || []).forEach((minute: MeetingMinute) => {
@@ -95,6 +99,7 @@ export default function ReunioesLideranca() {
     setHistoryMeetings(historyData || []);
     setMinutes(minuteData || []);
     setAttendees(attendeeData || []);
+    setAiSuggestions(suggestionData || []);
   };
 
   useEffect(() => {
@@ -126,6 +131,10 @@ export default function ReunioesLideranca() {
           loadHistory(true);
           toast.success("Nova ata pronta! Tocar para ver.", { action: { label: "Ver", onClick: () => setSelectedHistoryId(payload.new.meeting_id) } });
         }
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "ai_suggestions" }, (payload: any) => {
+        loadHistory();
+        if (payload.new?.status === "pendente") toast("🤖 Curió Conecta sugeriu ações da reunião. Toque pra revisar.", { action: { label: "Ver", onClick: () => setSelectedHistoryId(payload.new.meeting_id) } });
       })
       .subscribe();
     const interval = window.setInterval(() => loadHistory(true), 30000);
@@ -334,6 +343,8 @@ export default function ReunioesLideranca() {
   const selectedMeeting = historyMeetings.find((meeting) => meeting.id === selectedHistoryId);
   const selectedMinute = selectedMeeting ? minutes.find((minute) => minute.meeting_id === selectedMeeting.id) : undefined;
   const selectedAttendees = selectedMeeting ? attendees.filter((attendee) => attendee.meeting_id === selectedMeeting.id) : [];
+  const selectedSuggestions = selectedMeeting ? aiSuggestions.filter((suggestion) => suggestion.meeting_id === selectedMeeting.id) : [];
+  const canReviewSuggestions = ["admin", "master", "supervisor"].includes(profile?.cargo || "");
 
   const retryMinute = async (minute: MeetingMinute) => {
     if (!minute.recording_url && !minute.recording_file_path) {
@@ -355,8 +366,30 @@ export default function ReunioesLideranca() {
     }
   };
 
+  const approveSuggestion = async (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => {
+    if (!canReviewSuggestions || !user) return;
+    const finalSuggestion = { ...suggestion, ...changes };
+    const status = changes ? "editada" : "aprovada";
+    try {
+      await db.from("meeting_action_items").insert({ meeting_id: finalSuggestion.meeting_id, descricao: finalSuggestion.descricao, responsavel: finalSuggestion.responsavel_sugerido, prazo: finalSuggestion.prazo_sugerido, status: "pendente" });
+      await db.from("notification_events").insert({ type: "meeting_minutes", title: `Ação aprovada: ${finalSuggestion.titulo}`, body: finalSuggestion.descricao, payload: { meeting_id: finalSuggestion.meeting_id, suggestion_id: finalSuggestion.id, audiencia: finalSuggestion.audiencia } });
+      await db.from("ai_suggestions").update({ ...changes, status, aprovada_por: user.id, aprovada_em: new Date().toISOString() }).eq("id", suggestion.id);
+      toast.success("Sugestão enviada para acompanhamento");
+      await loadHistory();
+    } catch (error) {
+      toast.error("Erro ao enviar sugestão", { description: error instanceof Error ? error.message : "Tente novamente." });
+    }
+  };
+
+  const discardSuggestion = async (suggestion: AiSuggestion) => {
+    if (!canReviewSuggestions || !user) return;
+    await db.from("ai_suggestions").update({ status: "descartada", aprovada_por: user.id, aprovada_em: new Date().toISOString() }).eq("id", suggestion.id);
+    toast.success("Sugestão descartada");
+    await loadHistory();
+  };
+
   if (selectedMeeting) {
-    return <MeetingMinuteDetail meeting={selectedMeeting} minute={selectedMinute} attendees={selectedAttendees} onBack={() => setSelectedHistoryId(null)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === selectedMinute?.id} />;
+    return <MeetingMinuteDetail meeting={selectedMeeting} minute={selectedMinute} attendees={selectedAttendees} suggestions={selectedSuggestions} canReviewSuggestions={canReviewSuggestions} onApproveSuggestion={approveSuggestion} onDiscardSuggestion={discardSuggestion} onBack={() => setSelectedHistoryId(null)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === selectedMinute?.id} />;
   }
 
   return (
@@ -422,7 +455,8 @@ export default function ReunioesLideranca() {
           <div className="flex justify-end"><Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button></div>
           {historyMeetings.map((meeting) => {
             const minute = minutes.find((item) => item.meeting_id === meeting.id);
-            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
+            const pendingSuggestions = aiSuggestions.filter((item) => item.meeting_id === meeting.id && item.status === "pendente").length;
+            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} pendingSuggestions={pendingSuggestions} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
           })}
           {!historyMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
         </TabsContent>
@@ -465,7 +499,7 @@ function minuteStatus(minute?: MeetingMinute) {
   return { label: "✅ Ata pronta", tone: "default" as const };
 }
 
-function HistoryMeetingCard({ meeting, minute, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+function HistoryMeetingCard({ meeting, minute, pendingSuggestions, onOpen, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; pendingSuggestions: number; onOpen: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
   const status = minuteStatus(minute);
   const isFailed = minute?.processing_status === "failed";
   const isProcessing = !minute || minute.processing_status === "pending" || minute.processing_status === "processing";
@@ -479,7 +513,7 @@ function HistoryMeetingCard({ meeting, minute, onOpen, onRefresh, onRetry, retry
               <p className="mt-1 text-sm text-muted-foreground">{new Date(`${meeting.scheduled_date}T${meeting.scheduled_time}`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {formatDuration(meeting)}</p>
             </div>
-            <Badge variant={status.tone}>{status.label}</Badge>
+            <div className="flex flex-col items-end gap-2"><Badge variant={status.tone}>{status.label}</Badge>{pendingSuggestions > 0 && <Badge variant="destructive">{pendingSuggestions} sugestõe(s)</Badge>}</div>
           </div>
         </button>
         {(isProcessing || isFailed) && <Button variant="outline" className="mt-3 min-h-11 w-full gap-2" onClick={isFailed && minute ? () => onRetry(minute) : onRefresh} disabled={retrying}><RefreshCw className="h-4 w-4" /> {isFailed ? (retrying ? "Tentando..." : "Tentar novamente") : "Atualizar"}</Button>}
@@ -488,7 +522,7 @@ function HistoryMeetingCard({ meeting, minute, onOpen, onRefresh, onRetry, retry
   );
 }
 
-function MeetingMinuteDetail({ meeting, minute, attendees, onBack, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; onBack: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
+function MeetingMinuteDetail({ meeting, minute, attendees, suggestions, canReviewSuggestions, onApproveSuggestion, onDiscardSuggestion, onBack, onRefresh, onRetry, retrying }: { meeting: Meeting; minute?: MeetingMinute; attendees: MeetingAttendee[]; suggestions: AiSuggestion[]; canReviewSuggestions: boolean; onApproveSuggestion: (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => void; onDiscardSuggestion: (suggestion: AiSuggestion) => void; onBack: () => void; onRefresh: () => void; onRetry: (minute: MeetingMinute) => void; retrying: boolean }) {
   const decisions = Array.isArray(minute?.decisions) ? minute.decisions : [];
   const actionItems = Array.isArray(minute?.action_items) ? minute.action_items : [];
   const attentionPoints = Array.isArray(minute?.attention_points) ? minute.attention_points : [];
@@ -496,6 +530,7 @@ function MeetingMinuteDetail({ meeting, minute, attendees, onBack, onRefresh, on
   const sentiment = minute?.sentiment || "neutro";
   const SentimentIcon = sentiment === "positivo" ? Smile : sentiment === "tenso" ? Frown : Meh;
   const urgencyClass = (urgency?: string) => urgency === "alta" ? "border-destructive/30 bg-destructive/10 text-destructive" : urgency === "media" ? "border-warning/30 bg-warning/10 text-warning" : "border-success/30 bg-success/10 text-success";
+  const pendingSuggestions = suggestions.filter((suggestion) => suggestion.status === "pendente");
 
   return (
     <div className="space-y-4">
@@ -513,7 +548,22 @@ function MeetingMinuteDetail({ meeting, minute, attendees, onBack, onRefresh, on
       <Card><CardHeader><CardTitle>Próximos Passos</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground">{actionItems.length ? actionItems.map((item, index) => <p key={index}>• {item.descricao} {item.responsavel ? `— ${item.responsavel}` : ""} {item.prazo ? `(${item.prazo})` : ""}</p>) : <p>Sem próximos passos.</p>}</CardContent></Card>
       <Card><CardHeader><CardTitle>Pontos de Atenção</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">{attentionPoints.length ? attentionPoints.map((item, index) => <div key={index} className={`rounded-lg border p-3 ${urgencyClass(item.urgencia)}`}>• {item.descricao} <Badge variant="outline" className="ml-1 text-[10px]">{item.urgencia || "baixa"}</Badge></div>) : <p className="text-muted-foreground">Sem pontos críticos.</p>}</CardContent></Card>
       <Card><CardHeader><CardTitle>Sentimento</CardTitle></CardHeader><CardContent><Badge variant="secondary" className="gap-2"><SentimentIcon className="h-4 w-4" /> {sentiment}</Badge></CardContent></Card>
+      <AiSuggestionsSection suggestions={pendingSuggestions} canReview={canReviewSuggestions} onApprove={onApproveSuggestion} onDiscard={onDiscardSuggestion} />
       {minute?.transcript && <Card><CardContent className="p-4"><Collapsible><CollapsibleTrigger asChild><Button variant="outline" className="w-full gap-2">Transcript completo <ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent className="mt-3 max-h-96 overflow-auto rounded-lg bg-muted p-3 text-xs text-muted-foreground whitespace-pre-line">{minute.transcript}</CollapsibleContent></Collapsible></CardContent></Card>}
     </div>
   );
+}
+
+function AiSuggestionsSection({ suggestions, canReview, onApprove, onDiscard }: { suggestions: AiSuggestion[]; canReview: boolean; onApprove: (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => void; onDiscard: (suggestion: AiSuggestion) => void }) {
+  return <Card><CardHeader><CardTitle className="flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> Sugestões da IA ({suggestions.length} pendentes)</CardTitle></CardHeader><CardContent className="space-y-3">{suggestions.length ? suggestions.map((suggestion) => <AiSuggestionCard key={suggestion.id} suggestion={suggestion} canReview={canReview} onApprove={onApprove} onDiscard={onDiscard} />) : <p className="text-sm text-muted-foreground">Sem sugestões pendentes.</p>}</CardContent></Card>;
+}
+
+function AiSuggestionCard({ suggestion, canReview, onApprove, onDiscard }: { suggestion: AiSuggestion; canReview: boolean; onApprove: (suggestion: AiSuggestion, changes?: Partial<AiSuggestion>) => void; onDiscard: (suggestion: AiSuggestion) => void }) {
+  const [open, setOpen] = useState(false);
+  const [descricao, setDescricao] = useState(suggestion.descricao);
+  const [responsavel, setResponsavel] = useState(suggestion.responsavel_sugerido || "");
+  const [prazo, setPrazo] = useState(suggestion.prazo_sugerido || "");
+  const [audiencia, setAudiencia] = useState((suggestion.audiencia || []).join(", "));
+  const tone = suggestion.tipo === "risco_detectado" ? "border-destructive/30 bg-destructive/10" : suggestion.tipo === "plano" ? "border-success/30 bg-success/10" : suggestion.tipo === "melhoria_operacional" ? "border-warning/30 bg-warning/10" : "border-primary/30 bg-primary/10";
+  return <div className={`rounded-lg border p-4 ${tone}`}><div className="flex items-start justify-between gap-3"><div><Badge variant="secondary">{suggestion.tipo}</Badge><h3 className="mt-2 font-bold text-foreground">{suggestion.titulo}</h3></div></div><p className="mt-2 text-sm text-muted-foreground">{suggestion.descricao}</p><p className="mt-2 text-xs text-muted-foreground">Responsável sugerido: {suggestion.responsavel_sugerido || "—"} · Prazo: {suggestion.prazo_sugerido || "—"} · Avisar: {(suggestion.audiencia || []).join(", ") || "—"}</p><p className="mt-2 text-sm italic text-muted-foreground">{suggestion.beneficio_esperado}</p>{canReview && <div className="mt-3 grid gap-2 sm:grid-cols-3"><Button className="gap-2" onClick={() => onApprove(suggestion)}><CheckCircle className="h-4 w-4" /> Aprovar e enviar</Button><Button variant="outline" className="gap-2 bg-card" onClick={() => setOpen(true)}><Pencil className="h-4 w-4" /> Editar antes</Button><Button variant="outline" className="gap-2 bg-card" onClick={() => onDiscard(suggestion)}><XCircle className="h-4 w-4" /> Descartar</Button></div>}<Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>Editar sugestão antes de enviar</DialogTitle></DialogHeader><div className="space-y-3"><Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} /><Input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} placeholder="Responsável" /><Input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} /><Input value={audiencia} onChange={(e) => setAudiencia(e.target.value)} placeholder="Audiência separada por vírgula" /><Button className="w-full" onClick={() => { onApprove(suggestion, { descricao, responsavel_sugerido: responsavel || null, prazo_sugerido: prazo || null, audiencia: audiencia.split(",").map((item) => item.trim()).filter(Boolean) }); setOpen(false); }}>Salvar e enviar</Button></div></DialogContent></Dialog></div>;
 }
