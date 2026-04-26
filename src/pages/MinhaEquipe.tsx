@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertTriangle, ChevronRight, ClipboardCheck, HeartPulse, MessageCircle, Palmtree, Plus, Search, Upload, UserCheck, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,6 +84,7 @@ function whatsappUrl(phone: string) {
 
 export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile, user } = useAuth();
   const { isGerente, isAdmin, isSupervisor, isEncarregado } = useRole();
   const { toast } = useToast();
@@ -95,6 +96,7 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
   const [preview, setPreview] = useState<string | null>(null);
   const [form, setForm] = useState({ nome: "", cargo: "", telefone: "", sector: "geral", role: "colaborador", data_admissao: "", status: "ativo", foto_url: "" });
   const canEdit = isGerente || isAdmin || isSupervisor;
+  const selectedUnitId = searchParams.get("unit") || profile?.unit_id;
 
   useEffect(() => {
     fetchMembers();
@@ -103,6 +105,7 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
   async function fetchMembers() {
     const db = supabase as any;
     let query = db.from("team_members").select("*, units(name, code)").order("role").order("cargo");
+    if (selectedUnitId) query = query.eq("unit_id", selectedUnitId);
     if (setorOnly && profile?.setor) query = query.eq("sector", profile.setor === "frente_de_caixa" ? "frente_caixa" : profile.setor);
     const { data, error } = await query;
     if (error) {
@@ -131,13 +134,13 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
   }), [members]);
 
   async function addMember() {
-    if (!profile?.unit_id || !form.nome.trim()) {
+    if (!selectedUnitId || !form.nome.trim()) {
       toast({ title: "Informe o nome completo", variant: "destructive" });
       return;
     }
     const db = supabase as any;
     const { error } = await db.from("team_members").insert({
-      unit_id: profile.unit_id,
+      unit_id: selectedUnitId,
       nome: form.nome.trim(),
       cargo: form.cargo.trim() || form.nome.trim(),
       telefone: form.telefone ? `55${onlyDigits(form.telefone).replace(/^55/, "")}` : null,
