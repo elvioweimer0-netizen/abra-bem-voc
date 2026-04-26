@@ -331,6 +331,33 @@ export default function ReunioesLideranca() {
   };
 
   const dailyMinute = dailyMeeting ? minutes.find((minute) => minute.meeting_id === dailyMeeting.id) : undefined;
+  const selectedMeeting = historyMeetings.find((meeting) => meeting.id === selectedHistoryId);
+  const selectedMinute = selectedMeeting ? minutes.find((minute) => minute.meeting_id === selectedMeeting.id) : undefined;
+  const selectedAttendees = selectedMeeting ? attendees.filter((attendee) => attendee.meeting_id === selectedMeeting.id) : [];
+
+  const retryMinute = async (minute: MeetingMinute) => {
+    if (!minute.recording_url && !minute.recording_file_path) {
+      toast.error("Sem gravação disponível", { description: "Suba a gravação manualmente para tentar novamente." });
+      return;
+    }
+    setRetryingMinuteId(minute.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("process-meeting-recording", {
+        body: { meetingId: minute.meeting_id, recording_url: minute.recording_url, recording_file_path: minute.recording_file_path },
+      });
+      if (error || data?.error) throw new Error(error?.message || data.error);
+      toast.success("Processando ata... aguarde 2-3 min");
+      await loadHistory();
+    } catch (error) {
+      toast.error("Erro ao tentar novamente", { description: error instanceof Error ? error.message : "Não foi possível reprocessar a ata." });
+    } finally {
+      setRetryingMinuteId(null);
+    }
+  };
+
+  if (selectedMeeting) {
+    return <MeetingMinuteDetail meeting={selectedMeeting} minute={selectedMinute} attendees={selectedAttendees} onBack={() => setSelectedHistoryId(null)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === selectedMinute?.id} />;
+  }
 
   return (
     <div className="space-y-5">
@@ -340,10 +367,11 @@ export default function ReunioesLideranca() {
       </section>
 
       <Tabs defaultValue="diaria" className="space-y-4">
-        <TabsList className="grid h-auto w-full grid-cols-3 rounded-xl bg-muted p-1">
+        <TabsList className="grid h-auto w-full grid-cols-4 rounded-xl bg-muted p-1">
           <TabsTrigger value="diaria" className="min-h-11">Diária</TabsTrigger>
           <TabsTrigger value="semanal" className="min-h-11">Semanal</TabsTrigger>
           <TabsTrigger value="individual" className="min-h-11">Individual</TabsTrigger>
+          <TabsTrigger value="historico" className="min-h-11">Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="diaria" className="space-y-4">
@@ -388,6 +416,15 @@ export default function ReunioesLideranca() {
             return <Card key={meeting.id}><CardContent className="p-4"><div className="flex items-start justify-between"><div><h3 className="font-bold text-foreground">{unit?.name || meeting.title}</h3><p className="text-sm text-muted-foreground">{meeting.scheduled_time.slice(0, 5)} • {meeting.is_monthly_in_person ? "Presencial" : "Online"}</p></div><Badge>{meeting.status}</Badge></div><div className="mt-3 space-y-2 text-sm text-muted-foreground"><p>• Números da semana</p><p>• Top 3 problemas dessa loja</p><Input placeholder="O que melhorar" /></div><Button className="mt-3 min-h-12 w-full" onClick={() => closeMeeting(meeting)}>Gerar ATA e enviar</Button></CardContent></Card>;
           })}
           {!individualMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Agenda individual será exibida conforme o calendário da semana.</CardContent></Card>}
+        </TabsContent>
+
+        <TabsContent value="historico" className="space-y-3">
+          <div className="flex justify-end"><Button variant="outline" className="gap-2" onClick={() => loadHistory()}><RefreshCw className="h-4 w-4" /> Atualizar</Button></div>
+          {historyMeetings.map((meeting) => {
+            const minute = minutes.find((item) => item.meeting_id === meeting.id);
+            return <HistoryMeetingCard key={meeting.id} meeting={meeting} minute={minute} onOpen={() => setSelectedHistoryId(meeting.id)} onRefresh={() => loadHistory()} onRetry={retryMinute} retrying={retryingMinuteId === minute?.id} />;
+          })}
+          {!historyMeetings.length && <Card><CardContent className="p-4 text-sm text-muted-foreground">Nenhuma reunião encerrada encontrada.</CardContent></Card>}
         </TabsContent>
       </Tabs>
     </div>
