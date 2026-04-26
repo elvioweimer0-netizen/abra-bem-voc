@@ -145,7 +145,7 @@ export default function PainelCobranca() {
                   <h2 className="text-lg font-bold text-foreground">{summary.unit.name}</h2>
                   <p className="text-sm text-muted-foreground">{summary.manager?.nome || "Responsável não vinculado"}</p>
                 </div>
-                {summary.occurrences > 0 && <Badge variant="destructive">{summary.occurrences} B.O.</Badge>}
+                {summary.occurrences > 0 && <Badge variant="destructive">{summary.occurrences} ocorrência</Badge>}
               </div>
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between text-sm font-medium"><span>{summary.done}/{summary.total} itens</span><span>{summary.percentage}%</span></div>
@@ -187,9 +187,9 @@ export default function PainelCobranca() {
               </Card>
 
               <Card>
-                <CardHeader className="p-4 pb-2"><CardTitle className="text-base">B.O.s do dia</CardTitle></CardHeader>
+                <CardHeader className="p-4 pb-2"><CardTitle className="text-base">Ocorrências do dia</CardTitle></CardHeader>
                 <CardContent className="space-y-2 p-4 pt-0">
-                  {selectedOccurrences.length === 0 && <p className="text-sm text-muted-foreground">Nenhum B.O. aberto hoje.</p>}
+                  {selectedOccurrences.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma ocorrência aberta hoje.</p>}
                   {selectedOccurrences.map((bo) => (
                     <div key={bo.id} className="rounded-lg border border-border bg-background p-3">
                       <div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold text-foreground">{bo.descricao}</p><Badge>{bo.gravidade}</Badge></div>

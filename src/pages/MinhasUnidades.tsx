@@ -80,7 +80,7 @@ export default function MinhasUnidades() {
 
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
               <Mini icon={<ClipboardCheck className="h-4 w-4" />} value={`${percent}%`} label="checklist" />
-              <Mini icon={<Store className="h-4 w-4" />} value={openBos} label="B.O.s" />
+              <Mini icon={<Store className="h-4 w-4" />} value={openBos} label="Ocorrências" />
               <Mini icon={<CalendarClock className="h-4 w-4" />} value={nextMeeting} label="reunião" />
             </div>
 

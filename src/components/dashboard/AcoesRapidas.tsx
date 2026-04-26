@@ -21,7 +21,7 @@ interface QuickAction {
 const allActions: QuickAction[] = [
   { label: "Meu Checklist", icon: ClipboardCheck, href: "/checklist-diario", color: "bg-primary/10 text-primary", liderancaOnly: true },
   { label: "Painel de Cobrança", icon: Gauge, href: "/painel-cobranca", color: "bg-warning/10 text-warning", painelOnly: true },
-  { label: "Novo B.O.", icon: ClipboardPlus, href: "/bo-eletronico", color: "bg-primary/10 text-primary", liderancaOnly: true },
+  { label: "Nova Ocorrência", icon: ClipboardPlus, href: "/ocorrencias", color: "bg-primary/10 text-primary", liderancaOnly: true },
   { label: "Minha Equipe", icon: Users, href: "/minha-equipe", color: "bg-success/10 text-success", gestaoOnly: true },
   { label: "Meu Setor", icon: UserCheck, href: "/meu-setor", color: "bg-success/10 text-success", liderancaOnly: true },
   { label: "Escala", icon: CalendarWeek, href: "/escala-semana", color: "bg-warning/10 text-warning" },
