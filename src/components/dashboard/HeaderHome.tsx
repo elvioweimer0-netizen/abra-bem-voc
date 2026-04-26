@@ -25,7 +25,7 @@ export function HeaderHome() {
   return (
     <div className="animate-home-brand min-w-0">
       <h1 className={`${isFirstAccesses ? "text-[28px] sm:text-[32px]" : "text-2xl sm:text-[28px]"} font-bold leading-tight text-foreground`}>
-        {isFirstAccesses ? "✨ Seja bem-vindo" : getGreeting()}, {firstName}, ao{" "}
+        {isFirstAccesses ? "✨ Seja bem-vindo" : "Bem-vindo"}, {firstName}, ao{" "}
         <span className="brand-script text-gradient-curio inline-block text-[32px] leading-tight sm:text-[38px]">
           Conecta Curió
         </span>
