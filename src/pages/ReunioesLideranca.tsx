@@ -13,6 +13,7 @@ import {
   Frown,
   Lightbulb,
   Loader2,
+  LogOut,
   Meh,
   Mic,
   Pencil,
@@ -90,6 +91,12 @@ function yesterdayISO() {
 
 function formatMeetingType(type: string) {
   return meetingTypeLabels[type] || "Extra";
+}
+
+function meetingTitle(meeting: Meeting, minute?: MeetingMinute) {
+  const title = minute?.titulo || meeting.title;
+  if (title?.trim()) return title.trim();
+  return `Reunião ${formatMeetingType(meeting.type)} do dia ${format(parseISO(meeting.scheduled_date), "dd/MM/yyyy", { locale: ptBR })}`;
 }
 
 function meetingDate(meeting: Meeting) {
@@ -556,6 +563,13 @@ export default function ReunioesLideranca() {
     await db.from("ai_suggestions").update({ status: "descartada", aprovada_por: user.id, aprovada_em: new Date().toISOString() }).eq("id", suggestion.id);
     toast.success("Sugestão descartada");
     await loadAll();
+  };
+
+  const leaveMeeting = async (meeting?: Meeting) => {
+    if (!meeting || !user) return;
+    await db.from("meeting_attendees").upsert({ meeting_id: meeting.id, user_id: user.id, role_label: profile?.cargo, present: false, joined_at: new Date().toISOString() }, { onConflict: "meeting_id,user_id" });
+    toast.success("Você saiu da sala. A reunião continua ativa.");
+    loadAll();
   };
 
   const selectedMeeting = historyMeetings.find((meeting) => meeting.id === selectedHistoryId);
