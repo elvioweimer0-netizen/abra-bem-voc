@@ -1079,14 +1079,19 @@ export type Database = {
         Row: {
           ativo: boolean
           cargo: Database["public"]["Enums"]["cargo_tipo"]
+          cargo_titulo: string | null
           created_at: string
+          data_admissao: string | null
+          descricao: string | null
           email: string
+          foto_url: string | null
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
           nome: string
           permission_units: string[]
           role: Database["public"]["Enums"]["cargo_tipo"] | null
           setor: Database["public"]["Enums"]["setor_tipo"] | null
+          telefone: string | null
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           unit_id: string | null
           updated_at: string
@@ -1095,14 +1100,19 @@ export type Database = {
         Insert: {
           ativo?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          cargo_titulo?: string | null
           created_at?: string
+          data_admissao?: string | null
+          descricao?: string | null
           email: string
+          foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           nome: string
           permission_units?: string[]
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          telefone?: string | null
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           unit_id?: string | null
           updated_at?: string
@@ -1111,14 +1121,19 @@ export type Database = {
         Update: {
           ativo?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          cargo_titulo?: string | null
           created_at?: string
+          data_admissao?: string | null
+          descricao?: string | null
           email?: string
+          foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           nome?: string
           permission_units?: string[]
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          telefone?: string | null
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           unit_id?: string | null
           updated_at?: string
@@ -1389,6 +1404,7 @@ export type Database = {
           cargo: string
           created_at: string
           data_admissao: string | null
+          descricao: string | null
           foto_url: string | null
           id: string
           idade: number | null
@@ -1406,6 +1422,7 @@ export type Database = {
           cargo?: string
           created_at?: string
           data_admissao?: string | null
+          descricao?: string | null
           foto_url?: string | null
           id?: string
           idade?: number | null
@@ -1423,6 +1440,7 @@ export type Database = {
           cargo?: string
           created_at?: string
           data_admissao?: string | null
+          descricao?: string | null
           foto_url?: string | null
           id?: string
           idade?: number | null
