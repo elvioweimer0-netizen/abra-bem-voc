@@ -196,7 +196,7 @@ export default function ReunioesLideranca() {
                 <div><h2 className="text-xl font-bold text-foreground">Reunião Diária de hoje — 9:30</h2><p className="mt-1 text-sm text-muted-foreground">{minutesTo930()} restantes</p></div>
                 <CalendarClock className="h-8 w-8 text-primary" />
               </div>
-              <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily}><Mic className="h-5 w-5" /> Entrar/Iniciar</Button>
+              <Button className="mt-4 min-h-12 w-full gap-2" onClick={joinDaily} disabled={joiningDaily}><Mic className="h-5 w-5" /> {joiningDaily ? "Iniciando..." : "Entrar/Iniciar"}</Button>
               <div className="mt-3">
                 <Input id="manual-recording" type="file" accept="audio/*,video/*" className="hidden" onChange={uploadManualRecording} disabled={uploading || !dailyMeeting} />
                 <Button variant="outline" className="min-h-12 w-full gap-2 bg-card" asChild disabled={uploading || !dailyMeeting}>
