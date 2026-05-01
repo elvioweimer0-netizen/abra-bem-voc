@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, X } from "lucide-react";
 import type { Aviso } from "@/types/database";
+import { AvisoReadButton } from "@/components/AvisoReadButton";
 
 export function AvisosBanner() {
   const [avisos, setAvisos] = useState<Aviso[]>([]);
@@ -31,6 +32,7 @@ export function AvisosBanner() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-destructive">{aviso.titulo}</p>
             <p className="text-xs text-destructive/80 mt-0.5">{aviso.conteudo}</p>
+            <div className="mt-2"><AvisoReadButton avisoId={aviso.id} /></div>
           </div>
           <button
             onClick={() => setDismissed((s) => new Set(s).add(aviso.id))}

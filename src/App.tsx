@@ -46,6 +46,7 @@ import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
 import DocumentosLideranca from "@/pages/DocumentosLideranca";
+import CurioDeOuroPage from "@/pages/CurioDeOuroPage";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -128,6 +129,7 @@ function ProtectedRoutes() {
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
+        <Route path="/curio-de-ouro" element={<CurioDeOuroPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

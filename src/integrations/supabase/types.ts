@@ -165,11 +165,41 @@ export type Database = {
           },
         ]
       }
+      aviso_reads: {
+        Row: {
+          aviso_id: string
+          id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          aviso_id: string
+          id?: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          aviso_id?: string
+          id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aviso_reads_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "avisos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avisos: {
         Row: {
           ativo: boolean
           conteudo: string
           created_at: string
+          criado_por: string | null
           id: string
           titulo: string
           unidade: Database["public"]["Enums"]["unidade_tipo"] | null
@@ -179,6 +209,7 @@ export type Database = {
           ativo?: boolean
           conteudo: string
           created_at?: string
+          criado_por?: string | null
           id?: string
           titulo: string
           unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
@@ -188,6 +219,7 @@ export type Database = {
           ativo?: boolean
           conteudo?: string
           created_at?: string
+          criado_por?: string | null
           id?: string
           titulo?: string
           unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
@@ -243,6 +275,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
           },
         ]
       }
@@ -304,6 +343,7 @@ export type Database = {
           id: string
           obrigatorio: boolean
           ordem: number
+          requires_photo: boolean
           template_id: string
           tipo_resposta: Database["public"]["Enums"]["checklist_response_type"]
         }
@@ -313,6 +353,7 @@ export type Database = {
           id?: string
           obrigatorio?: boolean
           ordem: number
+          requires_photo?: boolean
           template_id: string
           tipo_resposta?: Database["public"]["Enums"]["checklist_response_type"]
         }
@@ -322,6 +363,7 @@ export type Database = {
           id?: string
           obrigatorio?: boolean
           ordem?: number
+          requires_photo?: boolean
           template_id?: string
           tipo_resposta?: Database["public"]["Enums"]["checklist_response_type"]
         }
@@ -596,6 +638,13 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_of_month_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
       encarregado_evaluations: {
@@ -768,6 +817,13 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leadership_inspections_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
       leadership_meetings: {
@@ -829,6 +885,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_meetings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
           },
         ]
       }
@@ -913,6 +976,13 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leadership_occurrences_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
       manager_substitutions: {
@@ -957,6 +1027,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_substitutions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
           },
         ]
       }
@@ -1056,6 +1133,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_agenda_items_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
           },
         ]
       }
@@ -1229,6 +1313,13 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "meeting_pauta_suggestions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
       noticias: {
@@ -1299,6 +1390,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
           },
         ]
       }
@@ -1481,6 +1579,13 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "praises_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
       profiles: {
@@ -1582,6 +1687,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
           },
         ]
       }
@@ -1901,6 +2013,13 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_members_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
       units: {
@@ -1993,11 +2112,29 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "work_schedules_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      v_unit_checklist_progress: {
+        Row: {
+          data: string | null
+          done_items: number | null
+          pct: number | null
+          total_items: number | null
+          unit_code: string | null
+          unit_id: string | null
+          unit_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_review_document_role: {

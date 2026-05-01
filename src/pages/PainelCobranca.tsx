@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { CardSemaforoUnidade, type SemaforoData } from "@/components/CardSemaforoUnidade";
 
 const db = supabase as any;
 
@@ -54,6 +55,7 @@ export default function PainelCobranca() {
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [filterUnit, setFilterUnit] = useState("all");
   const [selected, setSelected] = useState<UnitSummary | null>(null);
+  const [semaforo, setSemaforo] = useState<SemaforoData[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -82,6 +84,9 @@ export default function PainelCobranca() {
       setCompletions(completionData || []);
       setResponses(responseData || []);
       setOccurrences(occurrenceData || []);
+
+      const { data: sem } = await db.from("v_unit_checklist_progress").select("*").order("unit_name");
+      setSemaforo(sem || []);
     };
 
     load();
@@ -135,6 +140,17 @@ export default function PainelCobranca() {
           </SelectContent>
         </Select>
       </section>
+
+      {semaforo.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Semáforo do dia</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {semaforo
+              .filter((s) => filterUnit === "all" || s.unit_id === filterUnit)
+              .map((s) => <CardSemaforoUnidade key={s.unit_id} data={s} />)}
+          </div>
+        </section>
+      )}
 
       <div className="space-y-3">
         {summaries.map((summary) => (
