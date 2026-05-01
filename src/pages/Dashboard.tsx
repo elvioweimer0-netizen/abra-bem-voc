@@ -19,11 +19,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CalendarClock, CheckCircle2, ClipboardList, Gauge, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
+import FeedColaborador from "@/pages/FeedColaborador";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador } = useRole();
+  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser } = useRole();
+  if (isFeedUser) return <FeedColaborador />;
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
   const [noticias, setNoticias] = useState<Noticia[]>([]);

@@ -1,9 +1,9 @@
-import { BarChart3, CheckSquare, FolderOpen, Home, Megaphone, Menu, Sparkles } from "lucide-react";
+import { BarChart3, CheckSquare, FolderOpen, Home, Megaphone, Menu, Newspaper, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useRole } from "@/hooks/useRole";
 
-const items = [
+const leaderItems = [
   { label: "Início", href: "/", icon: Home },
   { label: "Avisos", href: "/avisos", icon: Megaphone, badge: true },
   { label: "Meu Checklist", href: "/checklist-diario", icon: CheckSquare },
@@ -11,10 +11,20 @@ const items = [
   { label: "Mais", href: "/meu-perfil", icon: Menu },
 ];
 
+const feedItems = [
+  { label: "Início", href: "/", icon: Home },
+  { label: "Avisos", href: "/avisos", icon: Megaphone, badge: true },
+  { label: "Notícias", href: "/noticias", icon: Newspaper },
+  { label: "Curiózinho", href: "/assistente", icon: Sparkles, featured: true },
+  { label: "Mais", href: "/meu-perfil", icon: Menu },
+];
+
 export function MobileBottomNav() {
   const { toggleSidebar } = useSidebar();
-  const { isAdmin, isGerenteAdm } = useRole();
-  const navItems = items.map((item) => {
+  const { isAdmin, isGerenteAdm, isFeedUser } = useRole();
+  const baseItems = isFeedUser ? feedItems : leaderItems;
+  const navItems = baseItems.map((item) => {
+    if (isFeedUser) return item;
     if (item.label !== "Meu Checklist") return item;
     if (isAdmin) return { ...item, label: "Visão", href: "/visao-geral-admin", icon: BarChart3 };
     if (isGerenteAdm) return { ...item, label: "Gerência", href: "/central-adm/rh", icon: FolderOpen };

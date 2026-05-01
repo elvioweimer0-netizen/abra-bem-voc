@@ -30,7 +30,8 @@ const cargoLabels: Record<string, string> = {
 };
 
 const viewAsOptions: Enums<"cargo_tipo">[] = [
-  "colaborador", "encarregado", "gerente", "admin",
+  "master", "admin", "supervisor", "gerente", "gerente_loja",
+  "gerente_adm", "encarregado", "fiscal", "lider_setor", "colaborador",
 ];
 
 /* ─── component ─── */
@@ -72,14 +73,15 @@ export function AppHeader() {
           {isRealAdmin && (
             <>
               <Select
-                value={role}
-                onValueChange={(v) => setRole(v as Enums<"cargo_tipo">)}
+                value={role ?? "__self"}
+                onValueChange={(v) => setRole(v === "__self" ? null : (v as Enums<"cargo_tipo">))}
               >
-                <SelectTrigger className="hidden h-10 w-[170px] text-xs lg:flex">
+                <SelectTrigger className="hidden h-10 w-[180px] text-xs lg:flex">
                   <Eye className="w-3.5 h-3.5 mr-1 shrink-0 text-muted-foreground" />
                   <SelectValue placeholder="Visualizar como" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__self">👤 Eu mesmo (real)</SelectItem>
                   {viewAsOptions.map((c) => (
                     <SelectItem key={c} value={c}>
                       {cargoLabels[c]}

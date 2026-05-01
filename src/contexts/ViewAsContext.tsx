@@ -5,20 +5,31 @@ type Role = Enums<"cargo_tipo">;
 type Unidade = Enums<"unidade_tipo">;
 
 type ViewAsContextType = {
-  role: Role;
-  setRole: (role: Role) => void;
+  role: Role | null;
+  setRole: (role: Role | null) => void;
   unidade: Unidade;
   setUnidade: (unidade: Unidade) => void;
+  isSimulating: boolean;
+  clearSimulation: () => void;
 };
 
 const ViewAsContext = createContext<ViewAsContextType | null>(null);
 
 export function ViewAsProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<Role>("colaborador");
+  const [role, setRole] = useState<Role | null>(null);
   const [unidade, setUnidade] = useState<Unidade>("CIDADE ALTA");
 
   return (
-    <ViewAsContext.Provider value={{ role, setRole, unidade, setUnidade }}>
+    <ViewAsContext.Provider
+      value={{
+        role,
+        setRole,
+        unidade,
+        setUnidade,
+        isSimulating: role !== null,
+        clearSimulation: () => setRole(null),
+      }}
+    >
       {children}
     </ViewAsContext.Provider>
   );
