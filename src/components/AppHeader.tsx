@@ -19,13 +19,13 @@ import type { Enums } from "@/integrations/supabase/types";
 const cargoLabels: Record<string, string> = {
   master: "👑 Master",
   admin: "👑 Admin",
-  encarregado: "🧑‍💼 Encarregado",
   supervisor: "📊 Supervisor",
-  adm_departamento: "📋 Adm. Departamento",
-  gerente_adm: "📋 Gerente Adm.",
   gerente: "🏪 Gerente",
   gerente_loja: "🏪 Gerente Loja",
-  lider: "🧑‍💼 Líder",
+  gerente_adm: "📋 Gerente Adm.",
+  encarregado: "🧑‍💼 Encarregado",
+  fiscal: "🛡️ Fiscal",
+  lider_setor: "🧭 Líder de Setor",
   colaborador: "👷 Colaborador",
 };
 
