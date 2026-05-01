@@ -15,6 +15,8 @@ import { Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import type { Aviso } from "@/types/database";
 import { Constants } from "@/integrations/supabase/types";
+import { AvisoReadButton } from "@/components/AvisoReadButton";
+import { AvisoReadStats } from "@/components/AvisoReadStats";
 
 const unidades = Constants.public.Enums.unidade_tipo;
 
@@ -25,8 +27,9 @@ export default function Avisos() {
   const [editing, setEditing] = useState<Aviso | null>(null);
   const [form, setForm] = useState({ titulo: "", conteudo: "", unidade: "" as string, urgente: false, ativo: true });
 
-  const canEdit = profile?.cargo === "admin" || profile?.cargo === "gerente";
-  const isAdmin = profile?.cargo === "admin";
+  const canEdit = profile?.cargo === "admin" || profile?.cargo === "master" || profile?.cargo === "gerente" || profile?.cargo === "gerente_loja";
+  const isAdmin = profile?.cargo === "admin" || profile?.cargo === "master";
+  const canSeeStats = isAdmin || profile?.cargo === "supervisor" || canEdit;
   const isCentralAdm = profile?.unidade?.includes("CENTRAL");
 
   const fetchData = async () => {
@@ -142,6 +145,8 @@ export default function Avisos() {
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">{a.unidade || "Geral"} · {new Date(a.created_at).toLocaleDateString("pt-BR")}</p>
                 <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{a.conteudo}</p>
+                <div className="mt-3"><AvisoReadButton avisoId={a.id} /></div>
+                {canSeeStats && <AvisoReadStats avisoId={a.id} unidade={a.unidade} />}
                 {canEdit && <div className="mt-3 flex gap-2"><Button variant="outline" size="sm" onClick={() => openEdit(a)}><Pencil className="w-4 h-4" /> Editar</Button><Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)}><Trash2 className="w-4 h-4 text-destructive" /> Excluir</Button></div>}
               </article>
             ))}
