@@ -118,6 +118,10 @@ export default function ChecklistDiario() {
   const progress = activeItems.length ? Math.round((completedCount / activeItems.length) * 100) : 0;
 
   const markItem = (item: Item, checked: boolean) => {
+    if (checked && item.requires_photo && !responses[item.id]?.foto_url) {
+      toast({ title: "Foto obrigatória", description: "Anexe uma foto antes de marcar este item.", variant: "destructive" });
+      return;
+    }
     setResponses((current) => ({
       ...current,
       [item.id]: {
@@ -143,22 +147,24 @@ export default function ChecklistDiario() {
   };
 
   const uploadPhoto = async (item: Item, file?: File) => {
-    if (!file || !user) return;
-    const path = `checklists/${user.id}/${todayISO()}-${item.id}-${file.name}`;
-    const { error } = await supabase.storage.from("galeria").upload(path, file, { upsert: true });
+    if (!file || !user || !unit) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${unit.id}/${user.id}/${todayISO()}-${item.id}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("checklist-photos").upload(path, file, { upsert: true, contentType: file.type });
     if (error) {
       toast({ title: "Não foi possível anexar a foto", description: error.message, variant: "destructive" });
       return;
     }
-    const { data } = supabase.storage.from("galeria").getPublicUrl(path);
+    const { data } = await supabase.storage.from("checklist-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
+    const url = data?.signedUrl ?? path;
     setResponses((current) => ({
       ...current,
       [item.id]: {
         ...current[item.id],
         item_id: item.id,
         resposta: "true",
-        foto_url: data.publicUrl,
-        completed_at: current[item.id]?.completed_at || new Date().toISOString(),
+        foto_url: url,
+        completed_at: item.requires_photo ? current[item.id]?.completed_at || new Date().toISOString() : current[item.id]?.completed_at ?? null,
       },
     }));
   };
