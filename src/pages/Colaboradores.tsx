@@ -86,7 +86,9 @@ export default function Colaboradores() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="colaborador">Colaborador</SelectItem>
-                      <SelectItem value="lider">Líder</SelectItem>
+                      <SelectItem value="lider_setor">Líder de Setor</SelectItem>
+                      <SelectItem value="fiscal">Fiscal</SelectItem>
+                      <SelectItem value="encarregado">Encarregado</SelectItem>
                       <SelectItem value="gerente">Gerente</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
