@@ -60,7 +60,7 @@ export default function PainelCobranca() {
       const today = todayISO();
       const [{ data: unitData }, { data: profileData }, { data: templateData }, { data: occurrenceData }] = await Promise.all([
         db.from("units").select("id, code, name, type").eq("active", true).order("code"),
-        db.from("profiles").select("user_id, nome, cargo, unit_id").in("cargo", ["gerente", "gerente_loja", "encarregado", "lider", "supervisor", "admin", "master"]),
+        db.from("profiles").select("user_id, nome, cargo, unit_id").in("cargo", ["gerente", "gerente_loja", "encarregado", "lider_setor", "supervisor", "admin", "master"]),
         db.from("checklist_templates").select("id").eq("active", true),
         db.from("leadership_occurrences").select("id, unit_id, descricao, status, gravidade, criado_em").gte("criado_em", `${today}T00:00:00`).neq("status", "resolvido"),
       ]);
@@ -91,7 +91,7 @@ export default function PainelCobranca() {
     return units
       .filter((unit) => filterUnit === "all" || unit.id === filterUnit)
       .map((unit) => {
-        const manager = profiles.find((p) => p.unit_id === unit.id && ["gerente", "gerente_loja", "encarregado", "lider"].includes(p.cargo));
+        const manager = profiles.find((p) => p.unit_id === unit.id && ["gerente", "gerente_loja", "encarregado", "lider_setor"].includes(p.cargo));
         const unitCompletions = completions.filter((c) => c.unit_id === unit.id);
         const templateIds = new Set(unitCompletions.map((c) => c.template_id));
         const unitItems = items.filter((item) => templateIds.has(item.template_id));
