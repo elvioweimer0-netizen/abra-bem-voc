@@ -31,29 +31,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    try {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-      setProfile(data ?? null);
-    } catch {
-      setProfile(null);
-    }
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+    setProfile(data);
   };
 
   useEffect(() => {
-    let cancelled = false;
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (cancelled) return;
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
           if (event === "SIGNED_IN") {
-            (supabase as any).rpc("increment_login_count", { _user_id: session.user.id }).catch(() => undefined);
+            await (supabase as any).rpc("increment_login_count", { _user_id: session.user.id });
           }
           setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
@@ -64,27 +57,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
       }
       setLoading(false);
-    }).catch(() => {
-      if (!cancelled) setLoading(false);
     });
 
-    // Hard fallback: never block UI longer than 4s
-    const failsafe = window.setTimeout(() => {
-      if (!cancelled) setLoading(false);
-    }, 4000);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(failsafe);
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (username: string, password: string) => {
