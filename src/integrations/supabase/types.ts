@@ -370,6 +370,7 @@ export type Database = {
       }
       colaboradores: {
         Row: {
+          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at: string
           id: string
           matricula: string
@@ -380,6 +381,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula: string
@@ -390,6 +392,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula?: string
