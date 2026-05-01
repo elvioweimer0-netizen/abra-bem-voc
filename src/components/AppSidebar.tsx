@@ -28,6 +28,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import ConectaLockup from "@/components/ConectaLockup";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -156,12 +157,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
-      <div className="flex items-center gap-3 p-4">
-        <img src="/curio_logo_escuro.png" alt="Curió" className="h-10 w-auto shrink-0 object-contain" />
-        {!menuCollapsed && (
-          <div className="min-w-0">
-            <h2 className="brand-script truncate text-[18px] text-sidebar-foreground">Conecta Curió</h2>
-          </div>
+      <div className="flex items-center justify-center p-8">
+        {menuCollapsed ? (
+          <img src="/logos/curio_logo_vermelho.png" alt="Curió" className="h-10 w-auto object-contain" />
+        ) : (
+          <ConectaLockup variant="brown" size="md" />
         )}
       </div>
 
