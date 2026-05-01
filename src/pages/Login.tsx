@@ -72,7 +72,11 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full bg-[#33190F] text-white hover:bg-[#33190F]/90"
+                disabled={loading}
+              >
                 {loading ? "Carregando..." : "Entrar"}
               </Button>
             </form>
