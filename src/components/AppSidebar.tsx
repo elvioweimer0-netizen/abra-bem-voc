@@ -108,9 +108,50 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const menuCollapsed = isMobile ? false : collapsed;
   const { signOut, profile } = useAuth();
-  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm } = useRole();
+  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
 
+  const closeOnNav = () => isMobile && setOpenMobile(false);
+
+  // ───── Feed users: menu mínimo ─────
+  if (isFeedUser) {
+    const feedPrincipal: MenuItem[] = [
+      { title: "Início", url: "/", icon: Home },
+      { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
+      { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
+    ];
+    const feedComunicacao: MenuItem[] = [
+      { title: "Avisos", url: "/avisos", icon: Bell },
+      { title: "Notícias", url: "/noticias", icon: Megaphone },
+      { title: "Galeria do Curió", url: "/galeria", icon: Camera },
+      { title: "Documentos", url: "/rh/cartilha", icon: ScrollText },
+      { title: "Falar com RH", url: "/central-adm/rh", icon: Users },
+    ];
+    return (
+      <Sidebar collapsible="offcanvas" className="border-r-0">
+        <div className="flex items-center justify-center p-8">
+          {menuCollapsed ? (
+            <img src="/logos/curio_logo_vermelho.png" alt="Curió" className="h-10 w-auto object-contain" />
+          ) : (
+            <ConectaLockup variant="brown" size="md" />
+          )}
+        </div>
+        {!menuCollapsed && <Separator className="mx-4 w-auto opacity-30" />}
+        <SidebarContent className="mt-1 px-2">
+          <MenuSection label="Principal" items={feedPrincipal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+          <MenuSection label="Comunicação" items={feedComunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        </SidebarContent>
+        <SidebarFooter className="p-2">
+          <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground" onClick={signOut}>
+            <LogOut className="h-5 w-5" />
+            {!menuCollapsed && "Sair"}
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+    );
+  }
+
+  // ───── Líderes: menu completo (comportamento original) ─────
   const principal: MenuItem[] = [
     { title: "Início", url: "/", icon: Home },
     { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
@@ -168,12 +209,12 @@ export function AppSidebar() {
       {!menuCollapsed && <Separator className="mx-4 w-auto opacity-30" />}
 
       <SidebarContent className="mt-1 px-2">
-        <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Comunicação" items={comunicacao} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
-        <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={() => isMobile && setOpenMobile(false)} />
+        <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Comunicação" items={comunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
       </SidebarContent>
 
       <SidebarFooter className="p-2">
