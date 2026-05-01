@@ -10,6 +10,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Settings, User, UserCircle } from "lucide-react";
+import ConectaLockup from "@/components/ConectaLockup";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 
@@ -63,11 +64,8 @@ export function AppHeader() {
           )}
         </div>
 
-        <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
-          <span className="brand-script text-gradient-curio relative inline-block text-[20px] leading-none sm:text-[22px]">
-            <span className="absolute -left-2 -top-2 text-[10px]">🐦</span>
-            Conecta Curió
-          </span>
+        <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+          <ConectaLockup variant="light" size="sm" />
         </div>
         
         <div className="flex items-center gap-1 md:gap-3">

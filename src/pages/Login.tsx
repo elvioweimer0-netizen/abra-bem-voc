@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Lock, User } from "lucide-react";
+import ConectaLockup from "@/components/ConectaLockup";
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -27,16 +28,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col items-center bg-[#F7F7F8] p-4 pt-16">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <img
-            src="/curio_logo_vermelho.png"
-            alt="Curió Supermercados"
-            className="h-24 mx-auto mb-4 object-contain"
-          />
-          <h1 className="brand-script text-gradient-curio text-[32px] leading-tight">Conecta Curió</h1>
-          <p className="text-muted-foreground mt-1">Portal interno de gestão</p>
+        <div className="flex justify-center mb-12">
+          <ConectaLockup variant="light" size="lg" />
         </div>
 
         <Card className="card-shadow-lg border-border">
@@ -77,7 +72,11 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full bg-[#33190F] text-white hover:bg-[#33190F]/90"
+                disabled={loading}
+              >
                 {loading ? "Carregando..." : "Entrar"}
               </Button>
             </form>
