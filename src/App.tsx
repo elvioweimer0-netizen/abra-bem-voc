@@ -46,6 +46,13 @@ import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
 import DocumentosLideranca from "@/pages/DocumentosLideranca";
 import NotFound from "@/pages/NotFound";
+import { useRole } from "@/hooks/useRole";
+
+function LeaderOnly({ children }: { children: React.ReactNode }) {
+  const { isLider } = useRole();
+  if (!isLider) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 const queryClient = new QueryClient();
 
