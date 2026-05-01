@@ -81,13 +81,13 @@ function ProtectedRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/colaboradores" element={<Colaboradores />} />
-        <Route path="/colaboradores/:id" element={<ColaboradorPerfil />} />
+        <Route path="/colaboradores" element={<LeaderOnly><Colaboradores /></LeaderOnly>} />
+        <Route path="/colaboradores/:id" element={<LeaderOnly><ColaboradorPerfil /></LeaderOnly>} />
         <Route path="/meu-perfil" element={<MeuPerfil />} />
-        <Route path="/advertencias" element={<Advertencias />} />
-        <Route path="/suspensoes" element={<Suspensoes />} />
-        <Route path="/departamentos" element={<Departamentos />} />
-        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/advertencias" element={<LeaderOnly><Advertencias /></LeaderOnly>} />
+        <Route path="/suspensoes" element={<LeaderOnly><Suspensoes /></LeaderOnly>} />
+        <Route path="/departamentos" element={<LeaderOnly><Departamentos /></LeaderOnly>} />
+        <Route path="/relatorios" element={<LeaderOnly><Relatorios /></LeaderOnly>} />
         <Route path="/assistente" element={<Assistente />} />
         <Route path="/rh/codigo-etica" element={<CodigoEtica />} />
         <Route path="/rh/cartilha" element={<CartilhaOperacional />} />
