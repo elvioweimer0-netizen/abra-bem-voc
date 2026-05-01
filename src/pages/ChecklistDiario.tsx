@@ -14,7 +14,7 @@ const db = supabase as any;
 
 type Unit = { id: string; code: string; name: string; type: "loja" | "central" };
 type Template = { id: string; name: string; unit_type: string; period: string; role_target: string };
-type Item = { id: string; template_id: string; ordem: number; descricao: string; tipo_resposta: "sim_nao" | "texto" | "foto" };
+type Item = { id: string; template_id: string; ordem: number; descricao: string; tipo_resposta: "sim_nao" | "texto" | "foto"; requires_photo?: boolean };
 type Completion = { id: string; template_id: string; status: string; completed_at: string | null };
 type Response = { id?: string; item_id: string; resposta?: string | null; foto_url?: string | null; observacao?: string | null; completed_at?: string | null };
 
@@ -88,10 +88,9 @@ export default function ChecklistDiario() {
       const templateIds = loadedTemplates.map((t: Template) => t.id);
       if (!templateIds.length) return;
 
-      const [{ data: itemData }, { data: completionData }] = await Promise.all([
-        db.from("checklist_items").select("id, template_id, ordem, descricao, tipo_resposta").in("template_id", templateIds).order("ordem"),
-        db.from("checklist_completions").select("id, template_id, status, completed_at").eq("user_id", user.id).eq("unit_id", selectedUnit.id).eq("data", todayISO()).in("template_id", templateIds),
-      ]);
+      const { data: itemData } = await db.from("checklist_items").select("id, template_id, ordem, descricao, tipo_resposta, requires_photo").in("template_id", templateIds).order("ordem");
+      const completionRes = await db.from("checklist_completions").select("id, template_id, status, completed_at").eq("user_id", user.id).eq("unit_id", selectedUnit.id).eq("data", todayISO()).in("template_id", templateIds);
+      const completionData = completionRes.data;
 
       setItems(itemData || []);
       const completionMap = Object.fromEntries((completionData || []).map((c: Completion) => [c.template_id, c]));
