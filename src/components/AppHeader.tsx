@@ -30,7 +30,8 @@ const cargoLabels: Record<string, string> = {
 };
 
 const viewAsOptions: Enums<"cargo_tipo">[] = [
-  "colaborador", "encarregado", "gerente", "admin",
+  "master", "admin", "supervisor", "gerente", "gerente_loja",
+  "gerente_adm", "encarregado", "fiscal", "lider_setor", "colaborador",
 ];
 
 /* ─── component ─── */
