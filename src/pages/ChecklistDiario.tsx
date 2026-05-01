@@ -258,18 +258,24 @@ export default function ChecklistDiario() {
                       <div className="flex items-start gap-3">
                         <Checkbox className="mt-1 h-8 w-8 rounded-lg" checked={checked} onCheckedChange={(value) => markItem(item, Boolean(value))} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-base font-semibold leading-snug text-foreground">{item.descricao}</p>
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-base font-semibold leading-snug text-foreground">{item.descricao}</p>
+                            {item.requires_photo && <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400">Foto obrigatória</span>}
+                          </div>
                           {checked && (
                             <p className="mt-2 flex items-center gap-1 text-xs text-success"><Clock className="h-3.5 w-3.5" /> Marcado às {timeLabel(response?.completed_at)}</p>
                           )}
                           {item.tipo_resposta === "texto" && (
                             <Input className="mt-3" placeholder="Digite a observação" value={response?.observacao || ""} onChange={(event) => updateObservation(item, event.target.value)} />
                           )}
-                          {item.tipo_resposta === "foto" && (
-                            <div className="mt-3">
+                          {(item.tipo_resposta === "foto" || item.requires_photo) && (
+                            <div className="mt-3 space-y-2">
                               <input ref={(node) => (fileInputs.current[item.id] = node)} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => uploadPhoto(item, event.target.files?.[0])} />
+                              {response?.foto_url && (
+                                <img src={response.foto_url} alt="Preview" className="h-32 w-full rounded-lg border border-border object-cover" />
+                              )}
                               <Button type="button" variant="outline" className="min-h-12 w-full justify-center gap-2" onClick={() => fileInputs.current[item.id]?.click()}>
-                                <Camera className="h-5 w-5" /> {response?.foto_url ? "Trocar foto" : "Abrir câmera"}
+                                <Camera className="h-5 w-5" /> {response?.foto_url ? "Trocar foto" : "Capturar foto"}
                               </Button>
                             </div>
                           )}
