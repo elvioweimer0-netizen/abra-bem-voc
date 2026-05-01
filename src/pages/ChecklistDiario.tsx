@@ -71,7 +71,7 @@ export default function ChecklistDiario() {
       if (!selectedUnit) return;
 
       const unitType = selectedUnit.code === "CP" ? "cp" : selectedUnit.code === "CD" ? "cd" : "loja";
-      const roleTarget = profile.cargo === "encarregado" || profile.cargo === "lider" ? "encarregado" : "gerente";
+      const roleTarget = profile.cargo === "encarregado" || profile.cargo === "lider_setor" ? "encarregado" : "gerente";
 
       const { data: templateData } = await db
         .from("checklist_templates")

@@ -4,11 +4,13 @@ import { cn } from "@/lib/utils";
 export const roleConfig: Record<string, { label: string; className: string }> = {
   master: { label: "Master", className: "bg-red-100 text-red-700 border-red-300" },
   admin: { label: "Admin", className: "bg-red-100 text-red-700 border-red-300" },
-  adm_departamento: { label: "Adm. Depto", className: "bg-purple-100 text-purple-700 border-purple-300" },
   supervisor: { label: "Supervisor", className: "bg-blue-100 text-blue-700 border-blue-300" },
-  encarregado: { label: "Encarregado", className: "bg-blue-100 text-blue-700 border-blue-300" },
-  lider: { label: "Líder", className: "bg-blue-100 text-blue-700 border-blue-300" },
   gerente: { label: "Gerente", className: "bg-orange-100 text-orange-700 border-orange-300" },
+  gerente_loja: { label: "Gerente Loja", className: "bg-orange-100 text-orange-700 border-orange-300" },
+  gerente_adm: { label: "Gerente Adm.", className: "bg-purple-100 text-purple-700 border-purple-300" },
+  encarregado: { label: "Encarregado", className: "bg-blue-100 text-blue-700 border-blue-300" },
+  fiscal: { label: "Fiscal", className: "bg-amber-100 text-amber-700 border-amber-300" },
+  lider_setor: { label: "Líder de Setor", className: "bg-teal-100 text-teal-700 border-teal-300" },
   colaborador: { label: "Colaborador", className: "bg-gray-100 text-gray-600 border-gray-300" },
 };
 

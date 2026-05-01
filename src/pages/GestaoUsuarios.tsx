@@ -205,7 +205,7 @@ export default function GestaoUsuarios() {
             <Shield className="h-5 w-5 text-warning" />
             <div>
               <p className="text-2xl font-bold">
-                {users.filter((u) => ["master", "admin", "adm_departamento"].includes(u.cargo)).length}
+                {users.filter((u) => ["master", "admin", "gerente_adm"].includes(u.cargo)).length}
               </p>
               <p className="text-xs text-muted-foreground">Admins</p>
             </div>

@@ -115,7 +115,7 @@ export default function BoEletronico() {
 
     const [{ data: unitData }, { data: peopleData }, { data: occurrenceData }, { data: authorData }] = await Promise.all([
       db.from("units").select("id, code, name").eq("active", true).order("code"),
-      db.from("profiles").select("user_id, nome, cargo").in("cargo", ["admin", "supervisor", "gerente", "gerente_loja", "encarregado", "lider", "adm_departamento", "gerente_adm"]),
+      db.from("profiles").select("user_id, nome, cargo").in("cargo", ["admin", "supervisor", "gerente", "gerente_loja", "encarregado", "lider_setor", "gerente_adm", "gerente_adm"]),
       query,
       db.from("profiles").select("user_id, nome"),
     ]);

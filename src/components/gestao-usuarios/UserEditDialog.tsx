@@ -71,8 +71,8 @@ export function UserEditDialog({ user, open, onClose, onSave, callerRole }: Prop
   const allowedRoles = Object.keys(roleConfig).filter((r) => {
     if (r === "master") return callerRole === "master";
     if (r === "admin") return callerRole === "master" || callerRole === "admin";
-    if (r === "adm_departamento") return ["master", "admin"].includes(callerRole);
-    if (r === "supervisor") return ["master", "admin", "adm_departamento"].includes(callerRole);
+    if (r === "gerente_adm") return ["master", "admin"].includes(callerRole);
+    if (r === "supervisor") return ["master", "admin", "gerente_adm"].includes(callerRole);
     return true;
   });
 

@@ -4,13 +4,13 @@ import { useViewAs } from "@/contexts/ViewAsContext";
 export type CargoTipo =
   | "master"
   | "admin"
-  | "encarregado"
-  | "adm_departamento"
   | "supervisor"
   | "gerente"
-  | "gerente_adm"
   | "gerente_loja"
-  | "lider"
+  | "gerente_adm"
+  | "encarregado"
+  | "fiscal"
+  | "lider_setor"
   | "colaborador";
 
 /** Perfis que podem ver áreas de gestão */
@@ -22,7 +22,7 @@ const GESTAO_ROLES: CargoTipo[] = [
 const ADMIN_ROLES: CargoTipo[] = ["master", "admin"];
 
 /** Perfis que podem gerenciar usuários */
-const USER_MGMT_ROLES: CargoTipo[] = ["master", "admin", "adm_departamento", "supervisor"];
+const USER_MGMT_ROLES: CargoTipo[] = ["master", "admin", "gerente_adm", "supervisor"];
 
 export function useRole() {
   const { profile } = useAuth();
@@ -36,7 +36,7 @@ export function useRole() {
       ? "supervisor"
     : ["gerente", "gerente_loja", "gerente_adm"].includes(cargo)
       ? "gerente"
-      : ["encarregado", "lider", "adm_departamento"].includes(cargo)
+      : ["encarregado", "lider_setor", "fiscal"].includes(cargo)
         ? "encarregado"
         : "colaborador";
 
@@ -50,9 +50,10 @@ export function useRole() {
     isAdmin: ADMIN_ROLES.includes(cargo),
     isRealAdmin: ADMIN_ROLES.includes(realCargo),
     isSupervisor: cargo === "supervisor",
-    isGerenteAdm: cargo === "gerente_adm" || cargo === "adm_departamento",
+    isGerenteAdm: cargo === "gerente_adm",
     isGerenteLoja: cargo === "gerente_loja" || cargo === "gerente",
-    isLider: cargo === "lider",
+    isLiderSetor: cargo === "lider_setor",
+    isFiscal: cargo === "fiscal",
     isColaborador: appProfile === "colaborador",
     isEncarregado: appProfile === "encarregado",
     isGerente: appProfile === "gerente",
@@ -66,7 +67,6 @@ export function useRole() {
     canEditGlobal: ADMIN_ROLES.includes(cargo) || cargo === "supervisor",
 
     /** Pode visualizar tudo mas só edita sua área */
-    canViewAll: ADMIN_ROLES.includes(cargo) || cargo === "supervisor" ||
-      cargo === "gerente_adm" || cargo === "adm_departamento",
+    canViewAll: ADMIN_ROLES.includes(cargo) || cargo === "supervisor" || cargo === "gerente_adm",
   };
 }
