@@ -45,10 +45,11 @@ import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
 import DocumentosLideranca from "@/pages/DocumentosLideranca";
+import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
 
-function LeaderOnly({ children }: { children: React.ReactNode }) {
+function LeaderOnly({ children }: { children: ReactNode }) {
   const { isLider } = useRole();
   if (!isLider) return <Navigate to="/" replace />;
   return <>{children}</>;
