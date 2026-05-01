@@ -6,6 +6,7 @@ import { useRole } from "@/hooks/useRole";
 import { AvisosBanner } from "@/components/AvisosBanner";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Camera, MessageCircle, Sparkles, Users } from "lucide-react";
+import { TopCuriosMes } from "@/components/TopCuriosMes";
 import type { Noticia } from "@/types/database";
 
 type TeamMate = { id: string; nome: string; cargo_titulo: string | null; cargo: string };
@@ -53,6 +54,8 @@ export default function FeedColaborador() {
       </div>
 
       <AvisosBanner />
+
+      <TopCuriosMes />
 
       <div>
         <h2 className="mb-3 text-lg font-semibold text-foreground">Atalhos rápidos</h2>
