@@ -31,36 +31,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      console.error("Erro ao carregar perfil", error);
+      setProfile(null);
+      return null;
+    }
+
     setProfile(data);
+    return data;
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          if (event === "SIGNED_IN") {
-            await (supabase as any).rpc("increment_login_count", { _user_id: session.user.id });
-          }
-          setTimeout(() => fetchProfile(session.user.id), 0);
+          setLoading(true);
+          setTimeout(async () => {
+            try {
+              if (event === "SIGNED_IN") {
+                void (supabase as any).rpc("increment_login_count", { _user_id: session.user.id });
+              }
+              await fetchProfile(session.user.id);
+            } finally {
+              setLoading(false);
+            }
+          }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
       }
       setLoading(false);
     });

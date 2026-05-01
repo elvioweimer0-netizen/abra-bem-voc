@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { PushPermission } from "@/components/PushPermission";
+import { Button } from "@/components/ui/button";
 import Login from "@/pages/Login";
 import TrocarSenha from "@/pages/TrocarSenha";
 import Dashboard from "@/pages/Dashboard";
@@ -58,7 +59,7 @@ function LeaderOnly({ children }: { children: ReactNode }) {
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, loading, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -71,8 +72,16 @@ function ProtectedRoutes() {
   if (!session) return <Navigate to="/login" replace />;
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+          <h1 className="text-xl font-bold text-foreground">Perfil não encontrado</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sua sessão está ativa, mas o perfil de acesso não carregou. Saia e entre novamente; se continuar, o usuário precisa ser revisado na gestão.
+          </p>
+          <Button className="mt-5 w-full" onClick={() => signOut()}>
+            Sair e tentar novamente
+          </Button>
+        </div>
       </div>
     );
   }
@@ -128,7 +137,7 @@ function ProtectedRoutes() {
 function AuthRoute() {
   const { session, profile, loading } = useAuth();
   if (loading) return null;
-  if (session && !profile) return null;
+  if (session && !profile) return <Navigate to="/" replace />;
   if (session) return <Navigate to={profile?.must_change_password ? "/trocar-senha" : "/"} replace />;
   return <Login />;
 }
@@ -137,7 +146,7 @@ function ChangePasswordRoute() {
   const { session, profile, loading } = useAuth();
   if (loading) return null;
   if (!session) return <Navigate to="/login" replace />;
-  if (!profile) return null;
+  if (!profile) return <Navigate to="/" replace />;
   return <TrocarSenha />;
 }
 
