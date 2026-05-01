@@ -370,7 +370,6 @@ export type Database = {
       }
       colaboradores: {
         Row: {
-          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at: string
           id: string
           matricula: string
@@ -381,7 +380,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          cargo: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula: string
@@ -392,7 +390,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          cargo?: Database["public"]["Enums"]["cargo_tipo"]
           created_at?: string
           id?: string
           matricula?: string
@@ -1497,6 +1494,7 @@ export type Database = {
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
           is_test: boolean
+          lider_setor_id: string | null
           login_count: number
           must_change_password: boolean
           nome: string
@@ -1524,6 +1522,7 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           is_test?: boolean
+          lider_setor_id?: string | null
           login_count?: number
           must_change_password?: boolean
           nome: string
@@ -1551,6 +1550,7 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           is_test?: boolean
+          lider_setor_id?: string | null
           login_count?: number
           must_change_password?: boolean
           nome?: string
@@ -1566,6 +1566,13 @@ export type Database = {
           welcome_banner_dismissed?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_lider_setor_id_fkey"
+            columns: ["lider_setor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_unit_id_fkey"
             columns: ["unit_id"]
@@ -2051,16 +2058,16 @@ export type Database = {
         | "decisao"
       attendance_status: "presente" | "falta" | "atraso"
       cargo_tipo:
-        | "admin"
-        | "gerente"
-        | "lider"
-        | "colaborador"
         | "master"
-        | "adm_departamento"
+        | "admin"
         | "supervisor"
-        | "gerente_adm"
+        | "gerente"
         | "gerente_loja"
+        | "gerente_adm"
         | "encarregado"
+        | "fiscal"
+        | "lider_setor"
+        | "colaborador"
       checklist_period:
         | "abertura"
         | "durante"
@@ -2282,16 +2289,16 @@ export const Constants = {
       ],
       attendance_status: ["presente", "falta", "atraso"],
       cargo_tipo: [
-        "admin",
-        "gerente",
-        "lider",
-        "colaborador",
         "master",
-        "adm_departamento",
+        "admin",
         "supervisor",
-        "gerente_adm",
+        "gerente",
         "gerente_loja",
+        "gerente_adm",
         "encarregado",
+        "fiscal",
+        "lider_setor",
+        "colaborador",
       ],
       checklist_period: [
         "abertura",
