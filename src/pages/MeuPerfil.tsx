@@ -16,7 +16,7 @@ type Evaluation = { nota_geral: number; observacoes: string | null; mes: string;
 type Praise = { id: string; motivo: string; categoria: string; criado_em: string };
 
 const sectorLabels: Record<string, string> = { acougue: "Açougue", padaria: "Padaria", hortifruti: "Hortifruti", mercearia: "Mercearia", frente_caixa: "Frente de Caixa", deposito: "Depósito", geral: "Geral" };
-const cargoLabels: Record<string, string> = { admin: "Admin", master: "Master", supervisor: "Supervisor", gerente: "Gerente", gerente_loja: "Gerente Loja", gerente_adm: "Gerente Adm.", adm_departamento: "Adm. Departamento", encarregado: "Encarregado", lider: "Líder", colaborador: "Colaborador" };
+const cargoLabels: Record<string, string> = { admin: "Admin", master: "Master", supervisor: "Supervisor", gerente: "Gerente", gerente_loja: "Gerente Loja", gerente_adm: "Gerente Adm.", encarregado: "Encarregado", fiscal: "Fiscal", lider_setor: "Líder de Setor", colaborador: "Colaborador" };
 
 function initials(name: string) { return name.split(" ").filter(Boolean).slice(0, 2).map((n) => n[0]).join("").toUpperCase(); }
 function onlyDigits(value?: string | null) { return (value || "").replace(/\D/g, ""); }
