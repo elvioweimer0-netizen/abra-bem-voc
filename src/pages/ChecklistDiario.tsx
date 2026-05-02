@@ -186,6 +186,8 @@ export default function ChecklistDiario() {
       },
     }));
   };
+
+  const savePeriod = async () => {
     if (!activeTemplate || !unit || !user) return;
     setSaving(true);
 
