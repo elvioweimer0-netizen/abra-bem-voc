@@ -26,6 +26,8 @@ import {
   Users,
   Video,
   Wrench,
+  Map,
+  History,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
