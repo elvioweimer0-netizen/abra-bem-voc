@@ -142,6 +142,7 @@ export function AppSidebar() {
   const { signOut, profile } = useAuth();
   const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
+  const isRhAdmin = useIsRhAdmin();
 
   const closeOnNav = () => isMobile && setOpenMobile(false);
 
