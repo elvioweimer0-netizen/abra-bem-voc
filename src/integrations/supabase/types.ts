@@ -2028,7 +2028,9 @@ export type Database = {
           code: string
           created_at: string
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           name: string
           type: Database["public"]["Enums"]["unit_type"]
           updated_at: string
@@ -2038,7 +2040,9 @@ export type Database = {
           code: string
           created_at?: string
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name: string
           type: Database["public"]["Enums"]["unit_type"]
           updated_at?: string
@@ -2048,7 +2052,9 @@ export type Database = {
           code?: string
           created_at?: string
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name?: string
           type?: Database["public"]["Enums"]["unit_type"]
           updated_at?: string
@@ -2075,6 +2081,70 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      visit_check_ins: {
+        Row: {
+          check_in_at: string
+          check_out_at: string | null
+          completion_id: string | null
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          observacao: string | null
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_at?: string
+          check_out_at?: string | null
+          completion_id?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          observacao?: string | null
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_at?: string
+          check_out_at?: string | null
+          completion_id?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          observacao?: string | null
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_check_ins_completion_id_fkey"
+            columns: ["completion_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_completions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_check_ins_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_check_ins_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
       }
       work_schedules: {
         Row: {
@@ -2214,6 +2284,7 @@ export type Database = {
         | "fechamento"
         | "producao_dia"
         | "operacao_cd"
+        | "visita_supervisor"
       checklist_response_type: "sim_nao" | "texto" | "foto" | "escala"
       checklist_role_target: "gerente" | "encarregado"
       checklist_status: "pendente" | "parcial" | "completo"
@@ -2446,6 +2517,7 @@ export const Constants = {
         "fechamento",
         "producao_dia",
         "operacao_cd",
+        "visita_supervisor",
       ],
       checklist_response_type: ["sim_nao", "texto", "foto", "escala"],
       checklist_role_target: ["gerente", "encarregado"],

@@ -47,6 +47,8 @@ import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
 import DocumentosLideranca from "@/pages/DocumentosLideranca";
 import CurioDeOuroPage from "@/pages/CurioDeOuroPage";
+import MapaVisitas from "@/pages/MapaVisitas";
+import HistoricoVisitas from "@/pages/HistoricoVisitas";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -54,6 +56,12 @@ import { useRole } from "@/hooks/useRole";
 function LeaderOnly({ children }: { children: ReactNode }) {
   const { isLider } = useRole();
   if (!isLider) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function SupervisorOnly({ children }: { children: ReactNode }) {
+  const { isAdmin, isSupervisor } = useRole();
+  if (!isAdmin && !isSupervisor) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -130,6 +138,8 @@ function ProtectedRoutes() {
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
         <Route path="/curio-de-ouro" element={<CurioDeOuroPage />} />
+        <Route path="/mapa-visitas" element={<SupervisorOnly><MapaVisitas /></SupervisorOnly>} />
+        <Route path="/historico-visitas" element={<SupervisorOnly><HistoricoVisitas /></SupervisorOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

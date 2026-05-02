@@ -1,106 +1,119 @@
+# Mapa de Visitação + Checklist de Visita do Supervisor
 
-# Refatoração Mobile-First — Conecta Curió
-
-Objetivo: 90% dos 240 funcionários vão usar no celular. Tornar o app uma experiência mobile-first sem quebrar o desktop. Todas as 4 features recém-implantadas (read receipts, foto checklist, semáforo, Curió de Ouro), RLS, helpers SQL e queries permanecem intocados.
-
----
-
-## 1. Bottom Navigation Mobile (`MobileBottomNav.tsx` — refatorar)
-
-- Altura **64px** + `pb-safe` para safe-area iOS, oculto em `md:` (≥768px).
-- Ícone ativo: `text-primary` (#B63533) + label semibold; inativo: `text-muted-foreground`.
-- Item central "Curiózinho" continua destacado (botão circular elevado).
-- **Líder** (`isLider`): Painel (/) | Equipe (rota dinâmica por cargo: minhas-unidades / minha-equipe / meu-setor) | Avisos | Curiózinho | Mais
-- **Feed** (`isFeedUser`): Início (/) | Avisos | Curió de Ouro | Curiózinho | Mais
-- "Mais" abre o drawer lateral (via `useSidebar().setOpenMobile(true)`) — não abre tela nova; o drawer já lista TUDO (Galeria, Documentos, RH, Meu Perfil, Configurações, Sair).
-
-## 2. Header Mobile (`AppHeader.tsx` — ajustar)
-
-- Altura 56px (atual já é `h-14`).
-- Mobile (<md): hambúrguer à esquerda (`SidebarTrigger`, sempre visível — não some quando dá `back`), logo central pequeno (32px de altura, `conecta_curio_claro.png` via `<img>` direto pra economizar), à direita: badge unidade abreviada + sino + avatar.
-- Botão "voltar" some no mobile (navegação por bottom nav); permanece no desktop.
-- Selects "Visualizar como" continuam só desktop (`lg:flex`).
-
-## 3. Drawer Lateral Mobile
-
-- Já usa `Sidebar collapsible="offcanvas"` que vira Sheet no mobile.
-- Ajustar:
-  - Largura ~80vw (atual já é configurável via CSS var `--sidebar-width-mobile`).
-  - Fundo marrom (#33190F → HSL `18 54% 13%` — já é `--sidebar-background`).
-  - Header do drawer: ConectaLockup brown md + bloco com avatar + nome + cargo + unidade (novo).
-  - Itens em branco (já está), ícone do item ativo em vermelho (`--sidebar-primary` já é #B63533).
-  - Rodapé: botão "Sair" (já existe).
-- Desktop: sidebar continua escondida por trás do hambúrguer (sem mudança).
-
-## 4. Tabelas → Cards no Mobile
-
-Já feito em Colaboradores. Aplicar mesmo padrão (Tailwind `md:` prefix, sem duplicar componente):
-- `Advertencias.tsx`, `Suspensoes.tsx`, `BoEletronico.tsx` (LeadershipOccurrences): `<div className="space-y-3 md:hidden">…cards…</div>` + `<Table className="hidden md:table">`.
-- `Departamentos.tsx`: tabs viram pills com `overflow-x-auto` no mobile.
-
-## 5. Ações Rápidas Home
-
-- `AcoesRapidas.tsx`: já usa `grid-cols-2 sm:grid-cols-3 xl:grid-cols-7`. Confirmar mobile = 2 colunas quadradas (já está). Aumentar levemente o tamanho do ícone no mobile (`w-7 h-7` → `w-8 h-8`).
-
-## 6. Toque-friendly
-
-- Adicionar utilities no `index.css`:
-  - `.btn-mobile { min-height: 52px; font-size: 16px; font-weight: 500; }` aplicado via classes em CTAs principais (login, cadastro, "Li e entendi", etc.).
-  - Sobrescrever altura mínima de Input via `input { @apply min-h-12; }` no layer base.
-- Padding interno de Dialog/Sheet: já é p-6; sobrescrever no mobile via `p-5` global.
-- Espaçamento vertical: `space-y-6 md:space-y-8` (padrão já adotado em Dashboard; aplicar em outras pages chave).
-
-## 7. PWA
-
-Manter abordagem atual (manifest + sw.js manual — sem `vite-plugin-pwa`, conforme guia da Lovable que desencoraja PWA dentro de iframe). Manifest e SW já existem; só ajustes:
-
-- `manifest.json`: já tem name "Curió Conecta" → mudar pra **"Conecta Curió"**, manter resto OK.
-- `index.html`: meta tags já presentes; adicionar `apple-touch-icon-precomposed` extra e link de splash iOS (opcional).
-- Splash screen: novo componente `<PwaSplash/>` que mostra fundo `#B63533` + `conecta_curio_splash_vermelho.png` por 800ms ao iniciar (só quando `display-mode: standalone`), fade-out via CSS.
-- SW (`public/sw.js`): trocar estratégia pra **network-first** real para navegação (já é) + cache fallback. Manter `/~oauth` denylist.
-
-**Nota explícita**: o SW só registra fora de iframe/preview (`src/lib/pwa.ts` já trata isso). PWA install/offline funciona apenas no domínio publicado, não no editor da Lovable.
-
-## 8. Web Push Notifications
-
-Backend já tem `push_subscriptions` e `notification_preferences`. Vou:
-
-- Criar Edge Function `send-push` (envio Web Push via VAPID) — **mas** isso requer chaves VAPID que precisam ser geradas/armazenadas como secret. **Vou pedir aprovação separada antes de criar a function**, porque exige `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`.
-- Ampliar `PushPermission.tsx` para, após permissão concedida, criar uma `PushSubscription` no browser (via `serviceWorker.pushManager.subscribe`) e fazer upsert em `push_subscriptions`.
-- Adicionar handler `push` no `public/sw.js` (já tem stub) para mostrar notificação.
-- Adicionar seção "Notificações" em `MeuPerfil.tsx` usando o componente já existente `NotificationSettings.tsx`.
-- Triggers de envio (avisos prioridade alta / Curió de Ouro / advertência) ficam para um **PR de follow-up** — apenas a infra de subscrição entra agora. Confirmar se concorda.
+Feature nova, isolada, reversível. Não mexe em RLS de tabelas existentes nem nas 4 features recentes (read receipts, foto checklist, semáforo, Curió de Ouro).
 
 ---
 
-## Arquivos a tocar
+## 1. Banco de dados (1 migration)
 
-**Editar:**
-- `src/components/MobileBottomNav.tsx` (reescrita: 5 itens dinâmicos por cargo + safe-area)
-- `src/components/AppHeader.tsx` (ajuste mobile: hambúrguer sempre visível, badge unidade)
-- `src/components/AppSidebar.tsx` (header com avatar/nome/cargo no topo do drawer)
-- `src/components/AppLayout.tsx` (montar `<PwaSplash/>`)
-- `src/components/dashboard/AcoesRapidas.tsx` (ícone ligeiramente maior mobile)
-- `src/pages/Advertencias.tsx`, `src/pages/Suspensoes.tsx`, `src/pages/BoEletronico.tsx`, `src/pages/Departamentos.tsx` (tabela→card mobile)
-- `src/pages/MeuPerfil.tsx` (montar `NotificationSettings`)
-- `src/components/PushPermission.tsx` (subscrição + upsert)
-- `src/index.css` (utilities mobile-friendly)
-- `public/manifest.json` (nome "Conecta Curió")
-- `public/sw.js` (handler push refinado)
-- `index.html` (apple meta extras)
+### 1.1 `units`: coordenadas
+- Adicionar colunas `latitude numeric`, `longitude numeric` (nullable).
+- **Não preencher agora** — você vai me passar os endereços/coords numa mensagem seguinte. Sem coordenadas, o marcador da unidade simplesmente não aparece no mapa (com aviso "unidade sem localização cadastrada").
 
-**Criar:**
-- `src/components/PwaSplash.tsx`
+### 1.2 Enum `checklist_period`: novo valor
+- `ALTER TYPE checklist_period ADD VALUE 'visita_supervisor'` (idempotente via `IF NOT EXISTS`).
 
-**NÃO tocar:**
-- RLS, helpers SQL, queries, types Supabase, ViewAsContext, AuthContext, useRole.
-- Estrutura dos cargos / divisão líder vs feed.
-- Componentes das 4 features recentes (AvisoReadButton, AvisoReadStats, ChecklistDiario lógica de foto, CardSemaforoUnidade, CurioDeOuroPage, TopCuriosMes).
+### 1.3 Template + 6 items
+- Inserir 1 `checklist_templates` (`name='Visita do Supervisor'`, `period='visita_supervisor'`, `role_target='supervisor'`, `unit_type='loja'`, `active=true`).
+- 6 `checklist_items` na ordem:
+  1. FLV organizado — `tipo_resposta=sim_nao`, `requires_photo=true`
+  2. Padaria com produto — `sim_nao`, foto
+  3. Açougue limpo — `sim_nao`, foto
+  4. Atendimento dos colaboradores — `escala` (Alto/Médio/Baixo, reusa o tipo criado pra Cartazeamento), sem foto
+  5. Frente de caixa organizada — `sim_nao`, sem foto
+  6. Estoque depósito — `texto`, sem foto (campo de observação livre)
+
+> Observação: o pedido cita "com observação" em alguns. Hoje todos os items já permitem `observacao` (campo na resposta). Marquei o tipo de resposta principal de cada um.
+
+### 1.4 Tabela `visit_check_ins`
+```text
+id              uuid pk default gen_random_uuid()
+user_id         uuid not null         (supervisor que visitou — perfil real, sem FK rígida pra auth.users)
+unit_id         uuid not null fk units(id) on delete cascade
+completion_id   uuid nullable fk checklist_completions(id) on delete set null
+check_in_at     timestamptz not null default now()
+check_out_at    timestamptz nullable
+latitude        numeric nullable
+longitude       numeric nullable
+observacao      text nullable
+created_at / updated_at
+```
+- Index `(unit_id, check_in_at desc)`.
+- Index `(user_id, check_in_at desc)`.
+- Trigger `update_updated_at_column`.
+
+### 1.5 RLS `visit_check_ins`
+- **INSERT**: `user_id = auth.uid()` AND (`has_role admin/master/supervisor`).
+- **SELECT**: `user_id = auth.uid()` OR `has_role admin/master/supervisor` OR (`is_unit_manager(auth.uid(), unit_id)`).
+- **UPDATE**: só o próprio supervisor (`user_id = auth.uid()`), e somente para encerrar — trigger `BEFORE UPDATE` que rejeita se `check_out_at` já estava preenchido (encerrar uma vez só) ou se qualquer coluna além de `check_out_at`/`observacao`/`updated_at` mudou.
+- **DELETE**: bloqueado.
+
+### 1.6 Relatório de policies criadas
+Listo no final do PR: 4 policies em `visit_check_ins` (INSERT/SELECT/UPDATE; DELETE não criada). Nada em outras tabelas.
 
 ---
 
-## Perguntas pra você antes de executar
+## 2. Frontend
 
-1. **Web Push (item 8)**: confirma que quer só a **infra de subscrição** agora (browser → tabela `push_subscriptions`)? O **envio real** (Edge Function + VAPID + triggers de aviso/elogio/advertência) vira PR separado quando você gerar as chaves VAPID. OK?
-2. **Splash screen**: 800ms está bom ou prefere outro tempo (500ms / 1200ms)?
-3. **Header mobile à direita**: badge da unidade + sino + avatar — em telas <375px (iPhone SE) pode ficar apertado. Ok ocultar a badge da unidade em telas muito estreitas (<sm) e mostrar só sino + avatar?
+### 2.1 Dependências
+- `leaflet` + `react-leaflet` + `@types/leaflet` (OpenStreetMap, sem API key).
+- CSS do Leaflet importado uma vez no entry do mapa.
+
+### 2.2 Arquivos novos
+- `src/pages/MapaVisitas.tsx` — rota `/mapa-visitas`, gated master/admin/supervisor.
+- `src/pages/HistoricoVisitas.tsx` — rota `/historico-visitas`, mesmo gate; filtros unidade/supervisor/período; modal com detalhe (respostas + fotos).
+- `src/components/visitas/UnitMarker.tsx` — ícone colorido (verde/amarelo/vermelho/cinza) por dias desde última visita.
+- `src/components/visitas/UnitVisitsPanel.tsx` — drawer/sheet lateral: últimas 5 visitas da unidade + botão **Iniciar visita aqui**.
+- `src/components/visitas/IniciarVisitaButton.tsx` — captura GPS via `navigator.geolocation.getCurrentPosition`, cria `visit_check_in` + `checklist_completion` (template visita_supervisor), redireciona pra `/checklist-diario?completion=<id>&visita=<visit_id>`.
+- `src/components/visitas/EncerrarVisitaBanner.tsx` — banner fixo que aparece em qualquer página enquanto há visita aberta (`check_out_at IS NULL`); botão "Encerrar visita".
+- `src/hooks/useVisitaAtiva.ts` — query da visita aberta do supervisor logado.
+
+### 2.3 Arquivos editados
+- `src/App.tsx` — registrar 2 rotas novas dentro de `LeaderOnly` + gate adicional por cargo (admin/master/supervisor).
+- `src/components/AppSidebar.tsx` — novo grupo **Visitas** com sub-itens **Mapa** e **Histórico**, visível só para admin/master/supervisor.
+- `src/pages/ChecklistDiario.tsx` — aceitar query params `?completion=<id>&visita=<id>`: se presentes, carrega esse completion específico (do template visita_supervisor) em vez do checklist diário padrão; ao finalizar, mostra link "Encerrar visita".
+- `src/components/AppLayout.tsx` — montar `<EncerrarVisitaBanner/>` (só renderiza se houver visita aberta).
+
+### 2.4 Lógica do mapa
+- Carrega `units` com `latitude/longitude not null`.
+- Para cada unit: query agregada da última `visit_check_ins.check_in_at`.
+- Cor: `≤3d verde`, `4-7d amarelo`, `≥8d vermelho`, `nunca cinza`.
+- Click no marcador → abre `UnitVisitsPanel` (Sheet lateral).
+
+### 2.5 PWA / Geo
+- Geolocalização pedida só ao clicar **Iniciar visita** (não bloqueia o app).
+- Tratamento: `PERMISSION_DENIED` → toast "Permita acesso à localização para registrar visita"; `POSITION_UNAVAILABLE`/`TIMEOUT` → permite registrar visita sem GPS (latitude/longitude null) com toast "Visita registrada sem localização".
+- Sem mudanças no `sw.js` ou `manifest.json`.
+
+---
+
+## 3. Arquivos tocados (resumo)
+
+**Migration:** `supabase/migrations/<timestamp>_visit_checkins.sql`
+
+**Novos:**
+- `src/pages/MapaVisitas.tsx`
+- `src/pages/HistoricoVisitas.tsx`
+- `src/components/visitas/UnitMarker.tsx`
+- `src/components/visitas/UnitVisitsPanel.tsx`
+- `src/components/visitas/IniciarVisitaButton.tsx`
+- `src/components/visitas/EncerrarVisitaBanner.tsx`
+- `src/hooks/useVisitaAtiva.ts`
+
+**Editados:**
+- `src/App.tsx`
+- `src/components/AppSidebar.tsx`
+- `src/components/AppLayout.tsx`
+- `src/pages/ChecklistDiario.tsx`
+- `package.json` (deps leaflet)
+
+**Não tocados:** RLS de outras tabelas, hooks de role, features recentes, ViewAsContext, AuthContext.
+
+---
+
+## Confirmações antes de executar
+
+1. **Coordenadas das unidades**: deixo nullable agora, você me passa lat/lng numa próxima mensagem (ou aprova eu rodar geocoding via Nominatim com os endereços que você fornecer)?
+2. **Item "Estoque depósito"**: tipo `texto` (campo livre) ou `sim_nao` + observação? Você disse "com observação" — assumi `texto` puro. OK?
+3. **Atendimento dos colaboradores**: usar o tipo `escala` (Alto/Médio/Baixo) que já existe? OK?
+4. **Visita aberta simultânea**: bloquear iniciar nova visita se já há uma sem `check_out_at`? (recomendo sim, para não duplicar).

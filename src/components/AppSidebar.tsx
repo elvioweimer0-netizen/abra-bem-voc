@@ -26,6 +26,8 @@ import {
   Users,
   Video,
   Wrench,
+  Map,
+  History,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
@@ -215,6 +217,13 @@ export function AppSidebar() {
     ...(isGerente ? [{ title: "Avaliações de Encarregado", url: "/avaliacoes", icon: Star }, { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion }, { title: "Relatórios da Unidade", url: "/relatorios", icon: Gauge }] : []),
   ];
 
+  const visitas: MenuItem[] = (isAdmin || isSupervisor)
+    ? [
+        { title: "Mapa de Visitas", url: "/mapa-visitas", icon: Map },
+        { title: "Histórico de Visitas", url: "/historico-visitas", icon: History },
+      ]
+    : [];
+
   const centralAdm = isAdmin ? centralAreas : getCentralArea(profile);
 
   const superAdmin: MenuItem[] = isAdmin
@@ -244,6 +253,7 @@ export function AppSidebar() {
         <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Comunicação" items={comunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Visitas" items={visitas} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
