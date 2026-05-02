@@ -1,3 +1,6 @@
 project_id = "ejmqntdcjbzseovoivnu"
 [functions.seed-test-users]
 verify_jwt = false
+
+[functions.geocode-units]
+verify_jwt = false
