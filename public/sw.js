@@ -1,4 +1,4 @@
-const CACHE_NAME = "curio-conecta-v1";
+const CACHE_NAME = "curio-conecta-v2";
 const APP_SHELL = [
   "/",
   "/avisos",
@@ -7,9 +7,10 @@ const APP_SHELL = [
   "/rh/cartilha",
   "/rh/politicas",
   "/manifest.json",
-  "/curio_app_icon_192.png",
-  "/curio_app_icon_512.png",
-  "/curio_logo_vermelho.png"
+  "/logos/curio_app_icon_192.png",
+  "/logos/curio_app_icon_512.png",
+  "/logos/curio_logo_vermelho.png",
+  "/logos/conecta_lockup/conecta_curio_splash_vermelho.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -52,8 +53,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "Conecta Curió", {
       body: data.body || "Nova atualização disponível.",
-      icon: "/curio_app_icon_192.png",
-      badge: "/curio_app_icon_192.png",
+      icon: "/logos/curio_app_icon_192.png",
+      badge: "/logos/curio_app_icon_192.png",
       data: { url: data.url || "/" }
     })
   );

@@ -9,12 +9,11 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Settings, User, UserCircle } from "lucide-react";
-import ConectaLockup from "@/components/ConectaLockup";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
-
-/* ─── labels & config ─── */
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const cargoLabels: Record<string, string> = {
   master: "👑 Master",
@@ -34,28 +33,32 @@ const viewAsOptions: Enums<"cargo_tipo">[] = [
   "gerente_adm", "encarregado", "fiscal", "lider_setor", "colaborador",
 ];
 
-/* ─── component ─── */
-
 export function AppHeader() {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const { profile, signOut } = useAuth();
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
 
   const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
-  const showBack = !rootRoutes.includes(location.pathname);
+  const showBack = !isMobile && !rootRoutes.includes(location.pathname);
   const profileAny = profile as any;
   const displayCargo = profileAny?.cargo_titulo || cargoLabels[realCargo]?.replace(/^.+\s/, "") || realCargo;
   const displayUnit = isRealAdmin || isSupervisor || !profile?.unit_id ? "Todas as unidades" : profile?.unidade;
+  const unitShort = displayUnit && displayUnit !== "Todas as unidades" ? String(displayUnit).split(" ")[0] : "REDE";
   const initials = (profile?.nome || "Usuário").split(" ").filter(Boolean).slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 
   return (
     <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="relative flex h-14 items-center justify-between px-3 md:px-6">
-        <div className="flex items-center gap-3">
+      <div className="relative flex h-14 items-center justify-between px-2 md:px-6">
+        <div className="flex items-center gap-2">
           {showBack ? (
-            <button className="flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted" onClick={() => navigate(-1)} aria-label="Voltar">
+            <button
+              className="flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
+              onClick={() => navigate(-1)}
+              aria-label="Voltar"
+            >
               <ArrowLeft className="h-6 w-6" />
             </button>
           ) : (
@@ -66,9 +69,18 @@ export function AppHeader() {
         </div>
 
         <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-          <ConectaLockup variant="light" size="sm" />
+          <img
+            src="/logos/conecta_lockup/conecta_curio_vermelho.png"
+            alt="Conecta Curió"
+            className="h-8 w-auto md:hidden"
+          />
+          <img
+            src="/logos/conecta_lockup/conecta_curio_vermelho.png"
+            alt="Conecta Curió"
+            className="hidden h-10 w-auto md:block"
+          />
         </div>
-        
+
         <div className="flex items-center gap-1 md:gap-3">
           {isRealAdmin && (
             <>
@@ -108,10 +120,20 @@ export function AppHeader() {
           )}
 
           {profile && (
-            <div className="flex items-center gap-2 ml-1">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Badge
+                variant="outline"
+                className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wider border-primary/30 text-primary"
+                title={String(displayUnit)}
+              >
+                {unitShort}
+              </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted" aria-label="Abrir notificações">
+                  <button
+                    className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+                    aria-label="Abrir notificações"
+                  >
                     <Bell className="h-5 w-5" />
                     <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
                   </button>
@@ -126,9 +148,16 @@ export function AppHeader() {
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex min-h-11 items-center gap-2 rounded-lg px-1 text-left transition-colors hover:bg-muted sm:px-2" aria-label="Abrir menu do perfil">
+                  <button
+                    className="flex min-h-11 items-center gap-2 rounded-lg px-1 text-left transition-colors hover:bg-muted sm:px-2"
+                    aria-label="Abrir menu do perfil"
+                  >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-bold text-primary">
-                      {profileAny?.foto_url ? <img src={profileAny.foto_url} alt={profile.nome} className="h-full w-full object-cover" /> : initials || <User className="h-4 w-4" />}
+                      {profileAny?.foto_url ? (
+                        <img src={profileAny.foto_url} alt={profile.nome} className="h-full w-full object-cover" />
+                      ) : (
+                        initials || <User className="h-4 w-4" />
+                      )}
                     </div>
                   </button>
                 </DropdownMenuTrigger>

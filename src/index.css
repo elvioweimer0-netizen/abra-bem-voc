@@ -157,6 +157,23 @@
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
+  /* Mobile-friendly CTA: use em botões principais (login, "Li e entendi", etc.) */
+  .btn-mobile {
+    min-height: 52px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+/* Touch-friendly defaults no mobile: inputs com altura mínima de 48px,
+   evita zoom no iOS quando o input recebe foco (font-size >= 16px). */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    min-height: 48px;
+    font-size: 16px;
+  }
 }
 
 @keyframes home-brand-in {

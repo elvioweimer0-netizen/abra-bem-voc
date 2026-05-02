@@ -7,10 +7,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { FloatingBoButton } from "@/components/leadership/FloatingBoButton";
 import { SimulationBanner } from "@/components/SimulationBanner";
+import { PwaSplash } from "@/components/PwaSplash";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <ViewAsProvider>
+      <PwaSplash />
       <SidebarProvider defaultOpen={false}>
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
