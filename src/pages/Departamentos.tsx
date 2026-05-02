@@ -90,12 +90,20 @@ export default function Departamentos() {
         </Dialog>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {setores.map((s) => (
-          <Button key={s} variant={setor === s ? "default" : "outline"} size="sm" onClick={() => setSetor(s)}>
-            {setorLabels[s]}
-          </Button>
-        ))}
+      <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:overflow-visible sm:pb-0">
+          {setores.map((s) => (
+            <Button
+              key={s}
+              variant={setor === s ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSetor(s)}
+              className="shrink-0 rounded-full"
+            >
+              {setorLabels[s]}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

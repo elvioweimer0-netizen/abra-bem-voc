@@ -60,9 +60,9 @@ export function AcoesRapidas() {
           >
             <CardContent className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center">
               <div
-                className={`w-14 h-14 rounded-xl flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform`}
+                className={`w-14 h-14 md:w-14 md:h-14 rounded-xl flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform`}
               >
-                <action.icon className="w-7 h-7" />
+                <action.icon className="w-8 h-8 md:w-7 md:h-7" />
               </div>
               <span className="text-sm font-semibold text-foreground leading-tight">
                 {action.label}
