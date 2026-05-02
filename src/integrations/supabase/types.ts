@@ -2028,7 +2028,9 @@ export type Database = {
           code: string
           created_at: string
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           name: string
           type: Database["public"]["Enums"]["unit_type"]
           updated_at: string
@@ -2038,7 +2040,9 @@ export type Database = {
           code: string
           created_at?: string
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name: string
           type: Database["public"]["Enums"]["unit_type"]
           updated_at?: string
@@ -2048,7 +2052,9 @@ export type Database = {
           code?: string
           created_at?: string
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name?: string
           type?: Database["public"]["Enums"]["unit_type"]
           updated_at?: string
@@ -2214,6 +2220,7 @@ export type Database = {
         | "fechamento"
         | "producao_dia"
         | "operacao_cd"
+        | "visita_supervisor"
       checklist_response_type: "sim_nao" | "texto" | "foto" | "escala"
       checklist_role_target: "gerente" | "encarregado"
       checklist_status: "pendente" | "parcial" | "completo"
@@ -2446,6 +2453,7 @@ export const Constants = {
         "fechamento",
         "producao_dia",
         "operacao_cd",
+        "visita_supervisor",
       ],
       checklist_response_type: ["sim_nao", "texto", "foto", "escala"],
       checklist_role_target: ["gerente", "encarregado"],
