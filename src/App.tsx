@@ -138,6 +138,8 @@ function ProtectedRoutes() {
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
         <Route path="/curio-de-ouro" element={<CurioDeOuroPage />} />
+        <Route path="/mapa-visitas" element={<SupervisorOnly><MapaVisitas /></SupervisorOnly>} />
+        <Route path="/historico-visitas" element={<SupervisorOnly><HistoricoVisitas /></SupervisorOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
