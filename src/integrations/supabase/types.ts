@@ -2214,7 +2214,7 @@ export type Database = {
         | "fechamento"
         | "producao_dia"
         | "operacao_cd"
-      checklist_response_type: "sim_nao" | "texto" | "foto"
+      checklist_response_type: "sim_nao" | "texto" | "foto" | "escala"
       checklist_role_target: "gerente" | "encarregado"
       checklist_status: "pendente" | "parcial" | "completo"
       colaborador_status: "ativo" | "inativo" | "ferias" | "afastado"
@@ -2447,7 +2447,7 @@ export const Constants = {
         "producao_dia",
         "operacao_cd",
       ],
-      checklist_response_type: ["sim_nao", "texto", "foto"],
+      checklist_response_type: ["sim_nao", "texto", "foto", "escala"],
       checklist_role_target: ["gerente", "encarregado"],
       checklist_status: ["pendente", "parcial", "completo"],
       colaborador_status: ["ativo", "inativo", "ferias", "afastado"],

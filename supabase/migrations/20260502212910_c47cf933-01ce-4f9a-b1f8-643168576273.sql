@@ -1,0 +1,1 @@
+ALTER TYPE checklist_response_type ADD VALUE IF NOT EXISTS 'escala';
