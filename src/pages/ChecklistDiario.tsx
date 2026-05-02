@@ -14,7 +14,13 @@ const db = supabase as any;
 
 type Unit = { id: string; code: string; name: string; type: "loja" | "central" };
 type Template = { id: string; name: string; unit_type: string; period: string; role_target: string };
-type Item = { id: string; template_id: string; ordem: number; descricao: string; tipo_resposta: "sim_nao" | "texto" | "foto"; requires_photo?: boolean };
+type Item = { id: string; template_id: string; ordem: number; descricao: string; tipo_resposta: "sim_nao" | "texto" | "foto" | "escala"; requires_photo?: boolean };
+
+const ESCALA_OPTIONS: { value: "alto" | "medio" | "baixo"; label: string; tone: string }[] = [
+  { value: "alto", label: "Alto", tone: "bg-success text-success-foreground border-success" },
+  { value: "medio", label: "Médio", tone: "bg-amber-500 text-white border-amber-500" },
+  { value: "baixo", label: "Baixo", tone: "bg-destructive text-destructive-foreground border-destructive" },
+];
 type Completion = { id: string; template_id: string; status: string; completed_at: string | null };
 type Response = { id?: string; item_id: string; resposta?: string | null; foto_url?: string | null; observacao?: string | null; completed_at?: string | null };
 
