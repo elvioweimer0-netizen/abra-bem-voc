@@ -2082,6 +2082,70 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_check_ins: {
+        Row: {
+          check_in_at: string
+          check_out_at: string | null
+          completion_id: string | null
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          observacao: string | null
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_at?: string
+          check_out_at?: string | null
+          completion_id?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          observacao?: string | null
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_at?: string
+          check_out_at?: string | null
+          completion_id?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          observacao?: string | null
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_check_ins_completion_id_fkey"
+            columns: ["completion_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_completions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_check_ins_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_check_ins_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       work_schedules: {
         Row: {
           created_at: string
