@@ -45,6 +45,9 @@ function timeLabel(value?: string | null) {
 export default function ChecklistDiario() {
   const { profile, user } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const visitCompletionId = searchParams.get("completion");
+  const visitId = searchParams.get("visita");
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const [unit, setUnit] = useState<Unit | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
