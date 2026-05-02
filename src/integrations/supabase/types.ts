@@ -1462,6 +1462,32 @@ export type Database = {
           },
         ]
       }
+      occurrence_reason_modules: {
+        Row: {
+          reason_key: string
+          training_module_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          reason_key: string
+          training_module_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          reason_key?: string
+          training_module_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "occurrence_reason_modules_training_module_id_fkey"
+            columns: ["training_module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ocorrencias: {
         Row: {
           created_at: string
@@ -1723,6 +1749,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quiz_questions: {
+        Row: {
+          correct_index: number
+          created_at: string
+          id: string
+          module_id: string
+          options: Json
+          ordem: number
+          question_text: string
+        }
+        Insert: {
+          correct_index: number
+          created_at?: string
+          id?: string
+          module_id: string
+          options: Json
+          ordem?: number
+          question_text: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string
+          id?: string
+          module_id?: string
+          options?: Json
+          ordem?: number
+          question_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reunioes: {
         Row: {
@@ -2022,6 +2086,124 @@ export type Database = {
           },
         ]
       }
+      training_attempts: {
+        Row: {
+          answers: Json
+          attempted_at: string
+          id: string
+          module_id: string
+          passed: boolean | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          attempted_at?: string
+          id?: string
+          module_id: string
+          passed?: boolean | null
+          score: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          attempted_at?: string
+          id?: string
+          module_id?: string
+          passed?: boolean | null
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_attempts_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_completions: {
+        Row: {
+          completed_at: string
+          id: string
+          module_id: string
+          score: number
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          module_id: string
+          score: number
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          module_id?: string
+          score?: number
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_completions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_modules: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["training_category"]
+          created_at: string
+          created_by: string | null
+          description: string
+          duration_seconds: number
+          id: string
+          ordem: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["training_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          duration_seconds?: number
+          id?: string
+          ordem?: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["training_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          duration_seconds?: number
+          id?: string
+          ordem?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           active: boolean
@@ -2244,6 +2426,7 @@ export type Database = {
         Returns: boolean
       }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
+      is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
       is_unit_manager: {
         Args: { _unit_id: string; _user_id: string }
         Returns: boolean
@@ -2251,6 +2434,10 @@ export type Database = {
       profile_matches_occurrence_reason: {
         Args: { _motivos: Json; _unit_id: string; _user_id: string }
         Returns: boolean
+      }
+      submit_quiz: {
+        Args: { _answers: Json; _module_id: string }
+        Returns: Json
       }
       user_can_access_unit: {
         Args: { _unit_id: string; _user_id: string }
@@ -2354,6 +2541,14 @@ export type Database = {
         | "frente_caixa"
         | "deposito"
         | "geral"
+      training_category:
+        | "atendimento"
+        | "flv"
+        | "padaria"
+        | "acougue"
+        | "seguranca_alimentar"
+        | "codigo_etica"
+        | "outros"
       unidade_tipo:
         | "CIDADE ALTA"
         | "GOIABEIRAS"
@@ -2594,6 +2789,15 @@ export const Constants = {
         "frente_caixa",
         "deposito",
         "geral",
+      ],
+      training_category: [
+        "atendimento",
+        "flv",
+        "padaria",
+        "acougue",
+        "seguranca_alimentar",
+        "codigo_etica",
+        "outros",
       ],
       unidade_tipo: [
         "CIDADE ALTA",
