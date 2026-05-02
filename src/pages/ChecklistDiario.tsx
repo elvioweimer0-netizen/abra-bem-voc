@@ -288,6 +288,23 @@ export default function ChecklistDiario() {
                           {item.tipo_resposta === "texto" && (
                             <Input className="mt-3" placeholder="Digite a observação" value={response?.observacao || ""} onChange={(event) => updateObservation(item, event.target.value)} />
                           )}
+                          {item.tipo_resposta === "escala" && (
+                            <div className="mt-3 grid grid-cols-3 gap-2">
+                              {ESCALA_OPTIONS.map((opt) => {
+                                const selected = response?.resposta === opt.value;
+                                return (
+                                  <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setEscala(item, opt.value)}
+                                    className={`min-h-12 rounded-lg border-2 px-3 py-2 text-sm font-semibold transition ${selected ? opt.tone : "border-border bg-card text-foreground hover:bg-muted"}`}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                           {(item.tipo_resposta === "foto" || item.requires_photo) && (
                             <div className="mt-3 space-y-2">
                               <input ref={(node) => (fileInputs.current[item.id] = node)} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => uploadPhoto(item, event.target.files?.[0])} />
