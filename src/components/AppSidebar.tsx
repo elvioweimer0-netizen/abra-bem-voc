@@ -166,6 +166,7 @@ export function AppSidebar() {
           )}
         </div>
         {!menuCollapsed && <Separator className="mx-4 w-auto opacity-30" />}
+        {!menuCollapsed && <UserBlock profile={profile} />}
         <SidebarContent className="mt-1 px-2">
           <MenuSection label="Principal" items={feedPrincipal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
           <MenuSection label="Comunicação" items={feedComunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
@@ -237,6 +238,7 @@ export function AppSidebar() {
       </div>
 
       {!menuCollapsed && <Separator className="mx-4 w-auto opacity-30" />}
+      {!menuCollapsed && <UserBlock profile={profile} />}
 
       <SidebarContent className="mt-1 px-2">
         <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
