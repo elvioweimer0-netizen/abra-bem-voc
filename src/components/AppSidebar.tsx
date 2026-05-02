@@ -52,6 +52,34 @@ type MenuItem = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
+const cargoLabels: Record<string, string> = {
+  master: "Master", admin: "Admin", supervisor: "Supervisor",
+  gerente: "Gerente", gerente_loja: "Gerente Loja", gerente_adm: "Gerente Adm.",
+  encarregado: "Encarregado", fiscal: "Fiscal", lider_setor: "Líder de Setor", colaborador: "Colaborador",
+};
+
+function UserBlock({ profile }: { profile: ReturnType<typeof useAuth>["profile"] }) {
+  if (!profile) return null;
+  const profileAny = profile as any;
+  const initials = (profile.nome || "U").split(" ").filter(Boolean).slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+  const cargoLabel = profileAny?.cargo_titulo || cargoLabels[profile.cargo as string] || profile.cargo;
+  return (
+    <div className="mx-3 mb-2 flex items-center gap-3 rounded-xl bg-sidebar-accent/40 p-3">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sidebar-primary/20 text-sm font-bold text-sidebar-primary-foreground">
+        {profileAny?.foto_url ? (
+          <img src={profileAny.foto_url} alt={profile.nome} className="h-full w-full object-cover" />
+        ) : (
+          initials
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-sidebar-foreground">{profile.nome}</p>
+        <p className="truncate text-xs text-sidebar-foreground/60">{cargoLabel} · {profile.unidade || "REDE"}</p>
+      </div>
+    </div>
+  );
+}
+
 const centralAreas = [
   { title: "RH", url: "/central-adm/rh", icon: Users, owner: "Gleisiane" },
   { title: "DP", url: "/central-adm/dp", icon: Briefcase, owner: "Ygor" },
