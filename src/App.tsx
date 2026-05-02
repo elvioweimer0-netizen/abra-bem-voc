@@ -47,6 +47,8 @@ import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
 import DocumentosLideranca from "@/pages/DocumentosLideranca";
 import CurioDeOuroPage from "@/pages/CurioDeOuroPage";
+import MapaVisitas from "@/pages/MapaVisitas";
+import HistoricoVisitas from "@/pages/HistoricoVisitas";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
