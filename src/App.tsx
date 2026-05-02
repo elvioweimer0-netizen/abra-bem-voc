@@ -49,6 +49,10 @@ import DocumentosLideranca from "@/pages/DocumentosLideranca";
 import CurioDeOuroPage from "@/pages/CurioDeOuroPage";
 import MapaVisitas from "@/pages/MapaVisitas";
 import HistoricoVisitas from "@/pages/HistoricoVisitas";
+import Treinamento from "@/pages/Treinamento";
+import TreinamentoDetalhe from "@/pages/TreinamentoDetalhe";
+import PerfilTreinamentos from "@/pages/PerfilTreinamentos";
+import AdminTreinamento from "@/pages/AdminTreinamento";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -140,6 +144,10 @@ function ProtectedRoutes() {
         <Route path="/curio-de-ouro" element={<CurioDeOuroPage />} />
         <Route path="/mapa-visitas" element={<SupervisorOnly><MapaVisitas /></SupervisorOnly>} />
         <Route path="/historico-visitas" element={<SupervisorOnly><HistoricoVisitas /></SupervisorOnly>} />
+        <Route path="/treinamento" element={<Treinamento />} />
+        <Route path="/treinamento/:id" element={<TreinamentoDetalhe />} />
+        <Route path="/perfil/treinamentos" element={<PerfilTreinamentos />} />
+        <Route path="/admin/treinamento" element={<AdminTreinamento />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

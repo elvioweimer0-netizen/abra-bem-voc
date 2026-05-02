@@ -28,7 +28,9 @@ import {
   Wrench,
   Map,
   History,
+  GraduationCap,
 } from "lucide-react";
+import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
 import { Button } from "@/components/ui/button";
@@ -140,6 +142,7 @@ export function AppSidebar() {
   const { signOut, profile } = useAuth();
   const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
+  const isRhAdmin = useIsRhAdmin();
 
   const closeOnNav = () => isMobile && setOpenMobile(false);
 
@@ -155,6 +158,7 @@ export function AppSidebar() {
       { title: "Notícias", url: "/noticias", icon: Megaphone },
       { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
       { title: "Galeria do Curió", url: "/galeria", icon: Camera },
+      { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
       { title: "Documentos", url: "/rh/cartilha", icon: ScrollText },
       { title: "Falar com RH", url: "/central-adm/rh", icon: Users },
     ];
@@ -196,6 +200,7 @@ export function AppSidebar() {
     { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
     { title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy },
     { title: "Galeria do Curió", url: "/galeria", icon: Camera },
+    { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
     { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
   ];
 
@@ -236,6 +241,10 @@ export function AppSidebar() {
       ]
     : [];
 
+  const adminTreinamento: MenuItem[] = isRhAdmin
+    ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -257,6 +266,7 @@ export function AppSidebar() {
         <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
       </SidebarContent>
 
       <SidebarFooter className="p-2">
