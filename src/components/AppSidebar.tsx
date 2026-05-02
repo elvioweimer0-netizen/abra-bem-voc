@@ -253,6 +253,7 @@ export function AppSidebar() {
         <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Comunicação" items={comunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Visitas" items={visitas} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
