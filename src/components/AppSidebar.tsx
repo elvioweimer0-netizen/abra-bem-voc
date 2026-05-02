@@ -158,6 +158,7 @@ export function AppSidebar() {
       { title: "Notícias", url: "/noticias", icon: Megaphone },
       { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
       { title: "Galeria do Curió", url: "/galeria", icon: Camera },
+      { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
       { title: "Documentos", url: "/rh/cartilha", icon: ScrollText },
       { title: "Falar com RH", url: "/central-adm/rh", icon: Users },
     ];
@@ -199,6 +200,7 @@ export function AppSidebar() {
     { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
     { title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy },
     { title: "Galeria do Curió", url: "/galeria", icon: Camera },
+    { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
     { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
   ];
 
