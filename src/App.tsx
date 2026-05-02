@@ -65,6 +65,8 @@ function SupervisorOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+const queryClient = new QueryClient();
+
 function ProtectedRoutes() {
   const { session, profile, loading, signOut } = useAuth();
 
