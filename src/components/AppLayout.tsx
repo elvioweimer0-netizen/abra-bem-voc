@@ -8,6 +8,7 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { FloatingBoButton } from "@/components/leadership/FloatingBoButton";
 import { SimulationBanner } from "@/components/SimulationBanner";
 import { PwaSplash } from "@/components/PwaSplash";
+import { EncerrarVisitaBanner } from "@/components/visitas/EncerrarVisitaBanner";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
