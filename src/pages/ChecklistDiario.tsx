@@ -274,7 +274,9 @@ export default function ChecklistDiario() {
                   <Card key={item.id} className="overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox className="mt-1 h-8 w-8 rounded-lg" checked={checked} onCheckedChange={(value) => markItem(item, Boolean(value))} />
+                        {item.tipo_resposta !== "escala" && (
+                          <Checkbox className="mt-1 h-8 w-8 rounded-lg" checked={checked} onCheckedChange={(value) => markItem(item, Boolean(value))} />
+                        )}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <p className="text-base font-semibold leading-snug text-foreground">{item.descricao}</p>
