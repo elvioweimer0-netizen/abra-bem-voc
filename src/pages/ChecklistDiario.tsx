@@ -175,7 +175,17 @@ export default function ChecklistDiario() {
     }));
   };
 
-  const savePeriod = async () => {
+  const setEscala = (item: Item, value: "alto" | "medio" | "baixo") => {
+    setResponses((current) => ({
+      ...current,
+      [item.id]: {
+        ...current[item.id],
+        item_id: item.id,
+        resposta: value,
+        completed_at: new Date().toISOString(),
+      },
+    }));
+  };
     if (!activeTemplate || !unit || !user) return;
     setSaving(true);
 
