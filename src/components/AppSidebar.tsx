@@ -28,7 +28,9 @@ import {
   Wrench,
   Map,
   History,
+  GraduationCap,
 } from "lucide-react";
+import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
 import { Button } from "@/components/ui/button";
