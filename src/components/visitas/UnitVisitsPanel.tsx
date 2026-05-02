@@ -48,7 +48,7 @@ export function UnitVisitsPanel({
         if (rows.length) {
           const ids = Array.from(new Set(rows.map((v) => v.user_id)));
           const { data: profs } = await db.from("profiles").select("user_id, nome").in("user_id", ids);
-          const map = new Map((profs || []).map((p: any) => [p.user_id, p.nome]));
+          const map = new Map<string, string | null>((profs || []).map((p: any) => [p.user_id, p.nome]));
           rows.forEach((v) => (v.supervisor = { nome: map.get(v.user_id) ?? null }));
         }
         setVisits(rows);
