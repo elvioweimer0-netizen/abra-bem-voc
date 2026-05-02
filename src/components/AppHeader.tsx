@@ -41,8 +41,8 @@ export function AppHeader() {
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
 
-  const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
-  const showBack = !isMobile && !rootRoutes.includes(location.pathname);
+  const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", "/curio-de-ouro", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
+  const showBack = !rootRoutes.includes(location.pathname);
   const profileAny = profile as any;
   const displayCargo = profileAny?.cargo_titulo || cargoLabels[realCargo]?.replace(/^.+\s/, "") || realCargo;
   const displayUnit = isRealAdmin || isSupervisor || !profile?.unit_id ? "Todas as unidades" : profile?.unidade;
