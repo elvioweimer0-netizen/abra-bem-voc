@@ -14,7 +14,13 @@ const db = supabase as any;
 
 type Unit = { id: string; code: string; name: string; type: "loja" | "central" };
 type Template = { id: string; name: string; unit_type: string; period: string; role_target: string };
-type Item = { id: string; template_id: string; ordem: number; descricao: string; tipo_resposta: "sim_nao" | "texto" | "foto"; requires_photo?: boolean };
+type Item = { id: string; template_id: string; ordem: number; descricao: string; tipo_resposta: "sim_nao" | "texto" | "foto" | "escala"; requires_photo?: boolean };
+
+const ESCALA_OPTIONS: { value: "alto" | "medio" | "baixo"; label: string; tone: string }[] = [
+  { value: "alto", label: "Alto", tone: "bg-success text-success-foreground border-success" },
+  { value: "medio", label: "Médio", tone: "bg-amber-500 text-white border-amber-500" },
+  { value: "baixo", label: "Baixo", tone: "bg-destructive text-destructive-foreground border-destructive" },
+];
 type Completion = { id: string; template_id: string; status: string; completed_at: string | null };
 type Response = { id?: string; item_id: string; resposta?: string | null; foto_url?: string | null; observacao?: string | null; completed_at?: string | null };
 
@@ -169,6 +175,18 @@ export default function ChecklistDiario() {
     }));
   };
 
+  const setEscala = (item: Item, value: "alto" | "medio" | "baixo") => {
+    setResponses((current) => ({
+      ...current,
+      [item.id]: {
+        ...current[item.id],
+        item_id: item.id,
+        resposta: value,
+        completed_at: new Date().toISOString(),
+      },
+    }));
+  };
+
   const savePeriod = async () => {
     if (!activeTemplate || !unit || !user) return;
     setSaving(true);
@@ -256,7 +274,9 @@ export default function ChecklistDiario() {
                   <Card key={item.id} className="overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox className="mt-1 h-8 w-8 rounded-lg" checked={checked} onCheckedChange={(value) => markItem(item, Boolean(value))} />
+                        {item.tipo_resposta !== "escala" && (
+                          <Checkbox className="mt-1 h-8 w-8 rounded-lg" checked={checked} onCheckedChange={(value) => markItem(item, Boolean(value))} />
+                        )}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <p className="text-base font-semibold leading-snug text-foreground">{item.descricao}</p>
@@ -267,6 +287,23 @@ export default function ChecklistDiario() {
                           )}
                           {item.tipo_resposta === "texto" && (
                             <Input className="mt-3" placeholder="Digite a observação" value={response?.observacao || ""} onChange={(event) => updateObservation(item, event.target.value)} />
+                          )}
+                          {item.tipo_resposta === "escala" && (
+                            <div className="mt-3 grid grid-cols-3 gap-2">
+                              {ESCALA_OPTIONS.map((opt) => {
+                                const selected = response?.resposta === opt.value;
+                                return (
+                                  <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setEscala(item, opt.value)}
+                                    className={`min-h-12 rounded-lg border-2 px-3 py-2 text-sm font-semibold transition ${selected ? opt.tone : "border-border bg-card text-foreground hover:bg-muted"}`}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           )}
                           {(item.tipo_resposta === "foto" || item.requires_photo) && (
                             <div className="mt-3 space-y-2">
