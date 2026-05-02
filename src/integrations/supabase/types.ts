@@ -2025,6 +2025,7 @@ export type Database = {
       units: {
         Row: {
           active: boolean
+          address: string | null
           code: string
           created_at: string
           id: string
@@ -2037,6 +2038,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          address?: string | null
           code: string
           created_at?: string
           id?: string
@@ -2049,6 +2051,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          address?: string | null
           code?: string
           created_at?: string
           id?: string
