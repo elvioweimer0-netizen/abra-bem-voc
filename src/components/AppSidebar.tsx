@@ -241,6 +241,10 @@ export function AppSidebar() {
       ]
     : [];
 
+  const adminTreinamento: MenuItem[] = isRhAdmin
+    ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
