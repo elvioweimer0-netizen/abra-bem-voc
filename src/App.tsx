@@ -59,7 +59,11 @@ function LeaderOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-const queryClient = new QueryClient();
+function SupervisorOnly({ children }: { children: ReactNode }) {
+  const { isAdmin, isSupervisor } = useRole();
+  if (!isAdmin && !isSupervisor) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 function ProtectedRoutes() {
   const { session, profile, loading, signOut } = useAuth();
