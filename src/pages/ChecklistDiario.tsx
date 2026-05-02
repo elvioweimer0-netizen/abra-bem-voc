@@ -64,6 +64,38 @@ export default function ChecklistDiario() {
     if (!profile || !user) return;
 
     const load = async () => {
+      // ─── Visit mode: load a single completion + its template ───
+      if (visitCompletionId) {
+        const { data: completion } = await db
+          .from("checklist_completions")
+          .select("id, template_id, status, completed_at, unit_id")
+          .eq("id", visitCompletionId)
+          .maybeSingle();
+        if (!completion) return;
+
+        const { data: tpl } = await db
+          .from("checklist_templates")
+          .select("id, name, unit_type, period, role_target")
+          .eq("id", completion.template_id)
+          .maybeSingle();
+        const { data: u } = await db.from("units").select("id, code, name, type").eq("id", completion.unit_id).maybeSingle();
+        setUnit(u);
+        if (tpl) {
+          setTemplates([tpl]);
+          setActivePeriod(tpl.period);
+        }
+        const { data: itemData } = await db.from("checklist_items").select("id, template_id, ordem, descricao, tipo_resposta, requires_photo").eq("template_id", completion.template_id).order("ordem");
+        setItems(itemData || []);
+        setCompletions({ [completion.template_id]: completion });
+        const { data: responseData } = await db
+          .from("checklist_item_responses")
+          .select("id, item_id, resposta, foto_url, observacao, completed_at")
+          .eq("completion_id", completion.id);
+        setResponses(Object.fromEntries((responseData || []).map((r: Response) => [r.item_id, r])));
+        return;
+      }
+
+      // ─── Standard daily mode ───
       const unitId = profileAny.unit_id;
       let selectedUnit: Unit | null = null;
 
@@ -89,6 +121,7 @@ export default function ChecklistDiario() {
         .eq("active", true)
         .in("unit_type", [unitType, "all"])
         .eq("role_target", roleTarget)
+        .neq("period", "visita_supervisor")
         .order("name");
 
       const loadedTemplates = templateData || [];
@@ -117,7 +150,7 @@ export default function ChecklistDiario() {
     };
 
     load();
-  }, [profile, user]);
+  }, [profile, user, visitCompletionId]);
 
   const activeTemplate = templates.find((t) => t.period === activePeriod) || templates[0];
   const activeItems = useMemo(
