@@ -275,7 +275,7 @@ export default function ChecklistDiario() {
     <div className="space-y-5">
       <section className="rounded-xl bg-primary p-4 text-primary-foreground shadow-sm">
         <p className="text-sm opacity-90">{new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
-        <h1 className="mt-1 text-2xl font-bold">Meu Checklist do Dia</h1>
+        <h1 className="mt-1 text-2xl font-bold">{visitId ? "Checklist da Visita" : "Meu Checklist do Dia"}</h1>
         <p className="mt-1 text-sm opacity-90">{profile.nome} • {unit?.name || profile.unidade}</p>
       </section>
 
