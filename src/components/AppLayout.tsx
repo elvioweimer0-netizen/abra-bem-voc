@@ -20,6 +20,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
             <SimulationBanner />
             <AppHeader />
+            <EncerrarVisitaBanner />
             <ScrollArea className="flex-1">
               <main className="px-4 pb-[5.5rem] pt-4 sm:px-6 md:pb-8 md:pt-6 lg:px-8 animate-in fade-in duration-300">
                 {children}
