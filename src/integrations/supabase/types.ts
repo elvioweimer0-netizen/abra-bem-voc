@@ -358,6 +358,30 @@ export type Database = {
         }
         Relationships: []
       }
+      birthday_messages: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message_text: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message_text?: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message_text?: string
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       checklist_completions: {
         Row: {
           completed_at: string | null
@@ -744,6 +768,20 @@ export type Database = {
             columns: ["author_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "daily_huddle_reports_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "daily_huddle_reports_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
             referencedColumns: ["user_id"]
           },
           {
@@ -1985,6 +2023,7 @@ export type Database = {
           cargo_titulo: string | null
           created_at: string
           data_admissao: string | null
+          data_nascimento: string | null
           descricao: string | null
           email: string
           first_login_at: string | null
@@ -2013,6 +2052,7 @@ export type Database = {
           cargo_titulo?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_nascimento?: string | null
           descricao?: string | null
           email: string
           first_login_at?: string | null
@@ -2041,6 +2081,7 @@ export type Database = {
           cargo_titulo?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_nascimento?: string | null
           descricao?: string | null
           email?: string
           first_login_at?: string | null
@@ -2881,6 +2922,20 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "weekly_commitments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "weekly_commitments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       work_schedules: {
@@ -2930,6 +2985,81 @@ export type Database = {
       }
     }
     Views: {
+      v_aniversariantes_hoje: {
+        Row: {
+          cargo: Database["public"]["Enums"]["cargo_tipo"] | null
+          cargo_titulo: string | null
+          dia: number | null
+          foto_url: string | null
+          mes: number | null
+          nome: string | null
+          setor: Database["public"]["Enums"]["setor_tipo"] | null
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+          user_id: string | null
+        }
+        Insert: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"] | null
+          cargo_titulo?: string | null
+          dia?: never
+          foto_url?: string | null
+          mes?: never
+          nome?: string | null
+          setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          user_id?: string | null
+        }
+        Update: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"] | null
+          cargo_titulo?: string | null
+          dia?: never
+          foto_url?: string | null
+          mes?: never
+          nome?: string | null
+          setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      v_aniversariantes_proximos_7d: {
+        Row: {
+          cargo: Database["public"]["Enums"]["cargo_tipo"] | null
+          cargo_titulo: string | null
+          days_ahead: number | null
+          dia: number | null
+          foto_url: string | null
+          mes: number | null
+          nome: string | null
+          setor: Database["public"]["Enums"]["setor_tipo"] | null
+          unidade: Database["public"]["Enums"]["unidade_tipo"] | null
+          user_id: string | null
+        }
+        Insert: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"] | null
+          cargo_titulo?: string | null
+          days_ahead?: never
+          dia?: never
+          foto_url?: string | null
+          mes?: never
+          nome?: string | null
+          setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          user_id?: string | null
+        }
+        Update: {
+          cargo?: Database["public"]["Enums"]["cargo_tipo"] | null
+          cargo_titulo?: string | null
+          days_ahead?: never
+          dia?: never
+          foto_url?: string | null
+          mes?: never
+          nome?: string | null
+          setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       v_mood_aggregate: {
         Row: {
           avg_score: number | null
@@ -3138,6 +3268,7 @@ export type Database = {
         | "iniciativa"
         | "melhoria"
         | "outro"
+        | "aniversario"
       reuniao_status: "agendada" | "em_andamento" | "finalizada" | "cancelada"
       reuniao_tipo: "online" | "presencial" | "hibrida"
       schedule_status: "rascunho" | "publicada"
@@ -3384,6 +3515,7 @@ export const Constants = {
         "iniciativa",
         "melhoria",
         "outro",
+        "aniversario",
       ],
       reuniao_status: ["agendada", "em_andamento", "finalizada", "cancelada"],
       reuniao_tipo: ["online", "presencial", "hibrida"],
