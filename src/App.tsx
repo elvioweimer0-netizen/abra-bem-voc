@@ -57,6 +57,8 @@ import UnidadePage from "@/pages/UnidadePage";
 import UnidadesIndex from "@/pages/UnidadesIndex";
 import Clima from "@/pages/Clima";
 import AdminClima from "@/pages/AdminClima";
+import DailyHuddle from "@/pages/DailyHuddle";
+import DailyHuddlePainel from "@/pages/DailyHuddlePainel";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -156,6 +158,8 @@ function ProtectedRoutes() {
         <Route path="/unidade/:id" element={<UnidadePage />} />
         <Route path="/clima" element={<Clima />} />
         <Route path="/admin/clima" element={<AdminClima />} />
+        <Route path="/daily-huddle" element={<LeaderOnly><DailyHuddle /></LeaderOnly>} />
+        <Route path="/daily-huddle/painel" element={<SupervisorOnly><DailyHuddlePainel /></SupervisorOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
