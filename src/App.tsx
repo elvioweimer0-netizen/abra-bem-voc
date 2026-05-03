@@ -77,6 +77,7 @@ import PerguntaSemanaDetalhe from "@/pages/PerguntaSemanaDetalhe";
 import AdminPerguntaSemana from "@/pages/AdminPerguntaSemana";
 import MeusStories from "@/pages/MeusStories";
 import AdminStories from "@/pages/AdminStories";
+import Heatmap from "@/pages/Heatmap";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
