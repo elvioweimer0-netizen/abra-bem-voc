@@ -93,6 +93,8 @@ import AdminScoreDimensions from "@/pages/AdminScoreDimensions";
 import TvDisplay from "@/pages/TvDisplay";
 import AdminTvDisplays from "@/pages/AdminTvDisplays";
 import CuriozinhoHistorico from "@/pages/CuriozinhoHistorico";
+import WhatsappResumo from "@/pages/WhatsappResumo";
+import WhatsappResumoHistorico from "@/pages/WhatsappResumoHistorico";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
