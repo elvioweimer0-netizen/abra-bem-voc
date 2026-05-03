@@ -168,6 +168,24 @@ export type Database = {
           },
         ]
       }
+      app_secrets: {
+        Row: {
+          created_at: string
+          key: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       attendance_records: {
         Row: {
           assignment_id: string | null
@@ -2227,6 +2245,141 @@ export type Database = {
           week_start_date?: string
         }
         Relationships: []
+      }
+      manager_feedback_cycles: {
+        Row: {
+          closes_at: string
+          created_at: string
+          id: string
+          opened_at: string
+          quarter: number
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          closes_at: string
+          created_at?: string
+          id?: string
+          opened_at?: string
+          quarter: number
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          closes_at?: string
+          created_at?: string
+          id?: string
+          opened_at?: string
+          quarter?: number
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      manager_feedback_questions: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          ordem: number
+          question_text: string
+          scale_max: number
+          scale_min: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          ordem?: number
+          question_text: string
+          scale_max?: number
+          scale_min?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          ordem?: number
+          question_text?: string
+          scale_max?: number
+          scale_min?: number
+        }
+        Relationships: []
+      }
+      manager_feedback_responses: {
+        Row: {
+          comment: string | null
+          created_at: string
+          cycle_id: string
+          id: string
+          manager_user_id: string
+          question_id: string
+          respondent_hash: string
+          score: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          cycle_id: string
+          id?: string
+          manager_user_id: string
+          question_id: string
+          respondent_hash: string
+          score: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          cycle_id?: string
+          id?: string
+          manager_user_id?: string
+          question_id?: string
+          respondent_hash?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_feedback_responses_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "manager_feedback_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_feedback_responses_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "manager_feedback_responses_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "manager_feedback_responses_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "manager_feedback_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "manager_feedback_questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       manager_score_dimensions: {
         Row: {
@@ -5371,6 +5524,10 @@ export type Database = {
       }
       chat_mark_read: { Args: { _conv: string }; Returns: undefined }
       chat_unread_count: { Args: { _uid: string }; Returns: number }
+      compute_feedback_hash: {
+        Args: { _cycle_id: string; _user_id: string }
+        Returns: string
+      }
       create_or_get_direct_chat: { Args: { _other: string }; Returns: string }
       fn_heatmap_indicators: {
         Args: { _period?: string }
@@ -5386,10 +5543,33 @@ export type Database = {
           unit_id: string
         }[]
       }
+      fn_manager_feedback_aggregated: {
+        Args: { _cycle_id?: string; _manager_user_id: string }
+        Returns: {
+          avg_score: number
+          count_responses: number
+          cycle_id: string
+          distribution: Json
+          ordem: number
+          question_code: string
+          question_id: string
+          question_text: string
+        }[]
+      }
+      fn_manager_feedback_comments: {
+        Args: { _cycle_id: string; _manager_user_id: string }
+        Returns: {
+          comment: string
+        }[]
+      }
       fn_my_day_overview: { Args: never; Returns: Json }
       fn_notification_grouping_key: {
         Args: { _payload: Json; _type: string }
         Returns: string
+      }
+      fn_user_already_answered_cycle: {
+        Args: { _cycle_id: string }
+        Returns: boolean
       }
       get_user_departamento: {
         Args: { _user_id: string }

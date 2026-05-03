@@ -13,6 +13,7 @@ import { MoodPrompt } from "@/components/clima/MoodPrompt";
 import { PulsePrompt } from "@/components/clima/PulsePrompt";
 import { BirthdayBanner } from "@/components/birthdays/BirthdayBanner";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { FeedbackBanner } from "@/components/feedback/FeedbackBanner";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -26,6 +27,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <OfflineBanner />
             <AppHeader />
             <EncerrarVisitaBanner />
+            <FeedbackBanner />
             <ScrollArea className="flex-1">
               <main className="px-4 pb-[5.5rem] pt-4 sm:px-6 md:pb-8 md:pt-6 lg:px-8 animate-in fade-in duration-300">
                 <BirthdayBanner />

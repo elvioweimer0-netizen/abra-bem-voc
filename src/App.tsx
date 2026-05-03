@@ -76,6 +76,10 @@ import MentoriaPage from "@/pages/MentoriaPage";
 import MinhasMentoriasPage from "@/pages/MinhasMentoriasPage";
 import PollsListPage from "@/pages/PollsListPage";
 import PollDetailPage from "@/pages/PollDetailPage";
+import FeedbackGerentePage from "@/pages/FeedbackGerentePage";
+import MeuFeedbackPage from "@/pages/MeuFeedbackPage";
+import AdminFeedbackGerentesPage from "@/pages/AdminFeedbackGerentesPage";
+import AdminFeedbackCiclosPage from "@/pages/AdminFeedbackCiclosPage";
 import Caderno from "@/pages/Caderno";
 import CadernoArtigo from "@/pages/CadernoArtigo";
 import AdminCaderno from "@/pages/AdminCaderno";
@@ -289,6 +293,10 @@ function ProtectedRoutes() {
         <Route path="/minhas-mentorias" element={<MinhasMentoriasPage />} />
         <Route path="/polls" element={<PollsListPage />} />
         <Route path="/polls/:id" element={<PollDetailPage />} />
+        <Route path="/feedback-gerente" element={<FeedbackGerentePage />} />
+        <Route path="/meu-feedback" element={<MeuFeedbackPage />} />
+        <Route path="/admin/feedback-gerentes" element={<SupervisorOnly><AdminFeedbackGerentesPage /></SupervisorOnly>} />
+        <Route path="/admin/feedback-gerentes/ciclos" element={<SupervisorOnly><AdminFeedbackCiclosPage /></SupervisorOnly>} />
         <Route path="/caderno" element={<LeaderOnly><Caderno /></LeaderOnly>} />
         <Route path="/caderno/:articleId" element={<LeaderOnly><CadernoArtigo /></LeaderOnly>} />
         <Route path="/admin/caderno" element={<RhAdminOnly><AdminCaderno /></RhAdminOnly>} />
