@@ -127,6 +127,7 @@ export default function Dashboard() {
       </Card>
       <AvisosBanner />
       <AniversariantesWidget />
+      <PlaybookSuggestionWidget />
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
       <BannerPrincipal noticia={heroBanner} />
