@@ -7,3 +7,6 @@ verify_jwt = false
 
 [functions.daily-huddle-reminders]
 verify_jwt = false
+
+[functions.commitments-reminders]
+verify_jwt = false
