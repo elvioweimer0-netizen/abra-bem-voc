@@ -150,6 +150,7 @@ export function AppSidebar() {
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
   const { canViewClima, canManageClima } = useClimateAccess();
+  const canEditCulture = useCanEditCulture();
 
   const profileAny = profile as any;
   const myUnitId = profileAny?.unit_id as string | undefined;
