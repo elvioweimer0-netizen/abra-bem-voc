@@ -19,3 +19,6 @@ verify_jwt = false
 
 [functions.generate-daily-briefing]
 verify_jwt = false
+
+[functions.generate-meeting-agenda]
+verify_jwt = false
