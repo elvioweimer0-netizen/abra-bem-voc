@@ -1,111 +1,136 @@
-# Reações + Comentários nos Avisos — Plano
+# Aniversariantes + Reconhecimento — Plano
 
-Adiciona engajamento aos avisos: 5 emojis de reação (toggle) e thread de comentários com 1 nível de reply, edição em 15min e soft-delete por moderador.
+Detecta aniversariantes do dia, mostra widget no Painel/Feed, banner pro próprio aniversariante, e permite "Parabenizar" com mensagem (registrada em `birthday_messages` + post automático em `praises` quando aplicável).
+
+## Constatações importantes (afetam o desenho)
+
+1. `profiles` ainda não tem `data_nascimento` — adiciono nullable.
+2. `praises.destinatario_id` → **`team_members(id)`**, não `profiles`. `motivo` exige ≥20 chars e `unit_id NOT NULL`. Logo:
+   - Só vou criar praise automático **se o aniversariante tiver `team_members` ativo**; caso contrário, registro só em `birthday_messages` (silencioso). Isso evita falhas em colaboradores admin/central sem team_members.
+   - Categoria nova `aniversario` adicionada ao enum `praise_category`.
+   - Texto padrão garante ≥20 chars: `"Parabéns pelo seu aniversário! 🎂 — {mensagem opcional}"`.
+3. Privacidade `data_nascimento`:
+   - Coluna na `profiles`. Não vou criar policy nova (já existem policies em `profiles` que separam o que cada role enxerga). Em vez disso, exponho **views agregadas** (`v_aniversariantes_*`) que retornam apenas `user_id, nome, foto_url/avatar_url, cargo, setor, unidade, day, month` — **nunca o ano** — pra widget público. A coluna `data_nascimento` em `profiles` permanece visível conforme RLS atual; gerentes/admin/RH veem ano completo na tela do colaborador.
 
 ## 1. Schema (migration única)
 
-### `aviso_reactions`
-- `id uuid pk default gen_random_uuid()`
-- `aviso_id uuid not null` → `avisos(id) on delete cascade`
-- `user_id uuid not null` (= profiles.user_id; sem FK pra auth.users)
-- `emoji text not null check (emoji in ('👍','❤️','😊','⚠️','🙏'))`
-- `created_at timestamptz not null default now()`
-- `unique (aviso_id, user_id, emoji)`
-- index `(aviso_id)`
-
-### `aviso_comments`
-- `id uuid pk default gen_random_uuid()`
-- `aviso_id uuid not null` → `avisos(id) on delete cascade`
-- `user_id uuid not null`
-- `parent_comment_id uuid nullable` → `aviso_comments(id) on delete cascade`
-- `body text not null check (length(body) between 1 and 1000)`
-- `created_at timestamptz not null default now()`
-- `edited_at timestamptz nullable`
-- `deleted_at timestamptz nullable`
-- index `(aviso_id, created_at desc)`
-
-> Nota: `avisos` não tem `unit_id` — só `unidade` (enum). Reuso o mesmo critério da policy `View avisos` da tabela atual: visível se `unidade IS NULL` ou admin/master ou `unidade = get_user_unidade(auth.uid())`. Helper consolidado:
-
 ```sql
-create or replace function can_view_aviso(_user uuid, _aviso uuid)
-returns boolean language sql stable security definer set search_path=public as $$
-  select exists(
-    select 1 from avisos a
-    where a.id = _aviso
-      and (a.unidade is null
-           or has_role(_user,'admin')
-           or has_role(_user,'master')
-           or a.unidade = get_user_unidade(_user))
-  )
-$$;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS data_nascimento date;
+ALTER TYPE public.praise_category ADD VALUE IF NOT EXISTS 'aniversario';
+
+CREATE TABLE public.birthday_messages (
+  id uuid PK,
+  from_user_id uuid NOT NULL,
+  to_user_id uuid NOT NULL,
+  message_text text NOT NULL DEFAULT 'Parabéns! 🎉' CHECK (length(message_text) BETWEEN 1 AND 500),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX birthday_msg_daily_uidx ON public.birthday_messages
+  (from_user_id, to_user_id, (created_at AT TIME ZONE 'America/Sao_Paulo')::date);
+CREATE INDEX birthday_msg_to_idx ON public.birthday_messages (to_user_id, created_at DESC);
+
+-- Views (SECURITY INVOKER por padrão)
+CREATE VIEW public.v_aniversariantes_hoje AS
+SELECT p.user_id, p.nome, p.avatar_url, p.cargo, p.setor, p.unidade,
+       extract(day FROM p.data_nascimento)::int   AS dia,
+       extract(month FROM p.data_nascimento)::int AS mes
+FROM public.profiles p
+WHERE p.ativo = true AND p.data_nascimento IS NOT NULL
+  AND extract(day FROM p.data_nascimento)   = extract(day FROM (now() AT TIME ZONE 'America/Sao_Paulo'))
+  AND extract(month FROM p.data_nascimento) = extract(month FROM (now() AT TIME ZONE 'America/Sao_Paulo'));
+
+CREATE VIEW public.v_aniversariantes_proximos_7d AS
+SELECT p.user_id, p.nome, p.avatar_url, p.cargo, p.setor, p.unidade,
+       extract(day FROM p.data_nascimento)::int   AS dia,
+       extract(month FROM p.data_nascimento)::int AS mes,
+       /* dias até próximo aniversário, ignorando ano */
+       ((make_date(extract(year FROM (now() AT TIME ZONE 'America/Sao_Paulo'))::int,
+                   extract(month FROM p.data_nascimento)::int,
+                   extract(day FROM p.data_nascimento)::int)
+        - (now() AT TIME ZONE 'America/Sao_Paulo')::date) + 365) % 365 AS days_ahead
+FROM public.profiles p
+WHERE p.ativo = true AND p.data_nascimento IS NOT NULL
+ORDER BY days_ahead;
 ```
+> Filtro 1..7 aplicado no front (`days_ahead BETWEEN 1 AND 7`) — view permanece reusável.
 
-## 2. RLS
+## 2. RLS `birthday_messages`
 
-**aviso_reactions** (RLS on):
-- SELECT: `can_view_aviso(auth.uid(), aviso_id)`
-- INSERT: `user_id = auth.uid() AND can_view_aviso(auth.uid(), aviso_id)`
-- DELETE: `user_id = auth.uid()`
+- SELECT authenticated: `true` (público entre autenticados — mensagens de parabéns são públicas).
+- INSERT authenticated: `from_user_id = auth.uid()`.
+- DELETE authenticated: `from_user_id = auth.uid()`.
 - (sem UPDATE)
 
-**aviso_comments** (RLS on):
-- SELECT: `can_view_aviso(auth.uid(), aviso_id)`
-- INSERT: `user_id = auth.uid() AND can_view_aviso(auth.uid(), aviso_id)`
-- UPDATE: `user_id = auth.uid() AND created_at > now() - interval '15 minutes'` (with check idem; front seta `edited_at=now()` ao editar `body`)
-- DELETE: `user_id = auth.uid() OR has_role(auth.uid(),'master') OR has_role(auth.uid(),'admin')` — porém front faz **soft delete** (UPDATE `deleted_at`), DELETE policy só pra cleanup. Pra soft-delete por moderador, adiciono extra UPDATE policy: moderador pode setar `deleted_at` mesmo passados 15min:
-  - UPDATE policy `Moderators soft delete`: `has_role(auth.uid(),'admin') OR has_role(auth.uid(),'master')`
+**Não toco RLS de `profiles`, `praises` nem `team_members`.**
 
-**Não toco em RLS de `avisos`.**
+## 3. Frontend
 
-## 3. Notificações (triggers)
+### Hook `src/hooks/useBirthdays.ts`
+- `useAniversariantesHoje()` → `from('v_aniversariantes_hoje')`
+- `useAniversariantesProximos7d()` → filtra `days_ahead ∈ [1,7]`
+- `useBirthdayMessages(toUserId, dateISO)` → quem já parabenizou hoje (com perfil)
+- `useSendBirthdayMessage()` → mutation: insert em `birthday_messages` + tenta criar praise automático.
 
-Trigger `after insert on aviso_comments`:
-- Se `parent_comment_id` é null → enfileira `notification_events` pro `criado_por` do aviso (se ≠ author do comment).
-- Se reply → enfileira pro `user_id` do comentário pai (se ≠ author).
-- Tipo: `aviso_comment` / `aviso_comment_reply`, payload com `aviso_id`, `comment_id`.
+### Componentes (`src/components/birthdays/`)
+- `AniversariantesWidget.tsx` — card destacado se há hoje (avatar, nome, cargo, botão Parabenizar). Accordion "Próximos 7 dias" abaixo.
+- `ParabenizarModal.tsx` — textarea opcional (max 200), submit chama hook.
+- `BirthdayBanner.tsx` — sticky topo se hoje é meu aniversário; mostra avatares de quem parabenizou; X fecha (localStorage `birthday_banner_dismissed_{YYYY-MM-DD}`).
+- `BirthdayWishesList.tsx` — lista de mensagens recebidas (usado em `MeuPerfil`/`ColaboradorPerfil`).
 
-## 4. Frontend
+### Lógica de auto-praise (no hook)
+```ts
+1. insert birthday_messages (from=me, to=aniversariante, message_text=mensagem||default)
+2. lookup team_members onde user_id=aniversariante AND ativo
+3. se encontrar 1+: pega primeiro (ou da unidade do autor se houver match), insert em praises:
+   { autor_id: me, destinatario_id: tm.id, unit_id: tm.unit_id,
+     categoria: 'aniversario', publico: true,
+     motivo: `Parabéns pelo seu aniversário! 🎂 ${mensagem ?? ''}`.padEnd(20) }
+4. se RLS rejeitar praise → silencioso (toast.success igual; birthday_message já registrada).
+```
 
-### Hook `src/hooks/useAvisoEngagement.ts`
-- `useAvisoReactions(avisoId)` → list + counts agregados por emoji + minhasReações; mutations toggle.
-- `useAvisoComments(avisoId)` → árvore (parent → children), join com `profiles` (nome, avatar, cargo).
-- `useAvisoEngagementCounts(avisoIds[])` → batch retorna `{ aviso_id, reactions_count, comments_count }` pra cards.
+### Integrações
+- `src/pages/FeedColaborador.tsx`: `<AniversariantesWidget />` abaixo do `AvisosBanner`.
+- `src/pages/Dashboard.tsx`: idem (ou em coluna lateral, conforme estrutura).
+- `src/components/AppLayout.tsx`: `<BirthdayBanner />` montado dentro do layout autenticado (acima do conteúdo).
+- `src/pages/MeuPerfil.tsx`: seção "Mensagens de aniversário" via `BirthdayWishesList`.
+- `src/pages/ColaboradorPerfil.tsx`: mostra `data_nascimento` formatada (DD/MM, ano só pra admin/master/gerente_adm RH) + `BirthdayWishesList` agregando histórico.
 
-### Componentes (`src/components/avisos/`)
-- `AvisoReactionBar.tsx` — 5 botões emoji + contador, highlight se user reagiu, tooltip "Você reagiu com X".
-- `AvisoComentarios.tsx` — lista, replies indentadas (margin-left), form rodapé, ações Responder/Editar/Excluir condicionais. Comentário com `deleted_at` mostra italic muted "Comentário removido por moderador".
-- `AvisoCommentItem.tsx` — extraído pra reuso recursivo (1 nível só).
-- `AvisoEngagementSummary.tsx` — pequeno: "👍 12 · 💬 4" pra cards.
+## 4. Admin (gestão de usuários)
+- `src/components/gestao-usuarios/UserEditDialog.tsx`: novo input `data_nascimento` (`<Input type="date" />`), validação client zod: idade 16–80; só visível/editável pra master/admin/gerente_adm RH. Outros roles veem o campo desabilitado/escondido.
 
-### Páginas
-- **Nova** `src/pages/AvisoDetalhe.tsx` em `/avisos/:id`: header (titulo/conteudo/badge urgente), `AvisoReadButton`, `AvisoReadStats`, `AvisoReactionBar`, `AvisoComentarios`. Rota adicionada em `App.tsx`.
-- **Editar** `src/pages/Avisos.tsx`: cards/linhas viram clicáveis pra `/avisos/:id`; mostrar `AvisoEngagementSummary`.
-- **Editar** `src/components/AvisosBanner.tsx`: incluir `AvisoReactionBar` inline + link "Ver comentários (N)" pra detalhe.
-- **Editar** `src/pages/FeedColaborador.tsx` (se renderiza avisos): incluir `AvisoEngagementSummary` + click pra detalhe.
+## 5. Notificações
+- Edge functions/cron existentes não tocam aqui. Trigger SQL `after insert on birthday_messages` enfileira `notification_events` pro `to_user_id`:
+  - type `birthday_wish`, body `"{from_nome} te parabenizou pelo aniversário 🎉"`, payload `{ from_user_id, message_id }`.
 
-## 5. Regras
+## 6. Validações (zod)
+- `birthdaySchema = z.object({ data_nascimento: z.coerce.date().refine(d => idade ∈ [16,80]) })`
+- `wishSchema = z.object({ message_text: z.string().trim().max(200).optional() })`
 
-- Migration única: 2 tabelas + helper `can_view_aviso` + RLS + trigger de notificação.
-- Sem mexer em RLS de outras tabelas.
-- AvisoReadButton e AvisoReadStats permanecem intactos.
-- Soft-delete: front sempre faz `update set deleted_at=now()`, nunca `delete` real.
+## 7. Regras
 
-## 6. Arquivos tocados
+- Migration única: coluna + enum value + tabela + 2 views + trigger de notificação + RLS de `birthday_messages`.
+- Sem mexer em RLS de `profiles`, `praises`, `team_members`.
+- Auto-praise é "best-effort": falha não interrompe mensagem.
+- View `v_aniversariantes_*` esconde ano de nascimento.
+- Banner com `localStorage` por dia.
+
+## 8. Arquivos tocados
 
 **Novos:**
-- `supabase/migrations/<ts>_aviso_engagement.sql`
-- `src/hooks/useAvisoEngagement.ts`
-- `src/components/avisos/AvisoReactionBar.tsx`
-- `src/components/avisos/AvisoComentarios.tsx`
-- `src/components/avisos/AvisoCommentItem.tsx`
-- `src/components/avisos/AvisoEngagementSummary.tsx`
-- `src/pages/AvisoDetalhe.tsx`
+- `supabase/migrations/<ts>_birthdays.sql`
+- `src/hooks/useBirthdays.ts`
+- `src/components/birthdays/AniversariantesWidget.tsx`
+- `src/components/birthdays/ParabenizarModal.tsx`
+- `src/components/birthdays/BirthdayBanner.tsx`
+- `src/components/birthdays/BirthdayWishesList.tsx`
 
 **Editados:**
-- `src/App.tsx` (rota `/avisos/:id`)
-- `src/pages/Avisos.tsx` (cards clicáveis + summary)
-- `src/components/AvisosBanner.tsx` (reaction bar inline + link)
-- `src/pages/FeedColaborador.tsx` (summary + click) — se aplicável
+- `src/pages/FeedColaborador.tsx`
+- `src/pages/Dashboard.tsx`
+- `src/components/AppLayout.tsx` (montar `BirthdayBanner`)
+- `src/pages/MeuPerfil.tsx`
+- `src/pages/ColaboradorPerfil.tsx`
+- `src/components/gestao-usuarios/UserEditDialog.tsx`
 - `src/integrations/supabase/types.ts` (auto)
 - `.lovable/plan.md`
 
