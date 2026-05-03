@@ -1,79 +1,97 @@
-# Plano: Curió de Ouro Peer-to-Peer
+# Plano: Marcos Automáticos de Tempo de Casa
 
-Estende a tabela `praises` para suportar três tipos de reconhecimento, com regras de visibilidade/criação por nível hierárquico.
+Feature que detecta e celebra automaticamente aniversários de tempo de Curió (1, 3, 5, 10, 20 anos), promoções e primeiro dia. Distinto dos aniversários de nascimento.
 
-## 1. Schema (migração única)
+## 1. Schema (migration única)
 
-```sql
-ALTER TABLE public.praises
-  ADD COLUMN praise_type text NOT NULL DEFAULT 'liderado'
-  CHECK (praise_type IN ('liderado','peer','equipe_externa'));
+**Tabela `milestone_celebrations`:**
+- `id uuid pk default gen_random_uuid()`
+- `user_id uuid not null` → `profiles.user_id` ON DELETE CASCADE
+- `milestone_type text not null` CHECK in (`1_year`,`3_years`,`5_years`,`10_years`,`20_years`,`promotion`,`first_day`)
+- `milestone_date date not null`
+- `celebrated_at timestamptz default now()`
+- `praise_id uuid` → `praises.id` ON DELETE SET NULL
+- `post_visible boolean default true`
+- UNIQUE (`user_id`, `milestone_type`, `milestone_date`)
+- Index em `milestone_date` pra widget "próximos 7 dias"
 
-CREATE INDEX idx_praises_praise_type ON public.praises(praise_type);
-```
+**RLS:**
+- ENABLE RLS
+- SELECT: `auth.role() = 'authenticated'`
+- INSERT/UPDATE/DELETE: somente admin/master (edge function usa service role e bypass)
 
-## 2. RLS — atualizar policy de INSERT em `praises`
+**Conquista nova:** seed `veterano_curio_1`, `_3`, `_5`, `_10`, `_20` em `achievements` (tier escalando bronze→ouro→diamante).
 
-Substituir a policy atual de INSERT por uma que considere `praise_type`:
+## 2. Edge Function `detect-milestones`
 
-- **`liderado`** (default): mantém regra atual (autor é líder do destinatário — autor é gerente/encarregado/supervisor/admin/master da unit/setor do destinatário).
-- **`peer`**: permitido quando autor.cargo == destinatario.cargo E autor.user_id != destinatario.user_id E mesma unit_id.
-- **`equipe_externa`**: permitido quando o destinatário está em uma `unit_id` presente em `autor.permission_units` (ou autor é admin/master/supervisor) E autor != destinatario.
+- `verify_jwt = false` (cron-only)
+- Schedule: cron diário 06:30 BRT (09:30 UTC) via `pg_cron` + `pg_net`
+- Lógica:
+  1. Busca profiles ativos com `data_admissao IS NOT NULL`
+  2. Pra cada um: calcula `years = age(today, data_admissao)` em anos exatos
+  3. Se anos ∈ {1,3,5,10,20} E hoje é exatamente o aniversário de admissão:
+     - Verifica unique key não existe em `milestone_celebrations`
+     - Cria `praises` (autor = primeiro user com role master, destinatario = user, mensagem = "{nome} completa {N} anos no Curió! 🎉", `praise_type='equipe_externa'`, categoria nova `aniversario_curio`)
+     - Insere `milestone_celebrations` linkando `praise_id`
+     - Insere `user_achievements` correspondente
+     - Enfileira `notification_events` tipo `milestone_anniversary` pro user + equipe da unidade
 
-Helper SQL: `public.can_create_praise(_autor uuid, _destinatario uuid, _type text) RETURNS boolean` (SECURITY DEFINER, STABLE) — encapsula as 3 regras lendo `profiles`. RLS chama esse helper.
-
-Trigger existente `validate_daily_praise_limit` permanece (1 elogio/dia/par autor-destinatário).
+**Observação sobre limite diário de praise:** trigger `validate_daily_praise_limit` pode bloquear. Solução: edge function usa service role e o trigger só roda uma vez por destinatário/dia — ok porque é 1 marco por dia.
 
 ## 3. Frontend
 
-**`src/components/praise/NovoPraiseModal.tsx`** (existente — verificar nome real e estender)
-- Adicionar `<Select>` "Tipo de elogio" no topo do form.
-- Opções dinâmicas pelo `cargo` do autor (via `useRole`):
-  - `colaborador`, `fiscal`: oculto, força `liderado` (na verdade `peer` se mesmo cargo? — segue spec: só `liderado`).
-  - `encarregado`, `lider_setor`: `liderado` + `peer`.
-  - `gerente_loja`, `gerente_adm`, `gerente`: `liderado` + `peer` + `equipe_externa`.
-  - `supervisor`, `admin`, `master`: todos os 3.
-- Quando `peer` ou `equipe_externa`, lista de destinatários filtra de acordo:
-  - peer → mesma unit + mesmo cargo.
-  - equipe_externa → units em `permission_units`.
-- Insere com `praise_type` selecionado.
+**3.1 `MeuPerfil.tsx`:** banner dourado no topo se hoje há marco do user.
+- Hook `useMyMilestoneToday()` query `milestone_celebrations` where user_id=me, milestone_date=today.
 
-**`src/pages/Reconhecimentos.tsx`**
-- Filtro "Tipo" (Tabs ou Select): `Todos | Liderado | Peer | Externa`.
-- Badge visual em cada card:
-  - liderado → `bg-primary/15 text-primary` (vermelho atual)
-  - peer → `bg-[hsl(var(--gold))]/20 text-[hsl(var(--gold))]` (dourado)
-  - equipe_externa → `bg-blue-500/15 text-blue-600 dark:text-blue-400`
-- Helper `praiseTypeLabel(type)` e `praiseTypeBadgeClass(type)` em `src/lib/praises.ts`.
+**3.2 Widget `MilestonesWeekWidget.tsx` no Feed (`Index.tsx`):**
+- Query próximos 7 dias de `milestone_celebrations` + join profile (nome, avatar, unidade)
+- Lista compacta: "{nome} • {N} anos • {data}"
 
-**`src/pages/MeuPerfil.tsx`**
-- Card "Elogios recebidos": adicionar 3 contadores agrupados por tipo (Liderado / Peer / Externa) usando os dados de `receivedPraises` (incluir `praise_type` na query).
+**3.3 `/admin/milestones` (`MilestonesAdmin.tsx`):**
+- Lista paginada de marcos (filtro por unidade/tipo/data)
+- Botão "Forçar marco" (modal: escolhe user + tipo + data → chama edge function com flag `force=true`)
+- Botão "Cancelar" (set `post_visible=false` + soft hide do praise)
+- Acesso restrito: admin/master
 
-## 4. Conquista "Diplomata"
+**3.4 Rota:** adiciona em `App.tsx` + entrada no `AppSidebar.tsx` (seção admin).
 
-- Insert na tabela `achievements` (ou equivalente — checar nome real, é `achievements` ou `achievement_definitions`):
-  - `code: 'diplomata'`, `title: 'Diplomata'`, `description: 'Recebeu 5 reconhecimentos de pares ou de outras equipes'`, `icon: '🤝'`, `tier: 'gold'`.
-- Lógica de unlock em `src/lib/achievements.ts` (ou hook existente que processa achievements) — adicionar regra:
-  - count em `praises` onde `destinatario_id = uid AND praise_type IN ('peer','equipe_externa')` >= 5.
-- Inserir via tool `insert` (não migration, é dado).
+## 4. Push notifications
 
-## 5. Arquivos a tocar
+- Reusa `notification_events` (sistema atual já dispara push). Tipo novo `milestone_anniversary`.
+- Destaque no feed por 24h: query do widget já filtra `milestone_date >= today - 1 day`.
 
-**Edição:**
-- `src/components/praise/NovoPraiseModal.tsx` (ou nome equivalente no projeto — vou localizar)
-- `src/pages/Reconhecimentos.tsx`
-- `src/pages/MeuPerfil.tsx`
-- `src/lib/achievements.ts` (regra Diplomata) ou hook equivalente
-- `src/integrations/supabase/types.ts` (auto-regenerado após migração)
+## 5. Diferenciação de aniversário de nascimento
 
-**Criação:**
-- `src/lib/praises.ts` (helpers de label/badge/options-por-cargo)
-- Migração SQL única
-- Insert: definição da conquista "Diplomata"
+- Aniversariantes (`data_nascimento`) = card existente, intacto.
+- Marcos = `data_admissao`, fonte separada, widget e banner distintos (cor dourada vs rosa).
 
-## 6. Não escopo
-- Não toca RLS de outras tabelas.
-- Não muda fluxo de moderação/limite diário.
-- Não retroage `praise_type` de praises existentes (ficam todos `liderado` por default).
+## Arquivos tocados
+
+**Criados:**
+- `supabase/migrations/<ts>_milestones.sql`
+- `supabase/functions/detect-milestones/index.ts`
+- `src/hooks/useMyMilestoneToday.ts`
+- `src/hooks/useUpcomingMilestones.ts`
+- `src/components/milestones/MilestoneBanner.tsx`
+- `src/components/milestones/MilestonesWeekWidget.tsx`
+- `src/pages/MilestonesAdmin.tsx`
+
+**Editados:**
+- `src/App.tsx` (rota)
+- `src/components/AppSidebar.tsx` (link admin)
+- `src/pages/MeuPerfil.tsx` (banner)
+- `src/pages/Index.tsx` (widget no feed)
+- `supabase/config.toml` (verify_jwt=false pra função)
+- `src/integrations/supabase/types.ts` (auto)
+
+**SQL data ops (insert tool):**
+- Cron job `detect-milestones-daily` em `pg_cron`
+- Seed de achievements `veterano_curio_*`
+
+## Riscos
+
+- Trigger `validate_daily_praise_limit`: ok, marco é 1x.
+- `data_admissao` ausente em muitos profiles → função apenas pula.
+- Cron precisa de `pg_cron`/`pg_net` habilitados (já existem no projeto, presumido).
 
 Aprova pra executar?
