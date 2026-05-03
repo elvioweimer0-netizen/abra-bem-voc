@@ -29,7 +29,9 @@ import {
   Map,
   History,
   GraduationCap,
+  HeartPulse,
 } from "lucide-react";
+import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
@@ -143,6 +145,7 @@ export function AppSidebar() {
   const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
+  const { canViewClima, canManageClima } = useClimateAccess();
 
   const profileAny = profile as any;
   const myUnitId = profileAny?.unit_id as string | undefined;
