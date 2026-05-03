@@ -118,6 +118,20 @@ function HeatmapAccess({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function PdiTeamAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor", "gerente_loja", "gerente", "encarregado"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function PdiAdminAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
