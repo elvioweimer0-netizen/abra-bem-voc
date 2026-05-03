@@ -269,6 +269,7 @@ export function AppSidebar() {
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
     ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
     ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
+    ...(isAdmin ? [{ title: "Dimensões do Score", url: "/admin/score-dimensions", icon: Gauge }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima
