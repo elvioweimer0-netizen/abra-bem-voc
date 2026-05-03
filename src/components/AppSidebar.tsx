@@ -241,6 +241,7 @@ export function AppSidebar() {
     ...(isSupervisor || isAdmin ? [{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }] : []),
     ...(isGerente || isSupervisor || isAdmin ? [{ title: "Inspeções", url: "/inspecoes", icon: SearchCheck }] : []),
     ...(isGerente ? [{ title: "Avaliações de Encarregado", url: "/avaliacoes", icon: Star }, { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion }, { title: "Relatórios da Unidade", url: "/relatorios", icon: Gauge }] : []),
+    ...(["gerente_loja", "gerente_adm", "encarregado"].includes(cargo) ? [{ title: "Meu Score", url: "/meu-score", icon: Gauge }] : []),
   ];
 
   const visitas: MenuItem[] = (isAdmin || isSupervisor)
