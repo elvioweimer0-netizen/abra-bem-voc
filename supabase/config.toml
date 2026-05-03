@@ -34,3 +34,6 @@ verify_jwt = false
 
 [functions.calculate-churn-risk]
 verify_jwt = false
+
+[functions.setup-auto-groups]
+verify_jwt = false
