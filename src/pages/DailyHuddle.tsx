@@ -8,6 +8,7 @@ import { useHuddleHistory, useTodayHuddle } from "@/hooks/useDailyHuddle";
 import { DailyHuddleForm } from "@/components/daily-huddle/DailyHuddleForm";
 import { HuddleStatusBadge } from "@/components/daily-huddle/HuddleStatusBadge";
 import { Navigate } from "react-router-dom";
+import { SuggestedAgendaCard } from "@/components/daily-huddle/SuggestedAgendaCard";
 
 const DAYS_PT = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
