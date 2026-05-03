@@ -219,6 +219,7 @@ export function AppSidebar() {
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },
+        { title: isAdmin || isSupervisor ? "Unidades" : "Minha Unidade", url: isAdmin || isSupervisor ? "/unidades" : unitHomeUrl, icon: Building },
       ];
 
   const gestao: MenuItem[] = [
