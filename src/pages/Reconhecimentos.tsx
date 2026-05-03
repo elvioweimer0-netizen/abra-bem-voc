@@ -54,7 +54,7 @@ type Praise = {
   team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null; unit_id?: string | null; units?: { name: string; code: string } | null } | null;
 };
 
-type Member = { id: string; nome?: string | null; cargo: string; unit_id: string; sector?: string | null; foto_url?: string | null; user_id?: string | null; profiles?: { cargo?: string | null } | null };
+type Member = { id: string; nome?: string | null; cargo: string; unit_id: string; sector?: string | null; foto_url?: string | null; user_id?: string | null };
 type Eom = { id: string; mes: string; total_praises: number; checklist_compliance_pct: number; score_final: number; team_member_id: string; team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null } | null; units?: { name: string; code: string } | null };
 type Unit = { id: string; code: string; name: string };
 
@@ -102,7 +102,7 @@ export default function Reconhecimentos() {
     const db = supabase as any;
     const [{ data: p }, { data: m }, { data: e }, { data: u }, { data: a }] = await Promise.all([
       db.from("praises").select("id,autor_id,motivo,categoria,criado_em,destinatario_id,unit_id,praise_type,team_members(nome,cargo,sector,foto_url,unit_id,user_id,units(name,code))").eq("publico", true).order("criado_em", { ascending: false }).limit(80),
-      db.from("team_members").select("id,nome,cargo,unit_id,sector,foto_url,user_id,profiles:profiles!team_members_user_id_fkey(cargo)").eq("status", "ativo").order("nome").order("cargo"),
+      db.from("team_members").select("id,nome,cargo,unit_id,sector,foto_url,user_id").eq("status", "ativo").order("nome").order("cargo"),
       db.from("employee_of_month").select("id,mes,total_praises,checklist_compliance_pct,score_final,team_member_id,team_members(nome,cargo,sector,foto_url),units(name,code)").order("mes", { ascending: false }).limit(6),
       db.from("units").select("id,code,name").order("code"),
       db.from("praise_applause").select("praise_id"),
