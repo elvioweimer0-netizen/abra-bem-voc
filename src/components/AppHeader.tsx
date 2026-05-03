@@ -39,13 +39,27 @@ const viewAsOptions: Enums<"cargo_tipo">[] = [
   "gerente_adm", "encarregado", "fiscal", "lider_setor", "colaborador",
 ];
 
-export function AppHeader() {
+function ChatHeaderButton() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  const { profile, signOut } = useAuth();
-  // ChatHeaderButton component defined inline below
-  const _ = useChatUnreadBadge; // ensure import used
+  const unread = useChatUnreadBadge();
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/chat")} aria-label="Chat" className="relative h-9 w-9">
+          <MessageCircle className="h-5 w-5" />
+          {unread > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Chat</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export function AppHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
