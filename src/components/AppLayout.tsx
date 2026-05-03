@@ -26,6 +26,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <EncerrarVisitaBanner />
             <ScrollArea className="flex-1">
               <main className="px-4 pb-[5.5rem] pt-4 sm:px-6 md:pb-8 md:pt-6 lg:px-8 animate-in fade-in duration-300">
+                <BirthdayBanner />
                 {children}
               </main>
             </ScrollArea>
