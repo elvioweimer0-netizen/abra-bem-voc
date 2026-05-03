@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadgeRow";
@@ -127,6 +128,7 @@ export default function MeuPerfil() {
 
     <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2><div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
 
+    <AppearanceSettings />
     <NotificationSettings />
   </div>;
 }
