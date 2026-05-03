@@ -9,6 +9,7 @@ import { BookOpen, Camera, MessageCircle, Sparkles, Users } from "lucide-react";
 import { TopCuriosMes } from "@/components/TopCuriosMes";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
+import { HistoriaSemanaWidget } from "@/components/historias/HistoriaSemanaWidget";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
 import { StoriesBar } from "@/components/stories/StoriesBar";
 import type { Noticia } from "@/types/database";
