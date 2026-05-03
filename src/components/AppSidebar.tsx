@@ -374,6 +374,7 @@ export function AppSidebar() {
         <MenuSection label="Onboarding" items={onboardingItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="WhatsApp" items={whatsappItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
       </SidebarContent>
 
