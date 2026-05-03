@@ -10,6 +10,7 @@ import { TopCuriosMes } from "@/components/TopCuriosMes";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
+import { StoriesBar } from "@/components/stories/StoriesBar";
 import type { Noticia } from "@/types/database";
 
 type TeamMate = { id: string; nome: string; cargo_titulo: string | null; cargo: string };
