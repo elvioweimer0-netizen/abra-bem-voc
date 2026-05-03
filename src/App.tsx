@@ -283,6 +283,7 @@ function ProtectedRoutes() {
         <Route path="/scores/ranking" element={<ScoresRankingAccess><ScoresRanking /></ScoresRankingAccess>} />
         <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
         <Route path="/admin/tv-displays" element={<SupervisorOnly><AdminTvDisplays /></SupervisorOnly>} />
+        <Route path="/curiozinho/historico" element={<CuriozinhoHistorico />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
