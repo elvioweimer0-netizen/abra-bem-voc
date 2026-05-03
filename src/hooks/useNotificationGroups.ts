@@ -133,11 +133,11 @@ export function useNotificationEvents(groupingKey: string | null, enabled: boole
     queryFn: async (): Promise<NotificationEvent[]> => {
       if (!user || !groupingKey) return [];
       const since = new Date(Date.now() - WINDOW_MS).toISOString();
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("notification_events")
-        .select("id,type,title,body,payload,created_at,sent_at,grouping_key" as any)
+        .select("id,type,title,body,payload,created_at,sent_at,grouping_key")
         .eq("recipient_user_id", user.id)
-        .eq("grouping_key" as any, groupingKey)
+        .eq("grouping_key", groupingKey)
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(20);
