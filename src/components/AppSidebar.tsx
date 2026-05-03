@@ -35,6 +35,8 @@ import {
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
+import { useCanEditCulture } from "@/hooks/useCanEditCulture";
+import { Sparkles as SparklesIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
 import { Button } from "@/components/ui/button";
