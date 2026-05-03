@@ -1,133 +1,131 @@
-# Pergunta da Semana pro Líder — Plano
+# Stories 24h por Unidade (estilo Instagram)
 
-Ritual semanal de reflexão para liderança: master/admin posta pergunta na segunda, líderes respondem até quarta 23:59, depois discussão aberta com comentários. Mecanismo anti-contágio: só vê respostas dos outros após submeter a sua.
+Feature de stories efêmeros (24h) postados por líderes, visíveis aos colaboradores da unidade. Inclui visualizações, reações, cleanup automático e moderação.
 
 ---
 
-## 1) Banco (migration única)
+## 1. Banco de Dados (migration única)
 
-### `leadership_questions`
-- `week_start_date date UNIQUE NOT NULL` (segunda-feira)
-- `question_text text` (CHECK 20–500)
-- `context_note text`
-- `target_roles text[]` default `{master,admin,supervisor,gerente_loja,gerente_adm}`
-- `deadline_date date NOT NULL` (default = `week_start_date + 2 dias` = quarta)
-- `created_by`, `active`, timestamps
+### Tabelas
 
-### `leadership_answers`
-- `question_id` FK cascade
-- `user_id` FK cascade
-- `answer_text` (CHECK 50–2000)
-- `submitted_at`, `edited_at`
-- UNIQUE `(question_id, user_id)`
+**`stories`**
+- `id` uuid pk
+- `author_user_id` uuid → profiles(user_id) ON DELETE CASCADE
+- `unit_id` uuid → units(id) ON DELETE CASCADE
+- `setor` text nullable
+- `media_url` text not null (path no bucket)
+- `media_type` text check in ('image','video')
+- `caption` text nullable, check length ≤ 200
+- `duration_seconds` int default 0
+- `created_at` timestamptz default now()
+- `expires_at` timestamptz default (now() + interval '24h') not null
+- Índices: `(unit_id, expires_at desc)`, `(author_user_id, created_at desc)`
 
-### `leadership_answer_comments`
-- `answer_id` FK cascade, `author_user_id`, `comment_text` (CHECK 5–500)
-- INDEX `(answer_id, created_at desc)`
+**`story_views`**
+- `id` uuid pk, `story_id`, `viewer_user_id`, `viewed_at`
+- UNIQUE (story_id, viewer_user_id)
 
-### Funções helper (SECURITY DEFINER, search_path=public)
-- `is_eligible_for_leadership_question(_uid, _question_id) bool` — cargo do user ∈ target_roles
-- `user_already_answered(_uid, _question_id) bool`
-- `question_deadline_passed(_question_id) bool`
+**`story_reactions`**
+- `id` uuid pk, `story_id`, `user_id`, `emoji` check in ('👏','❤️','🎉','👍','🔥'), `created_at`
+- UNIQUE (story_id, user_id, emoji)
+
+### Trigger anti-spam
+- BEFORE INSERT em `stories`: bloqueia se autor já tem ≥10 stories nas últimas 24h.
 
 ### RLS
 
-**leadership_questions**
-- SELECT: `is_eligible_for_leadership_question(auth.uid(), id) OR has_role(admin/master/supervisor)`
-- INSERT/UPDATE/DELETE: master/admin/supervisor
+**stories** (5 policies)
+1. INSERT: `author_user_id = auth.uid()` AND user é líder (master/admin/supervisor/gerente_loja/gerente_adm/encarregado/fiscal/lider_setor) — via `has_role`.
+2. SELECT (ativos por unidade): `expires_at > now() AND user_can_access_unit(auth.uid(), unit_id)`.
+3. SELECT (próprio autor, inclusive expirados): `author_user_id = auth.uid()`.
+4. UPDATE: autor + `created_at > now() - interval '5 min'` (só caption).
+5. DELETE: autor OR admin/master.
 
-**leadership_answers**
-- INSERT: `user_id=auth.uid()` AND elegível
-- SELECT: própria OU (elegível AND `user_already_answered(auth.uid(), question_id)`) OU master/admin/supervisor
-- UPDATE: própria AND `now() <= deadline_date + 23:59:59`
-- DELETE: bloqueado
+**story_views** (2 policies)
+- INSERT: `viewer_user_id = auth.uid()`.
+- SELECT: `viewer_user_id = auth.uid()` OR autor do story.
 
-**leadership_answer_comments**
-- SELECT: pode ver a answer
-- INSERT: `author_user_id=auth.uid()` AND pode ver answer AND `question_deadline_passed` (comentário só após deadline)
-- UPDATE: bloqueado
-- DELETE: autor OU master/admin
+**story_reactions** (3 policies)
+- INSERT: `user_id = auth.uid()` AND tem acesso ao story.
+- SELECT: tem acesso ao story.
+- DELETE: `user_id = auth.uid()`.
 
 ---
 
-## 2) Frontend
+## 2. Storage
 
-### Hook `src/hooks/useLeadershipQuestions.ts`
-- `useCurrentLeadershipQuestion()` — pergunta da semana ativa
-- `useLeadershipQuestionHistory({ from, to, authorId })`
-- `useLeadershipAnswers(questionId)` — vazia se user ainda não respondeu (RLS faz isso); flag `userHasAnswered`
-- `useMyAnswer(questionId)`
-- `useSubmitAnswer()` / `useEditAnswer()`
-- `useAnswerComments(answerId)` / `useAddComment()` / `useDeleteComment()`
-- `useAdminLeadershipQuestions()` (lista com stats) / `useSaveQuestion()`
+Bucket **`stories`** (privado), max 50MB, mime: image/jpeg, image/png, image/webp, video/mp4.
+Path: `{unit_id}/{author_user_id}/{story_id}.{ext}`.
+
+Policies em `storage.objects`:
+- INSERT: dono via `(storage.foldername(name))[2] = auth.uid()::text`.
+- SELECT: autenticados (acesso real validado pela tabela `stories`).
+- DELETE: dono OR admin/master.
+
+---
+
+## 3. Edge Function
+
+**`cleanup-expired-stories`** (sem JWT, chamada por cron):
+- Lista `stories` com `expires_at < now() - interval '7 days'`.
+- Remove arquivos do bucket via `storage.remove`.
+- DELETE rows. Retorna `{deleted_rows, deleted_files}`.
+
+Cron via `pg_cron` (insert SQL com URL+anon key, não migration): diário 04:00 UTC.
+
+---
+
+## 4. Frontend
+
+### Hook
+`src/hooks/useStories.ts` — fetch stories ativos agrupados por unidade, marcar view, reagir, criar story (upload + insert), histórico próprio.
+
+### Componentes
+- `src/components/stories/StoriesBar.tsx` — círculos horizontais por unidade. Gradiente vermelho-laranja se há stories não vistos, cinza se todos vistos. Primeiro item = "+ Story" pra líderes.
+- `src/components/stories/StoryViewer.tsx` — modal fullscreen, barra de progresso (5s foto / duration vídeo), tap esquerda/direita, swipe-down fecha, footer com autor/cargo/setor/tempo, 5 emojis de reação, contador de views pro autor. Auto-marca view ao abrir.
+- `src/components/stories/StoryComposer.tsx` — FAB "+ Story", input com `capture="environment"` ou galeria, preview, caption ≤200, validação tipo/tamanho client-side, upload + insert.
+- `src/components/stories/StoryViewersList.tsx` — drawer mostrando quem viu (só pro autor).
 
 ### Páginas
-- **`/pergunta-semana`** (`PerguntaSemana.tsx`)
-  - Topo: question card grande com `context_note`, countdown até deadline
-  - Se ainda não respondeu E dentro do deadline: textarea + contador caracteres + Submeter
-  - Se respondeu: mostra resposta + Editar (até deadline)
-  - Banner "Responda pra ver as respostas dos colegas" antes de submeter
-  - Após submissão (ou após deadline): lista de respostas dos outros em Accordion + comentários (só após deadline)
-- **`/pergunta-semana/historico`** (`PerguntaSemanaHistorico.tsx`)
-  - Lista de perguntas passadas, filtros período + autor
-- **`/pergunta-semana/:questionId`** (`PerguntaSemanaDetalhe.tsx`)
-  - Visão completa de uma pergunta histórica + todas as respostas + comentários
-- **`/admin/pergunta-semana`** (`AdminPerguntaSemana.tsx`, master/admin/supervisor)
-  - Form criar pergunta (com seleção de target_roles, week_start_date, deadline)
-  - Lista futuras + stats (% respostas, top engajamento)
+- `src/pages/MeusStories.tsx` (rota `/perfil/stories`) — histórico próprio até 7 dias.
+- `src/pages/AdminStories.tsx` (rota `/admin/stories`) — moderação (admin/master): listar todos, deletar.
 
-### Componentes (`src/components/leadership-questions/`)
-- `QuestionCard.tsx`
-- `QuestionCountdown.tsx`
-- `AnswerForm.tsx`
-- `AnswerList.tsx` + `AnswerItem.tsx`
-- `LeadershipAnswerComments.tsx`
-- `QuestionFormModal.tsx` (admin)
-
-### Navegação (`AppSidebar.tsx`)
-- Item "Pergunta da Semana" para cargos em target_roles default (master/admin/supervisor/gerente_loja/gerente_adm)
-- Sub-item "Admin · Perguntas" só master/admin/supervisor
-
-### Rotas em `App.tsx`
-- 3 rotas + 1 admin com guards
+### Integração
+- `src/pages/FeedColaborador.tsx`: `<StoriesBar />` no topo.
+- `src/pages/Dashboard.tsx`: `<StoriesBar />` no topo.
+- `src/components/AppSidebar.tsx`: item "Meus Stories" (todos), "Admin / Stories" (admin/master).
+- `src/App.tsx`: rotas `/perfil/stories` e `/admin/stories`.
 
 ---
 
-## 3) Push / lembretes
-
-Edge function `leadership-question-reminders` (POST, sem JWT) chamada por pg_cron 4x:
-- Seg 9h: envia notification_event "Pergunta da semana chegou" pra todos elegíveis
-- Ter 16h: lembrete pra quem ainda não respondeu
-- Qua 18h: "última chance" pra quem não respondeu
-- Qua 23:59: relatório pro autor (quantos responderam / não)
-
-Cron registrado em sql separado via insert tool (contém URL/anon key — não usar migration).
+## 5. Push (silencioso)
+Trigger AFTER INSERT em `stories` enfileira em `notification_events` (type `new_story`) para usuários da unidade, exceto autor. Reusa pipeline de notificações existente.
 
 ---
 
-## 4) Anti-contágio
+## 6. Arquivos tocados
 
-Garantido **na RLS**: SELECT em `leadership_answers` exige `user_already_answered` (exceto a própria, autor da pergunta, e admin/supervisor). Não dá pra fraudar pelo client.
+**Migrations / Backend**
+- `supabase/migrations/<ts>_stories.sql` (tabelas, índices, RLS, trigger anti-spam, trigger push, bucket + policies)
+- `supabase/functions/cleanup-expired-stories/index.ts`
+- Insert SQL separado (via tool `supabase--insert`) para `pg_cron`
+
+**Frontend criados**
+- `src/hooks/useStories.ts`
+- `src/components/stories/StoriesBar.tsx`
+- `src/components/stories/StoryViewer.tsx`
+- `src/components/stories/StoryComposer.tsx`
+- `src/components/stories/StoryViewersList.tsx`
+- `src/pages/MeusStories.tsx`
+- `src/pages/AdminStories.tsx`
+
+**Frontend editados**
+- `src/App.tsx`
+- `src/components/AppSidebar.tsx`
+- `src/pages/FeedColaborador.tsx`
+- `src/pages/Dashboard.tsx`
+- `src/integrations/supabase/types.ts` (auto)
 
 ---
 
-## 5) Arquivos previstos
-
-**Criar:**
-- `supabase/migrations/<ts>_leadership_questions.sql`
-- `supabase/functions/leadership-question-reminders/index.ts`
-- `src/hooks/useLeadershipQuestions.ts`
-- `src/pages/PerguntaSemana.tsx`
-- `src/pages/PerguntaSemanaHistorico.tsx`
-- `src/pages/PerguntaSemanaDetalhe.tsx`
-- `src/pages/AdminPerguntaSemana.tsx`
-- `src/components/leadership-questions/` (6 componentes acima)
-
-**Editar:**
-- `src/App.tsx` (4 rotas + guard)
-- `src/components/AppSidebar.tsx` (seção)
-- `.lovable/plan.md`
-
-**Pós-aprovação (separado, via insert tool):** SQL do pg_cron com URL real do projeto.
-
-Aprova?
+Aprova pra eu executar?

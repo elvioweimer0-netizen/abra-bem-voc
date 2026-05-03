@@ -2729,6 +2729,121 @@ export type Database = {
           },
         ]
       }
+      stories: {
+        Row: {
+          author_user_id: string
+          caption: string | null
+          created_at: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          media_type: string
+          media_url: string
+          setor: string | null
+          unit_id: string
+        }
+        Insert: {
+          author_user_id: string
+          caption?: string | null
+          created_at?: string
+          duration_seconds?: number
+          expires_at?: string
+          id?: string
+          media_type: string
+          media_url: string
+          setor?: string | null
+          unit_id: string
+        }
+        Update: {
+          author_user_id?: string
+          caption?: string | null
+          created_at?: string
+          duration_seconds?: number
+          expires_at?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          setor?: string | null
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stories_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
+      story_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_reactions_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_views: {
+        Row: {
+          id: string
+          story_id: string
+          viewed_at: string
+          viewer_user_id: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          viewed_at?: string
+          viewer_user_id: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          viewed_at?: string
+          viewer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suspensoes: {
         Row: {
           colaborador_id: string
