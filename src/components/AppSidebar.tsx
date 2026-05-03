@@ -170,6 +170,7 @@ export function AppSidebar() {
       { title: "Avisos", url: "/avisos", icon: Bell },
       { title: "Notícias", url: "/noticias", icon: Megaphone },
       { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
+      { title: "Histórias do Curió", url: "/historias", icon: ScrollText },
       { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
       { title: "Galeria do Curió", url: "/galeria", icon: Camera },
       { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
