@@ -219,6 +219,7 @@ function ProtectedRoutes() {
         <Route path="/admin/pergunta-semana" element={<SupervisorOnly><AdminPerguntaSemana /></SupervisorOnly>} />
         <Route path="/perfil/stories" element={<MeusStories />} />
         <Route path="/admin/stories" element={<AdminOnly><AdminStories /></AdminOnly>} />
+        <Route path="/heatmap" element={<HeatmapAccess><Heatmap /></HeatmapAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
