@@ -141,12 +141,15 @@ export default function Avisos() {
               <p className="py-8 text-center text-sm text-muted-foreground">Nenhum aviso.</p>
             ) : avisos.map((a) => (
               <article key={a.id} className="rounded-xl border border-border bg-card p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-foreground">{a.titulo}</h3>
-                  <div className="flex shrink-0 gap-1">{a.urgente && <Badge variant="destructive">Urgente</Badge>}<Badge variant={a.ativo ? "default" : "secondary"}>{a.ativo ? "Ativo" : "Inativo"}</Badge></div>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{a.unidade || "Geral"} · {new Date(a.created_at).toLocaleDateString("pt-BR")}</p>
-                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{a.conteudo}</p>
+                <Link to={`/avisos/${a.id}`} className="block">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-foreground hover:underline">{a.titulo}</h3>
+                    <div className="flex shrink-0 gap-1">{a.urgente && <Badge variant="destructive">Urgente</Badge>}<Badge variant={a.ativo ? "default" : "secondary"}>{a.ativo ? "Ativo" : "Inativo"}</Badge></div>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{a.unidade || "Geral"} · {new Date(a.created_at).toLocaleDateString("pt-BR")}</p>
+                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{a.conteudo}</p>
+                </Link>
+                <div className="mt-2"><AvisoEngagementSummary avisoId={a.id} /></div>
                 <div className="mt-3"><AvisoReadButton avisoId={a.id} /></div>
                 {canSeeStats && <AvisoReadStats avisoId={a.id} unidade={a.unidade} />}
                 {canEdit && <div className="mt-3 flex gap-2"><Button variant="outline" size="sm" onClick={() => openEdit(a)}><Pencil className="w-4 h-4" /> Editar</Button><Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)}><Trash2 className="w-4 h-4 text-destructive" /> Excluir</Button></div>}
