@@ -9,6 +9,8 @@ import { FloatingBoButton } from "@/components/leadership/FloatingBoButton";
 import { SimulationBanner } from "@/components/SimulationBanner";
 import { PwaSplash } from "@/components/PwaSplash";
 import { EncerrarVisitaBanner } from "@/components/visitas/EncerrarVisitaBanner";
+import { MoodPrompt } from "@/components/clima/MoodPrompt";
+import { PulsePrompt } from "@/components/clima/PulsePrompt";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -30,6 +32,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <MobileBottomNav />
           </div>
         </div>
+        <MoodPrompt />
+        <PulsePrompt />
       </SidebarProvider>
     </ViewAsProvider>
   );
