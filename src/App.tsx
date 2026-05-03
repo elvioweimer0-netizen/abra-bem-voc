@@ -209,6 +209,8 @@ function ProtectedRoutes() {
         <Route path="/pergunta-semana/historico" element={<LeaderOnly><PerguntaSemanaHistorico /></LeaderOnly>} />
         <Route path="/pergunta-semana/:questionId" element={<LeaderOnly><PerguntaSemanaDetalhe /></LeaderOnly>} />
         <Route path="/admin/pergunta-semana" element={<SupervisorOnly><AdminPerguntaSemana /></SupervisorOnly>} />
+        <Route path="/perfil/stories" element={<MeusStories />} />
+        <Route path="/admin/stories" element={<AdminOnly><AdminStories /></AdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
