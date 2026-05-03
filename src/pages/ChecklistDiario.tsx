@@ -337,6 +337,27 @@ export default function ChecklistDiario() {
         <p className="mt-1 text-sm opacity-90">{profile.nome} • {unit?.name || profile.unidade}</p>
       </section>
 
+      {!visitId && activeItems.length > 0 && (
+        <ChecklistVoiceButton
+          processing={voiceProcessing}
+          onTranscript={handleVoiceTranscript}
+        />
+      )}
+
+      <VoiceConfirmModal
+        open={voiceModalOpen}
+        onOpenChange={setVoiceModalOpen}
+        transcript={voiceTranscript}
+        items={activeItems.map((i) => ({
+          id: i.id,
+          descricao: i.descricao,
+          requires_photo: i.requires_photo,
+          has_photo: !!responses[i.id]?.foto_url,
+        }))}
+        matches={voiceMatches}
+        onConfirm={handleVoiceConfirm}
+      />
+
       <Tabs value={activePeriod} onValueChange={setActivePeriod} className="space-y-4">
         <TabsList className="grid h-auto w-full grid-cols-3 rounded-xl bg-muted p-1">
           {templates.map((template) => (
