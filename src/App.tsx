@@ -108,6 +108,13 @@ function RhAdminOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function HeatmapAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor", "gerente_adm"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
