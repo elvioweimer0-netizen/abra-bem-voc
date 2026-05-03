@@ -78,6 +78,9 @@ import AdminPerguntaSemana from "@/pages/AdminPerguntaSemana";
 import MeusStories from "@/pages/MeusStories";
 import AdminStories from "@/pages/AdminStories";
 import Heatmap from "@/pages/Heatmap";
+import Pdi from "@/pages/Pdi";
+import PdiEquipe from "@/pages/PdiEquipe";
+import PdiAdmin from "@/pages/PdiAdmin";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
@@ -111,6 +114,20 @@ function RhAdminOnly({ children }: { children: ReactNode }) {
 function HeatmapAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const allowed = ["master", "admin", "supervisor", "gerente_adm"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function PdiTeamAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor", "gerente_loja", "gerente", "encarregado"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function PdiAdminAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor"].includes(cargo);
   if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
@@ -220,6 +237,9 @@ function ProtectedRoutes() {
         <Route path="/perfil/stories" element={<MeusStories />} />
         <Route path="/admin/stories" element={<AdminOnly><AdminStories /></AdminOnly>} />
         <Route path="/heatmap" element={<HeatmapAccess><Heatmap /></HeatmapAccess>} />
+        <Route path="/pdi" element={<Pdi />} />
+        <Route path="/pdi/equipe" element={<PdiTeamAccess><PdiEquipe /></PdiTeamAccess>} />
+        <Route path="/pdi/admin" element={<PdiAdminAccess><PdiAdmin /></PdiAdminAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

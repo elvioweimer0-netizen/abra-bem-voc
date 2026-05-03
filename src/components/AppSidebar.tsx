@@ -306,6 +306,18 @@ export function AppSidebar() {
     ? [{ title: "Heatmap", url: "/heatmap", icon: Gauge }]
     : [];
 
+  const pdiItems: MenuItem[] = [
+    ...(["master", "admin", "supervisor", "gerente_loja", "gerente", "gerente_adm", "encarregado", "lider_setor", "colaborador", "fiscal"].includes(cargo)
+      ? [{ title: "Meu PDI", url: "/pdi", icon: Target }]
+      : []),
+    ...(["master", "admin", "supervisor", "gerente_loja", "gerente", "encarregado"].includes(cargo)
+      ? [{ title: "PDI da Equipe", url: "/pdi/equipe", icon: Target }]
+      : []),
+    ...((isAdmin || isSupervisor)
+      ? [{ title: "PDI · Visão Geral", url: "/pdi/admin", icon: Target }]
+      : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -333,6 +345,7 @@ export function AppSidebar() {
         <MenuSection label="Pergunta da Semana" items={perguntaSemanaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Stories" items={storiesItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Análise" items={analiseItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="PDI" items={pdiItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
