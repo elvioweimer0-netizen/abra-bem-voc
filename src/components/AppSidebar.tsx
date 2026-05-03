@@ -283,6 +283,13 @@ export function AppSidebar() {
     ...(isLider ? [{ title: "Ranking", url: "/conquistas/ranking", icon: Star }] : []),
   ];
 
+  const cadernoItems: MenuItem[] = isLider
+    ? [
+        { title: "Caderno", url: "/caderno", icon: ScrollText },
+        ...(isRhAdmin ? [{ title: "Admin · Caderno", url: "/admin/caderno", icon: ScrollText }] : []),
+      ]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
