@@ -181,6 +181,7 @@ export function AppSidebar() {
       { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
       { title: "Documentos", url: "/rh/cartilha", icon: ScrollText },
       { title: "Falar com RH", url: "/central-adm/rh", icon: Users },
+      { title: "Mentoria", url: "/mentoria", icon: Users },
     ];
     return (
       <Sidebar collapsible="offcanvas" className="border-r-0">
@@ -225,6 +226,7 @@ export function AppSidebar() {
     { title: "Galeria do Curió", url: "/galeria", icon: Camera },
     { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
     { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
+    { title: "Mentoria", url: "/mentoria", icon: Users },
   ];
 
   const operacao: MenuItem[] = isCentralAdm

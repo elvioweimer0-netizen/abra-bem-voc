@@ -72,6 +72,8 @@ import MinhasConquistas from "@/pages/MinhasConquistas";
 import ConquistasRanking from "@/pages/ConquistasRanking";
 import AdminConquistas from "@/pages/AdminConquistas";
 import MilestonesAdmin from "@/pages/MilestonesAdmin";
+import MentoriaPage from "@/pages/MentoriaPage";
+import MinhasMentoriasPage from "@/pages/MinhasMentoriasPage";
 import Caderno from "@/pages/Caderno";
 import CadernoArtigo from "@/pages/CadernoArtigo";
 import AdminCaderno from "@/pages/AdminCaderno";
@@ -281,6 +283,8 @@ function ProtectedRoutes() {
         <Route path="/conquistas/ranking" element={<LeaderOnly><ConquistasRanking /></LeaderOnly>} />
         <Route path="/admin/conquistas" element={<AdminOnly><AdminConquistas /></AdminOnly>} />
         <Route path="/admin/milestones" element={<AdminOnly><MilestonesAdmin /></AdminOnly>} />
+        <Route path="/mentoria" element={<MentoriaPage />} />
+        <Route path="/minhas-mentorias" element={<MinhasMentoriasPage />} />
         <Route path="/caderno" element={<LeaderOnly><Caderno /></LeaderOnly>} />
         <Route path="/caderno/:articleId" element={<LeaderOnly><CadernoArtigo /></LeaderOnly>} />
         <Route path="/admin/caderno" element={<RhAdminOnly><AdminCaderno /></RhAdminOnly>} />

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadgeRow";
 import { MilestoneBanner } from "@/components/milestones/MilestoneBanner";
+import { MentorshipOffersEditor } from "@/components/mentorship/MentorshipOffersEditor";
 
 type Unit = { id: string; code: string; name: string };
 type TeamMember = { id: string; unit_id: string; sector: string; role: string; cargo: string; nome?: string | null; telefone?: string | null; data_admissao?: string | null; foto_url?: string | null };
@@ -137,6 +138,8 @@ export default function MeuPerfil() {
       <div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
 
     <Card><CardContent className="p-4"><Link to="/perfil/sincronizacao" className="flex items-center justify-between"><span className="font-semibold text-foreground">Sincronização offline</span><span className="text-xs text-primary">Ver fila →</span></Link></CardContent></Card>
+
+    <MentorshipOffersEditor />
 
     <AppearanceSettings />
     <NotificationSettings />
