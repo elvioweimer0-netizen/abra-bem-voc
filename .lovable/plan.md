@@ -1,130 +1,116 @@
-# Stories 24h por Unidade (estilo Instagram)
+# Heatmap de Pendências por Unidade
 
-Feature de stories efêmeros (24h) postados por líderes, visíveis aos colaboradores da unidade. Inclui visualizações, reações, cleanup automático e moderação.
+Visão consolidada de 8 indicadores operacionais por unidade, com cores progressivas e drill-down via deep link.
 
 ---
 
 ## 1. Banco de Dados (migration única)
 
-### Tabelas
+### Função SQL agregadora
+Em vez de uma view (que não suporta parâmetro de período de forma natural), criar **`public.fn_heatmap_indicators(_period text)`** retornando `setof record` com:
+- `unit_id uuid`
+- `total_advertencias int`
+- `total_ocorrencias int`
+- `total_suspensoes int`
+- `total_checklist_atrasados int`
+- `total_faltas_setor int`
+- `total_vagas_abertas int`
+- `mood_baixo_count int`
+- `avisos_pendentes int`
 
-**`stories`**
-- `id` uuid pk
-- `author_user_id` uuid → profiles(user_id) ON DELETE CASCADE
-- `unit_id` uuid → units(id) ON DELETE CASCADE
-- `setor` text nullable
-- `media_url` text not null (path no bucket)
-- `media_type` text check in ('image','video')
-- `caption` text nullable, check length ≤ 200
-- `duration_seconds` int default 0
-- `created_at` timestamptz default now()
-- `expires_at` timestamptz default (now() + interval '24h') not null
-- Índices: `(unit_id, expires_at desc)`, `(author_user_id, created_at desc)`
+Características:
+- `SECURITY INVOKER` + `STABLE` + `SET search_path=public` — herda RLS do chamador.
+- `_period in ('hoje','semana','mes','trimestre')` → traduz para `interval`.
+- **Graceful degradation**: cada indicador é calculado em sub-CTE com `to_regclass('public.<tabela>')`; se NULL, retorna 0.
+- Itera sobre `units` para garantir linha por unidade (mesmo zerada).
 
-**`story_views`**
-- `id` uuid pk, `story_id`, `viewer_user_id`, `viewed_at`
-- UNIQUE (story_id, viewer_user_id)
+Adicionalmente, criar **view `public.v_heatmap_indicators`** que chama a função com período `'mes'` por padrão (atalho para uso direto), também `security_invoker=on`.
 
-**`story_reactions`**
-- `id` uuid pk, `story_id`, `user_id`, `emoji` check in ('👏','❤️','🎉','👍','🔥'), `created_at`
-- UNIQUE (story_id, user_id, emoji)
+Frontend chama via `supabase.rpc('fn_heatmap_indicators', { _period })`.
 
-### Trigger anti-spam
-- BEFORE INSERT em `stories`: bloqueia se autor já tem ≥10 stories nas últimas 24h.
+### Mapeamento dos indicadores
+| Indicador | Fonte | Janela |
+|---|---|---|
+| Advertências | `advertencias` (via `colaboradores.unidade` → `units.code`) | Período |
+| Ocorrências | `leadership_occurrences.unit_id` | Período |
+| Suspensões | `suspensoes` (via `colaboradores.unidade`) | Período |
+| Checklist atrasado | `checklist_completions` esperados − completos do dia | Hoje sempre |
+| Faltas setor | `attendance_records.status='falta'` | Período |
+| Vagas abertas | `team_members` ativos sem `user_id` OU sem `profiles` ativo | snapshot atual |
+| Humor baixo | `daily_mood.score < 3` agregado por `unit_id` | últimos 7 dias |
+| Avisos pendentes | `avisos.urgente=true` ativos sem `aviso_reads` para >50% da unidade | snapshot atual |
 
-### RLS
-
-**stories** (5 policies)
-1. INSERT: `author_user_id = auth.uid()` AND user é líder (master/admin/supervisor/gerente_loja/gerente_adm/encarregado/fiscal/lider_setor) — via `has_role`.
-2. SELECT (ativos por unidade): `expires_at > now() AND user_can_access_unit(auth.uid(), unit_id)`.
-3. SELECT (próprio autor, inclusive expirados): `author_user_id = auth.uid()`.
-4. UPDATE: autor + `created_at > now() - interval '5 min'` (só caption).
-5. DELETE: autor OR admin/master.
-
-**story_views** (2 policies)
-- INSERT: `viewer_user_id = auth.uid()`.
-- SELECT: `viewer_user_id = auth.uid()` OR autor do story.
-
-**story_reactions** (3 policies)
-- INSERT: `user_id = auth.uid()` AND tem acesso ao story.
-- SELECT: tem acesso ao story.
-- DELETE: `user_id = auth.uid()`.
+`to_regclass` blinda cada CTE — se a tabela não existir, retorna 0.
 
 ---
 
-## 2. Storage
-
-Bucket **`stories`** (privado), max 50MB, mime: image/jpeg, image/png, image/webp, video/mp4.
-Path: `{unit_id}/{author_user_id}/{story_id}.{ext}`.
-
-Policies em `storage.objects`:
-- INSERT: dono via `(storage.foldername(name))[2] = auth.uid()::text`.
-- SELECT: autenticados (acesso real validado pela tabela `stories`).
-- DELETE: dono OR admin/master.
-
----
-
-## 3. Edge Function
-
-**`cleanup-expired-stories`** (sem JWT, chamada por cron):
-- Lista `stories` com `expires_at < now() - interval '7 days'`.
-- Remove arquivos do bucket via `storage.remove`.
-- DELETE rows. Retorna `{deleted_rows, deleted_files}`.
-
-Cron via `pg_cron` (insert SQL com URL+anon key, não migration): diário 04:00 UTC.
-
----
-
-## 4. Frontend
+## 2. Frontend
 
 ### Hook
-`src/hooks/useStories.ts` — fetch stories ativos agrupados por unidade, marcar view, reagir, criar story (upload + insert), histórico próprio.
+`src/hooks/useHeatmap.ts`
+- `useHeatmap(period)` → chama `rpc('fn_heatmap_indicators')`, cruza com `useAccessibleUnits()` para filtrar só as visíveis.
+- `refetchInterval: 60_000`.
 
 ### Componentes
-- `src/components/stories/StoriesBar.tsx` — círculos horizontais por unidade. Gradiente vermelho-laranja se há stories não vistos, cinza se todos vistos. Primeiro item = "+ Story" pra líderes.
-- `src/components/stories/StoryViewer.tsx` — modal fullscreen, barra de progresso (5s foto / duration vídeo), tap esquerda/direita, swipe-down fecha, footer com autor/cargo/setor/tempo, 5 emojis de reação, contador de views pro autor. Auto-marca view ao abrir.
-- `src/components/stories/StoryComposer.tsx` — FAB "+ Story", input com `capture="environment"` ou galeria, preview, caption ≤200, validação tipo/tamanho client-side, upload + insert.
-- `src/components/stories/StoryViewersList.tsx` — drawer mostrando quem viu (só pro autor).
+- `src/components/heatmap/HeatmapTable.tsx` — tabela 8×N (linhas = indicadores, colunas = unidades).
+- `src/components/heatmap/HeatmapCell.tsx` — célula com número grande, cor por threshold.
+- `src/components/heatmap/HeatmapDetailDrawer.tsx` — `Sheet` lateral com lista resumida + botão "Abrir página completa" usando deep link:
+  - Advertências → `/advertencias?unit=...`
+  - Ocorrências → `/ocorrencias?unit=...`
+  - Suspensões → `/suspensoes?unit=...`
+  - Checklist → `/checklist-diario?unit=...`
+  - Faltas → `/escala-semana?unit=...`
+  - Vagas → `/colaboradores?unit=...&status=vaga`
+  - Humor baixo → `/clima?unit=...`
+  - Avisos pendentes → `/avisos?urgente=1`
+- `src/components/heatmap/PeriodChips.tsx` — chips "Hoje / Semana / Mês / Trimestre".
 
-### Páginas
-- `src/pages/MeusStories.tsx` (rota `/perfil/stories`) — histórico próprio até 7 dias.
-- `src/pages/AdminStories.tsx` (rota `/admin/stories`) — moderação (admin/master): listar todos, deletar.
+### Thresholds
+```ts
+const THRESHOLDS = {
+  advertencias:    [0, 2],   // 0=verde, 1-2=amarelo, 3+=vermelho
+  ocorrencias:     [0, 1],
+  suspensoes:      [0, 0],   // qualquer >0 já amarelo
+  checklist:       [0, 2],
+  faltas:          [0, 1],
+  vagas:           [0, 0],
+  mood_baixo:      [0, 3],
+  avisos_pend:     [0, 0],
+};
+// retorna bg-emerald-50 / bg-amber-50 / bg-rose-50 / bg-rose-200
+```
 
-### Integração
-- `src/pages/FeedColaborador.tsx`: `<StoriesBar />` no topo.
-- `src/pages/Dashboard.tsx`: `<StoriesBar />` no topo.
-- `src/components/AppSidebar.tsx`: item "Meus Stories" (todos), "Admin / Stories" (admin/master).
-- `src/App.tsx`: rotas `/perfil/stories` e `/admin/stories`.
+### Página
+`src/pages/Heatmap.tsx` — header com título, `<PeriodChips>`, botão refresh manual, `<HeatmapTable>`.
+
+### Rota e guard
+`src/App.tsx`:
+```tsx
+<Route path="/heatmap" element={<HeatmapAccess><Heatmap /></HeatmapAccess>} />
+```
+`HeatmapAccess` aceita `master | admin | supervisor | gerente_adm`; outros → `<NotFound />`.
+
+### Sidebar
+`src/components/AppSidebar.tsx` — nova seção **"Análise"** com item "Heatmap" (ícone `LayoutGrid`), visível apenas para os 4 perfis.
 
 ---
 
-## 5. Push (silencioso)
-Trigger AFTER INSERT em `stories` enfileira em `notification_events` (type `new_story`) para usuários da unidade, exceto autor. Reusa pipeline de notificações existente.
+## 3. Arquivos tocados
 
----
-
-## 6. Arquivos tocados
-
-**Migrations / Backend**
-- `supabase/migrations/<ts>_stories.sql` (tabelas, índices, RLS, trigger anti-spam, trigger push, bucket + policies)
-- `supabase/functions/cleanup-expired-stories/index.ts`
-- Insert SQL separado (via tool `supabase--insert`) para `pg_cron`
+**Migration**
+- `supabase/migrations/<ts>_heatmap_indicators.sql` (função `fn_heatmap_indicators` + view `v_heatmap_indicators`)
 
 **Frontend criados**
-- `src/hooks/useStories.ts`
-- `src/components/stories/StoriesBar.tsx`
-- `src/components/stories/StoryViewer.tsx`
-- `src/components/stories/StoryComposer.tsx`
-- `src/components/stories/StoryViewersList.tsx`
-- `src/pages/MeusStories.tsx`
-- `src/pages/AdminStories.tsx`
+- `src/hooks/useHeatmap.ts`
+- `src/pages/Heatmap.tsx`
+- `src/components/heatmap/HeatmapTable.tsx`
+- `src/components/heatmap/HeatmapCell.tsx`
+- `src/components/heatmap/HeatmapDetailDrawer.tsx`
+- `src/components/heatmap/PeriodChips.tsx`
 
 **Frontend editados**
-- `src/App.tsx`
-- `src/components/AppSidebar.tsx`
-- `src/pages/FeedColaborador.tsx`
-- `src/pages/Dashboard.tsx`
-- `src/integrations/supabase/types.ts` (auto)
+- `src/App.tsx` (rota + guard)
+- `src/components/AppSidebar.tsx` (seção Análise)
 
 ---
 
