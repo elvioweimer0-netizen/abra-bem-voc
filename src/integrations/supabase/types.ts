@@ -3721,6 +3721,105 @@ export type Database = {
         }
         Relationships: []
       }
+      tv_display_cards: {
+        Row: {
+          card_type: string
+          config: Json
+          created_at: string
+          display_id: string
+          enabled: boolean
+          id: string
+          ordem: number
+          updated_at: string
+        }
+        Insert: {
+          card_type: string
+          config?: Json
+          created_at?: string
+          display_id: string
+          enabled?: boolean
+          id?: string
+          ordem?: number
+          updated_at?: string
+        }
+        Update: {
+          card_type?: string
+          config?: Json
+          created_at?: string
+          display_id?: string
+          enabled?: boolean
+          id?: string
+          ordem?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tv_display_cards_display_id_fkey"
+            columns: ["display_id"]
+            isOneToOne: false
+            referencedRelation: "tv_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tv_displays: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_token: string
+          id: string
+          name: string
+          slide_duration_seconds: number
+          slug: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_token?: string
+          id?: string
+          name: string
+          slide_duration_seconds?: number
+          slug: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_token?: string
+          id?: string
+          name?: string
+          slide_duration_seconds?: number
+          slug?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tv_displays_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_displays_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "tv_displays_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       units: {
         Row: {
           active: boolean
@@ -4326,7 +4425,15 @@ export type Database = {
         Args: { _question_id: string }
         Returns: boolean
       }
+      regenerate_tv_display_token: {
+        Args: { _display_id: string }
+        Returns: string
+      }
       run_onboarding_status_cron: { Args: never; Returns: undefined }
+      seed_default_tv_cards: {
+        Args: { _display_id: string }
+        Returns: undefined
+      }
       send_onboarding_incentive: {
         Args: { _user_id: string }
         Returns: undefined

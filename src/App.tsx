@@ -90,6 +90,8 @@ import AdminOnboarding from "@/pages/AdminOnboarding";
 import MeuScore from "@/pages/MeuScore";
 import ScoresRanking from "@/pages/ScoresRanking";
 import AdminScoreDimensions from "@/pages/AdminScoreDimensions";
+import TvDisplay from "@/pages/TvDisplay";
+import AdminTvDisplays from "@/pages/AdminTvDisplays";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
@@ -279,6 +281,7 @@ function ProtectedRoutes() {
         <Route path="/meu-score" element={<MyScoreAccess><MeuScore /></MyScoreAccess>} />
         <Route path="/scores/ranking" element={<ScoresRankingAccess><ScoresRanking /></ScoresRankingAccess>} />
         <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
+        <Route path="/admin/tv-displays" element={<SupervisorOnly><AdminTvDisplays /></SupervisorOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -313,6 +316,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/trocar-senha" element={<ChangePasswordRoute />} />
+            <Route path="/tv/:token" element={<TvDisplay />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </AuthProvider>

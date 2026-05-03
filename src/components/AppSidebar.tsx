@@ -32,6 +32,7 @@ import {
   HeartPulse,
   Sunrise,
   Target,
+  Tv,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
@@ -270,6 +271,7 @@ export function AppSidebar() {
     ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
     ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
     ...(isAdmin ? [{ title: "Dimensões do Score", url: "/admin/score-dimensions", icon: Gauge }] : []),
+    ...((isAdmin || isSupervisor) ? [{ title: "TVs", url: "/admin/tv-displays", icon: Tv }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima

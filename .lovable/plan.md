@@ -1,111 +1,115 @@
-# Score do Gerente — KPI Composto
+# TV de Refeitório — Plano
 
-Sistema mensal de pontuação composta (0–100) para gerentes/encarregados, calculado por edge function cron, com 8 dimensões ponderadas, ranking, breakdown e admin de pesos. Cálculo robusto: dimensão sem dados é ignorada e seu peso é redistribuído entre as ativas.
+Página display fullscreen 16:9 que roda nas TVs das copas/refeitórios das lojas, sem login, acessada por token único da unidade. Admin gerencia tudo num CRUD com QR code.
 
-## 1. Schema (migration única)
+## 1) Schema (1 migration)
 
-**`manager_score_dimensions`** (catálogo + pesos)
-- `code` (slug único), `name`, `description`, `weight` (0–100), `metric_query_name`, `active`, `ordem`
-- Seed das 8 dimensões com pesos somando 100:
-  - `disciplina_operacional` 18 — % checklists completos
-  - `comunicacao` 10 — leitura de avisos (gerente + equipe)
-  - `lideranca_ativa` 12 — daily huddles / dias úteis
-  - `cumprimento_compromissos` 15 — weekly commitments cumpridos
-  - `cultura` 10 — Curió de Ouro dados/recebidos (normalizado)
-  - `disciplina_disciplinar` 10 — advertências invertidas
-  - `engajamento_equipe` 15 — mood médio × 20
-  - `desenvolvimento` 10 — cápsulas (gerente + média equipe)
+**`tv_displays`**
+- `id uuid pk`, `unit_id uuid fk units NOT NULL`
+- `slug text UNIQUE NOT NULL` (ex: `cidade-alta-tv1`)
+- `display_token text UNIQUE NOT NULL` (gerado via `encode(gen_random_bytes(24),'hex')`)
+- `name text NOT NULL`
+- `active boolean default true`
+- `slide_duration_seconds smallint default 12`
+- `created_at`, `updated_at`
 
-**`manager_scores_monthly`**
-- `user_id`, `year`, `month`, `unit_id`, `final_score`, `dimension_breakdown` (jsonb com `{code: {raw, weight_used, weighted}}`), `calculated_at`, `notes`
-- UNIQUE (user_id, year, month); índices (year, month, final_score desc) e (unit_id, year, month)
+**`tv_display_cards`**
+- `id uuid pk`, `display_id uuid fk tv_displays ON DELETE CASCADE`
+- `card_type text NOT NULL` (enum lógico: `aniversariantes`, `curio_ouro`, `stories_unidade`, `top_pendencias`, `compromissos_semana`, `historias_curio`, `avisos_importantes`, `conquistas_equipe`, `pilula_cultura`)
+- `ordem smallint NOT NULL`
+- `enabled boolean default true`
+- `config jsonb default '{}'::jsonb`
+- UNIQUE (display_id, card_type)
 
-## 2. RLS
+**RLS**
+- Ambas tabelas: SELECT para master/admin/supervisor; INSERT/UPDATE/DELETE para master/admin.
+- Acesso público à TV NÃO usa RLS — é feito via Edge Function com SERVICE ROLE validando o token.
 
-- **`manager_score_dimensions`**: SELECT master/admin/supervisor/gerente_loja/gerente_adm; mutações apenas master/admin
-- **`manager_scores_monthly`**: SELECT próprio OR master/admin/supervisor; sem INSERT/UPDATE pelo client (edge function usa service role)
+**RPC `seed_default_tv_cards(_display_id uuid)`** — popula 9 cards default ordenados, ativos.
 
-## 3. Edge function `calculate-manager-scores`
+## 2) Edge Function pública `tv-feed` (verify_jwt = false)
 
-Loop em profiles com cargo IN (`gerente_loja`,`gerente_adm`,`encarregado`), referência = mês anterior.
+Endpoint único que recebe `?token=...` e devolve **todo o payload** consolidado num JSON, evitando múltiplas roundtrips do front:
 
-Pra cada dimensão ativa, executa cálculo correspondente em try/catch. Se a tabela de origem não existir ou falhar → dimensão marcada como `skipped`, peso redistribuído proporcionalmente entre as restantes.
-
-```text
-score_final = Σ (raw_dim × weight_redistribuído / 100)
+```
+GET /functions/v1/tv-feed?token=XYZ
+→ {
+  display: { id, name, unit_id, unit_name, slide_duration_seconds },
+  cards: [{ type, config, data }],
+  generated_at
+}
 ```
 
-Persiste em `manager_scores_monthly` (UPSERT por user/year/month). Envia push:
-- `manager_score_calculated` pro próprio gerente
-- `manager_score_top_bottom` pro Roberto/Guga (top 1 e bottom 1)
+Internamente:
+- Valida token (busca tv_displays ativo).
+- Para cada card habilitado, executa query READ-ONLY na tabela correspondente (aniversariantes hoje, Curió de Ouro últimos 7d, stories 24h, top pendências via `fn_heatmap_indicators`, compromissos completed da semana, histórias aprovadas recentes, avisos ativos urgentes, achievements desbloqueados últimos 7d, pílula de cultura do dia).
+- `Cache-Control: public, max-age=60` no response.
+- Sem permitir escrita.
 
-**Cron**: dia 1 de cada mês às 04:00 (`pg_cron` + `pg_net` chamando a função).
+## 3) Frontend
 
-## 4. Frontend
+### `/tv/:token` (rota pública, fora de AppLayout/SidebarProvider)
+- Componente `TvDisplay.tsx` — fullscreen, sem header/sidebar/footer.
+- Layout 16:9 com `aspect-video` e `bg-background` forte.
+- Hook `useTvFeed(token)` com TanStack Query: `staleTime: 55s`, `refetchInterval: 60s`.
+- Carrossel auto-rotativo com Embla (já presente no projeto) ou interval state.
+- Cada slide = componente dedicado em `src/components/tv/cards/`:
+  - `BirthdayCard.tsx`, `CurioOuroCard.tsx`, `StoriesCard.tsx`, `PendenciasCard.tsx`, `CompromissosCard.tsx`, `HistoriasCard.tsx`, `AvisosCard.tsx`, `ConquistasCard.tsx`, `PilulaCulturaCard.tsx`
+- Tipografia grande (text-6xl/7xl headings, text-3xl body), padding generoso, transições `animate-fade-in` + `animate-scale-in`.
+- Wake lock API quando suportado (mantém TV acordada).
+- Tela de erro elegante se token inválido (`TvInvalidToken.tsx`).
+- Indicador discreto de progresso da rotação no canto.
 
-### 4.1 `/meu-score` (gerente_loja, gerente_adm, encarregado)
-- Hero card: score do mês anterior + delta vs mês anterior anterior
-- LineChart (recharts) tendência últimos 6 meses
-- Grid de cards por dimensão: valor, peso, mini-barra, comparativo média da rede
-- Box "Onde focar essa semana": dimensão mais fraca + link contextual (ex: cápsulas → `/treinamento`)
-- Disclaimer ético em destaque
+### `/admin/tv-displays` (master/admin/supervisor — gate `RhAdminOnly` + supervisor)
+- Página `AdminTvDisplays.tsx`:
+  - Lista todos displays agrupados por unidade.
+  - Botão "Nova TV" → modal com nome + unit_id, gera slug e token automaticamente, chama `seed_default_tv_cards`.
+  - Linha por display com: status, URL pública, ações (copiar URL, ver QR, editar cards, ativar/desativar, regerar token, excluir).
+  - Modal "Cards" com checkbox por card_type + drag-to-reorder simples (setas ↑↓).
+  - Modal "QR Code" usando lib `qrcode` (já instalada? se não, `bun add qrcode @types/qrcode`).
+  - Modal "Preview" abre iframe `/tv/:token` em 16:9 reduzido.
 
-### 4.2 `/scores/ranking` (master/admin/supervisor)
-- Tabela ranqueada: posição, avatar+nome, unidade, score, 8 mini-barras coloridas (breakdown), seta de tendência
-- Filtros: mês, ano, unidade
-- Click em linha abre Drawer com detalhe (reusa componentes do /meu-score)
-- LineChart comparativo dos top 5 últimos 6 meses
+### Hooks/utilitários
+- `src/hooks/useTvDisplays.ts` (CRUD admin via supabase client).
+- `src/hooks/useTvFeed.ts` (chamada pública à edge function).
 
-### 4.3 `/admin/score-dimensions` (master/admin)
-- Lista editável: drag para reordenar, toggle active, input weight
-- Validação client-side: soma pesos ativos = 100 (badge vermelho/verde)
-- Botão "Preview de impacto": dry-run recalculando últimos 3 meses no client com novos pesos sobre `dimension_breakdown` salvo, mostrando delta médio
-- Salvar persiste novos pesos (não recalcula histórico — apenas próximo cron)
+## 4) Navegação
 
-## 5. Disclaimer & Ética
+- `AppSidebar.tsx`: adicionar item "Admin · TVs" visível só para master/admin/supervisor.
+- `App.tsx`:
+  - `/tv/:token` montada **fora** do `<AppLayout>` (público, sem providers de auth pesados).
+  - `/admin/tv-displays` dentro do layout normal, gate de role.
 
-Componente `<ScoreEthicsDisclaimer />` reutilizável, fixado em `/meu-score` e `/scores/ranking`:
+## 5) Regras / segurança
 
-> "O Score é insumo de avaliação, não veredicto. A conversa contextual continua essencial pra decisões de RH."
+- Token público mas API só lê. Nenhuma mutação aceita o token.
+- Token regenerável (invalida URL antiga).
+- RLS bloqueia leitura direta das tabelas via anon — só edge function (service role) responde ao token.
+- Performance: 1 request/min por TV. Edge function consolida tudo. Query client mantém cache.
 
-Histórico nunca deletado: sem rota/UI de delete; RLS impede DELETE.
+## 6) Arquivos previstos
 
-## 6. Navegação (`AppSidebar.tsx`)
+**Criados**
+- `supabase/migrations/<ts>_tv_displays.sql`
+- `supabase/functions/tv-feed/index.ts`
+- `src/pages/TvDisplay.tsx`
+- `src/pages/AdminTvDisplays.tsx`
+- `src/components/tv/TvCarousel.tsx`
+- `src/components/tv/TvInvalidToken.tsx`
+- `src/components/tv/cards/*.tsx` (9 cards)
+- `src/components/tv/admin/TvDisplayFormModal.tsx`
+- `src/components/tv/admin/TvCardsModal.tsx`
+- `src/components/tv/admin/TvQrCodeModal.tsx`
+- `src/components/tv/admin/TvPreviewModal.tsx`
+- `src/hooks/useTvFeed.ts`
+- `src/hooks/useTvDisplays.ts`
 
-- "Meu Score" (Gauge icon) pra `gerente_loja`/`gerente_adm`/`encarregado` na seção Gestão
-- "Ranking de Gerentes" pra master/admin/supervisor na seção Análise
-- "Admin · Score" pra master/admin na seção Admin
+**Editados**
+- `src/App.tsx` (rotas)
+- `src/components/AppSidebar.tsx` (item admin)
+- `.lovable/plan.md`
+- (auto) `src/integrations/supabase/types.ts`
 
-## 7. Detalhes técnicos
-
-- Edge function usa `SUPABASE_SERVICE_ROLE_KEY` para bypassar RLS na escrita
-- Graceful degradation: cada dimensão é função interna isolada com try/catch que retorna `null` → ignorada
-- Redistribuição: `peso_efetivo = peso_original × (100 / soma_pesos_ativos_com_dado)`
-- Cron job criado via `supabase--insert` (contém URL/anon key, não migration)
-- Mood: usa `daily_mood` se existir; senão skip
-- Curió de Ouro normalizado: min-max scaling sobre rede no mesmo mês
-- Push: usa `notification_events` existente (mesmo padrão das outras features)
-
-## Arquivos a criar/editar
-
-**Criar**:
-- `supabase/migrations/<ts>_manager_scores.sql` (tabelas + RLS + seed)
-- `supabase/functions/calculate-manager-scores/index.ts`
-- `src/hooks/useManagerScore.ts`
-- `src/components/scores/ScoreEthicsDisclaimer.tsx`
-- `src/components/scores/ScoreHeroCard.tsx`
-- `src/components/scores/ScoreTrendChart.tsx`
-- `src/components/scores/ScoreDimensionCard.tsx`
-- `src/components/scores/ScoreMiniBars.tsx`
-- `src/components/scores/ScoreDetailDrawer.tsx`
-- `src/pages/MeuScore.tsx`
-- `src/pages/ScoresRanking.tsx`
-- `src/pages/AdminScoreDimensions.tsx`
-
-**Editar**:
-- `src/App.tsx` (rotas + guards)
-- `src/components/AppSidebar.tsx` (3 itens de menu)
-
-**Pós-aprovação separada (insert tool, não migration)**: agendamento `pg_cron` chamando a edge function dia 1 às 04:00.
+**Dependência nova (se faltar)**: `qrcode` + `@types/qrcode`.
 
 Aprova pra eu executar?
