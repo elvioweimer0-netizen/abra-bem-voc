@@ -95,6 +95,12 @@ function SupervisorOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function RhAdminOnly({ children }: { children: ReactNode }) {
+  const isRh = useIsRhAdmin();
+  if (!isRh) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
