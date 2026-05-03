@@ -25,6 +25,7 @@ import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
 import { StoriesBar } from "@/components/stories/StoriesBar";
 import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggestionWidget";
+import { NovosNoTimeWidget } from "@/components/onboarding/NovosNoTimeWidget";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
