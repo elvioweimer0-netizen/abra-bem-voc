@@ -216,6 +216,86 @@ export type Database = {
           },
         ]
       }
+      aviso_comments: {
+        Row: {
+          aviso_id: string
+          body: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          parent_comment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          aviso_id: string
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          aviso_id?: string
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aviso_comments_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "avisos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aviso_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "aviso_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aviso_reactions: {
+        Row: {
+          aviso_id: string
+          created_at: string
+          emoji: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          aviso_id: string
+          created_at?: string
+          emoji: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          aviso_id?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aviso_reactions_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "avisos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       aviso_reads: {
         Row: {
           aviso_id: string
@@ -2918,6 +2998,10 @@ export type Database = {
     Functions: {
       can_review_document_role: {
         Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_aviso: {
+        Args: { _aviso: string; _user: string }
         Returns: boolean
       }
       can_view_climate: {

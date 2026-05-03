@@ -25,6 +25,7 @@ import PoliticasInternas from "@/pages/PoliticasInternas";
 import Noticias from "@/pages/Noticias";
 import EndomarketingPage from "@/pages/EndomarketingPage";
 import Avisos from "@/pages/Avisos";
+import AvisoDetalhe from "@/pages/AvisoDetalhe";
 import Galeria from "@/pages/Galeria";
 import Reunioes from "@/pages/Reunioes";
 import CriarReuniao from "@/pages/CriarReuniao";
@@ -140,6 +141,7 @@ function ProtectedRoutes() {
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/endomarketing" element={<EndomarketingPage />} />
         <Route path="/avisos" element={<Avisos />} />
+        <Route path="/avisos/:id" element={<AvisoDetalhe />} />
         <Route path="/galeria" element={<Galeria />} />
         <Route path="/reunioes" element={<Reunioes />} />
         <Route path="/reunioes/criar" element={<CriarReuniao />} />
