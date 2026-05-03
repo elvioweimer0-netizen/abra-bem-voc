@@ -59,6 +59,10 @@ export default function ChecklistDiario() {
   const [activePeriod, setActivePeriod] = useState("abertura");
   const [saving, setSaving] = useState(false);
   const [donePulse, setDonePulse] = useState(false);
+  const [voiceProcessing, setVoiceProcessing] = useState(false);
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+  const [voiceMatches, setVoiceMatches] = useState<VoiceMatch[]>([]);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
 
   const profileAny = profile as any;
 
