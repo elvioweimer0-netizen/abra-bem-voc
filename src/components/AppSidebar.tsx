@@ -332,6 +332,7 @@ export function AppSidebar() {
         <MenuSection label="Caderno" items={cadernoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Pergunta da Semana" items={perguntaSemanaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Stories" items={storiesItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Análise" items={analiseItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
