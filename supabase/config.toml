@@ -25,3 +25,6 @@ verify_jwt = false
 
 [functions.day-start-reminders]
 verify_jwt = false
+
+[functions.process-voice-checklist]
+verify_jwt = false
