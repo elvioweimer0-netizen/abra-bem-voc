@@ -13,3 +13,6 @@ verify_jwt = false
 
 [functions.calculate-achievements]
 verify_jwt = false
+
+[functions.tv-feed]
+verify_jwt = false
