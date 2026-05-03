@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { availablePraiseTypes, PRAISE_TYPE_BADGE_CLASS, PRAISE_TYPE_ICON, PRAISE_TYPE_LABEL, type PraiseType } from "@/lib/praises";
 
 const categoryLabels: Record<string, string> = {
   todos: "Todos",
@@ -49,7 +50,8 @@ type Praise = {
   criado_em: string;
   destinatario_id: string;
   unit_id: string;
-  team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null; units?: { name: string; code: string } | null } | null;
+  praise_type: PraiseType;
+  team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null; unit_id?: string | null; units?: { name: string; code: string } | null } | null;
 };
 
 type Member = { id: string; nome?: string | null; cargo: string; unit_id: string; sector?: string | null; foto_url?: string | null };
@@ -79,7 +81,7 @@ function monthLabel(value?: string) {
 
 export default function Reconhecimentos() {
   const { user, profile } = useAuth();
-  const { isAdmin, isSupervisor } = useRole();
+  const { isAdmin, isSupervisor, cargo } = useRole();
   const { toast } = useToast();
   const [praises, setPraises] = useState<Praise[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -90,14 +92,16 @@ export default function Reconhecimentos() {
   const [category, setCategory] = useState("todos");
   const [period, setPeriod] = useState<Period>("30");
   const [unitFilter, setUnitFilter] = useState("todas");
-  const [form, setForm] = useState({ destinatario: "", categoria: "atendimento", motivo: "", publico: true });
+  const [typeFilter, setTypeFilter] = useState<"todos" | PraiseType>("todos");
+  const allowedTypes = availablePraiseTypes(cargo);
+  const [form, setForm] = useState<{ destinatario: string; categoria: string; motivo: string; publico: boolean; praise_type: PraiseType }>({ destinatario: "", categoria: "atendimento", motivo: "", publico: true, praise_type: allowedTypes[0] });
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     const db = supabase as any;
     const [{ data: p }, { data: m }, { data: e }, { data: u }, { data: a }] = await Promise.all([
-      db.from("praises").select("id,autor_id,motivo,categoria,criado_em,destinatario_id,unit_id,team_members(nome,cargo,sector,foto_url,units(name,code))").eq("publico", true).order("criado_em", { ascending: false }).limit(80),
+      db.from("praises").select("id,autor_id,motivo,categoria,criado_em,destinatario_id,unit_id,praise_type,team_members(nome,cargo,sector,foto_url,unit_id,user_id,units(name,code))").eq("publico", true).order("criado_em", { ascending: false }).limit(80),
       db.from("team_members").select("id,nome,cargo,unit_id,sector,foto_url").eq("status", "ativo").order("nome").order("cargo"),
       db.from("employee_of_month").select("id,mes,total_praises,checklist_compliance_pct,score_final,team_member_id,team_members(nome,cargo,sector,foto_url),units(name,code)").order("mes", { ascending: false }).limit(6),
       db.from("units").select("id,code,name").order("code"),
@@ -120,9 +124,10 @@ export default function Reconhecimentos() {
       const matchesCategory = category === "todos" || p.categoria === category;
       const matchesPeriod = new Date(p.criado_em).getTime() >= minDate;
       const matchesUnit = unitFilter === "todas" || p.unit_id === unitFilter;
-      return matchesCategory && matchesPeriod && matchesUnit;
+      const matchesType = typeFilter === "todos" || (p.praise_type || "liderado") === typeFilter;
+      return matchesCategory && matchesPeriod && matchesUnit && matchesType;
     });
-  }, [praises, category, period, unitFilter]);
+  }, [praises, category, period, unitFilter, typeFilter]);
 
   const stats = useMemo(() => {
     const thisMonth = praises.filter((p) => {
