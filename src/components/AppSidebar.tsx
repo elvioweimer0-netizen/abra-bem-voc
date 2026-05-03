@@ -243,6 +243,7 @@ export function AppSidebar() {
     ...(isGerente || isSupervisor || isAdmin ? [{ title: "Inspeções", url: "/inspecoes", icon: SearchCheck }] : []),
     ...(isGerente ? [{ title: "Avaliações de Encarregado", url: "/avaliacoes", icon: Star }, { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion }, { title: "Relatórios da Unidade", url: "/relatorios", icon: Gauge }] : []),
     ...(["gerente_loja", "gerente_adm", "encarregado"].includes(cargo) ? [{ title: "Meu Score", url: "/meu-score", icon: Gauge }] : []),
+    ...((["gerente_loja", "gerente_adm", "supervisor"].includes(cargo) || isAdmin) ? [{ title: "Carta do Curiozinho", url: "/curiozinho/historico", icon: Sparkles }] : []),
   ];
 
   const visitas: MenuItem[] = (isAdmin || isSupervisor)
