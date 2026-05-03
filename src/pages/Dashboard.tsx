@@ -27,6 +27,7 @@ import { StoriesBar } from "@/components/stories/StoriesBar";
 import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggestionWidget";
 import { NovosNoTimeWidget } from "@/components/onboarding/NovosNoTimeWidget";
 import { CartaCuriozinhoCard } from "@/components/curiozinho/CartaCuriozinhoCard";
+import { IniciarMeuDiaCard } from "@/components/day-start/IniciarMeuDiaCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
