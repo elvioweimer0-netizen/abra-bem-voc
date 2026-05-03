@@ -133,6 +133,7 @@ export default function Dashboard() {
       <PlaybookSuggestionWidget />
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
+      {cargo === "gerente_loja" && <NovosNoTimeWidget />}
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 
