@@ -78,6 +78,12 @@ function LeaderOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminOnly({ children }: { children: ReactNode }) {
+  const { isAdmin } = useRole();
+  if (!isAdmin) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 function SupervisorOnly({ children }: { children: ReactNode }) {
   const { isAdmin, isSupervisor } = useRole();
   if (!isAdmin && !isSupervisor) return <Navigate to="/" replace />;
