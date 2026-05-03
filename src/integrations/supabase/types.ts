@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          active: boolean
+          category: string
+          code: string
+          created_at: string
+          criteria_metric: string
+          criteria_target: number | null
+          criteria_type: string
+          description: string
+          icon: string | null
+          id: string
+          name: string
+          ordem: number
+          role_filter: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          code: string
+          created_at?: string
+          criteria_metric: string
+          criteria_target?: number | null
+          criteria_type: string
+          description: string
+          icon?: string | null
+          id?: string
+          name: string
+          ordem?: number
+          role_filter?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          code?: string
+          created_at?: string
+          criteria_metric?: string
+          criteria_target?: number | null
+          criteria_type?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          ordem?: number
+          role_filter?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       advertencias: {
         Row: {
           colaborador_id: string
@@ -2562,6 +2613,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          completed: boolean
+          created_at: string
+          current_progress: number
+          id: string
+          last_calculated_at: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          completed?: boolean
+          created_at?: string
+          current_progress?: number
+          id?: string
+          last_calculated_at?: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          completed?: boolean
+          created_at?: string
+          current_progress?: number
+          id?: string
+          last_calculated_at?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2838,6 +2930,10 @@ export type Database = {
       }
       can_view_team_member: {
         Args: { _member_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_user_achievements: {
+        Args: { _target: string; _viewer: string }
         Returns: boolean
       }
       get_user_departamento: {
