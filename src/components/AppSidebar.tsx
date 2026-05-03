@@ -272,6 +272,7 @@ export function AppSidebar() {
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
     ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
+    ...(isAdmin ? [{ title: "Marcos de Tempo", url: "/admin/milestones", icon: Trophy }] : []),
     ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
     ...(isAdmin ? [{ title: "Dimensões do Score", url: "/admin/score-dimensions", icon: Gauge }] : []),
     ...((isAdmin || isSupervisor) ? [{ title: "TVs", url: "/admin/tv-displays", icon: Tv }] : []),
