@@ -275,7 +275,57 @@ export default function ChecklistDiario() {
     toast({ title: status === "completo" ? "Checklist completo" : "Checklist salvo", description: `${completedCount}/${activeItems.length} itens registrados.` });
   };
 
-  if (!profile) return null;
+  const handleVoiceTranscript = async (transcript: string) => {
+    if (!transcript.trim() || !activeItems.length) return;
+    setVoiceTranscript(transcript);
+    setVoiceProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("process-voice-checklist", {
+        body: {
+          transcript,
+          items: activeItems.map((i) => ({
+            id: i.id,
+            descricao: i.descricao,
+            tipo_resposta: i.tipo_resposta,
+            requires_photo: i.requires_photo,
+          })),
+        },
+      });
+      if (error) throw error;
+      const matches = (data?.matches || []) as VoiceMatch[];
+      setVoiceMatches(matches);
+      setVoiceModalOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({
+        title: "Não foi possível processar a voz",
+        description: `Marque manualmente. Texto capturado: "${transcript}"`,
+        variant: "destructive",
+      });
+    } finally {
+      setVoiceProcessing(false);
+    }
+  };
+
+  const handleVoiceConfirm = (itemIds: string[]) => {
+    let applied = 0;
+    for (const id of itemIds) {
+      const item = activeItems.find((i) => i.id === id);
+      if (!item) continue;
+      if (item.requires_photo && !responses[item.id]?.foto_url) continue;
+      setResponses((current) => ({
+        ...current,
+        [item.id]: {
+          ...current[item.id],
+          item_id: item.id,
+          resposta: "true",
+          completed_at: new Date().toISOString(),
+        },
+      }));
+      applied++;
+    }
+    toast({ title: "Marcação por voz aplicada", description: `${applied} item(s) marcados. Clique em Salvar para registrar.` });
+  };
 
   return (
     <div className="space-y-5">
