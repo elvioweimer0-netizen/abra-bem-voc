@@ -81,6 +81,7 @@ import Heatmap from "@/pages/Heatmap";
 import Pdi from "@/pages/Pdi";
 import PdiEquipe from "@/pages/PdiEquipe";
 import PdiAdmin from "@/pages/PdiAdmin";
+import AuditoriaVisual from "@/pages/AuditoriaVisual";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
