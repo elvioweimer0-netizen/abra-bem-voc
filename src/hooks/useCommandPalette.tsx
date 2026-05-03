@@ -14,6 +14,10 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
         e.preventDefault();
         setOpen((v) => !v);
       }
+      if ((e.key === "j" || e.key === "J") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        window.location.href = "/chat";
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);

@@ -98,6 +98,7 @@ import WhatsappResumo from "@/pages/WhatsappResumo";
 import WhatsappResumoHistorico from "@/pages/WhatsappResumoHistorico";
 import AdminRiscoChurn from "@/pages/AdminRiscoChurn";
 import RiscoChurnDetalhe from "@/pages/RiscoChurnDetalhe";
+import Chat from "@/pages/Chat";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
@@ -303,6 +304,8 @@ function ProtectedRoutes() {
         <Route path="/whatsapp-resumo/historico" element={<WhatsappResumoHistorico />} />
         <Route path="/admin/risco-churn" element={<ChurnAccess><AdminRiscoChurn /></ChurnAccess>} />
         <Route path="/risco-churn/:userId" element={<ChurnAccess><RiscoChurnDetalhe /></ChurnAccess>} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/chat/:id" element={<Chat />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

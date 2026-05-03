@@ -10,11 +10,12 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Monitor, Moon, Search, Settings, Sun, User, UserCircle } from "lucide-react";
+import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, MessageCircle, Monitor, Moon, Search, Settings, Sun, User, UserCircle } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { useChatUnreadBadge } from "@/hooks/useConversations";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
@@ -37,6 +38,26 @@ const viewAsOptions: Enums<"cargo_tipo">[] = [
   "master", "admin", "supervisor", "gerente", "gerente_loja",
   "gerente_adm", "encarregado", "fiscal", "lider_setor", "colaborador",
 ];
+
+function ChatHeaderButton() {
+  const navigate = useNavigate();
+  const unread = useChatUnreadBadge();
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/chat")} aria-label="Chat" className="relative h-9 w-9">
+          <MessageCircle className="h-5 w-5" />
+          {unread > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Chat</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -165,6 +186,7 @@ export function AppHeader() {
                 </TooltipTrigger>
                 <TooltipContent>Tema: {themeLabel}</TooltipContent>
               </Tooltip>
+              <ChatHeaderButton />
               <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
