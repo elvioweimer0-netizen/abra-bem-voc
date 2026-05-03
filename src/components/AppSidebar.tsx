@@ -260,6 +260,7 @@ export function AppSidebar() {
   const adminTreinamento: MenuItem[] = [
     ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
+    ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima
