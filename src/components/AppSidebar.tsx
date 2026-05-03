@@ -314,6 +314,7 @@ export function AppSidebar() {
     ? [
         { title: "Heatmap", url: "/heatmap", icon: Gauge },
         { title: "Auditoria Visual", url: "/auditoria-visual", icon: Camera },
+        ...((isAdmin || isSupervisor) ? [{ title: "Ranking de Gerentes", url: "/scores/ranking", icon: Gauge }] : []),
       ]
     : [];
 
