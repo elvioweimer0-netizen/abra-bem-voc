@@ -2272,6 +2272,70 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_journeys: {
+        Row: {
+          completed_at: string | null
+          completed_modules: number
+          created_at: string
+          expected_completion_date: string
+          id: string
+          last_activity_at: string | null
+          started_at: string
+          status: string
+          total_modules: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_modules?: number
+          created_at?: string
+          expected_completion_date?: string
+          id?: string
+          last_activity_at?: string | null
+          started_at?: string
+          status?: string
+          total_modules?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_modules?: number
+          created_at?: string
+          expected_completion_date?: string
+          id?: string
+          last_activity_at?: string | null
+          started_at?: string
+          status?: string
+          total_modules?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "onboarding_journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "onboarding_journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       pdi_goals: {
         Row: {
           ano: number
@@ -3500,6 +3564,7 @@ export type Database = {
           description: string
           duration_seconds: number
           id: string
+          onboarding_track: boolean
           ordem: number
           thumbnail_url: string | null
           title: string
@@ -3514,6 +3579,7 @@ export type Database = {
           description?: string
           duration_seconds?: number
           id?: string
+          onboarding_track?: boolean
           ordem?: number
           thumbnail_url?: string | null
           title: string
@@ -3528,6 +3594,7 @@ export type Database = {
           description?: string
           duration_seconds?: number
           id?: string
+          onboarding_track?: boolean
           ordem?: number
           thumbnail_url?: string | null
           title?: string
@@ -4140,6 +4207,11 @@ export type Database = {
       question_deadline_passed: {
         Args: { _question_id: string }
         Returns: boolean
+      }
+      run_onboarding_status_cron: { Args: never; Returns: undefined }
+      send_onboarding_incentive: {
+        Args: { _user_id: string }
+        Returns: undefined
       }
       submit_quiz: {
         Args: { _answers: Json; _module_id: string }

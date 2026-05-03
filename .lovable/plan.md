@@ -1,117 +1,126 @@
-# Plano — HISTÓRIAS DO CURIÓ
+# Plano — ONBOARDING CULTURAL "Como o Curió faz"
 
-Feature de storytelling cultural: colaboradores submetem histórias reais ligadas aos valores da empresa, RH modera, feed público destaca aprovadas, com curtidas, hall do mês e widget no Feed.
+Trilha de 30 dias com cápsulas obrigatórias para novos colaboradores/líderes de setor, com progresso visual, certificado "Cidadão Curió" e painel de acompanhamento pra RH/gerentes.
 
 ## 1. Schema (migration única)
 
-**Tabela `curio_stories`**
-- `id uuid PK default gen_random_uuid()`
-- `author_user_id uuid` → `profiles(user_id) ON DELETE CASCADE`
-- `value_id uuid NULL` → `culture_values(id) ON DELETE SET NULL` (graceful: tabela já existe)
-- `title text NOT NULL CHECK (char_length(title) BETWEEN 5 AND 100)`
-- `content text NOT NULL CHECK (char_length(content) BETWEEN 30 AND 1500)`
-- `image_url text NULL`
-- `status text NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente','aprovada','rejeitada','arquivada'))`
-- `moderated_by uuid NULL` → `profiles(user_id)`
-- `moderated_at timestamptz NULL`
-- `moderation_note text NULL`
-- `published_at timestamptz NULL`
-- `created_at`, `updated_at` (trigger `tg_set_updated_at`)
-- Índice: `(status, published_at DESC)` e `(author_user_id)`
+**Alteração `training_modules`**
+- `ALTER TABLE training_modules ADD COLUMN onboarding_track boolean NOT NULL DEFAULT false`
+- Índice parcial: `(onboarding_track) WHERE onboarding_track = true`
 
-**Tabela `curio_story_likes`**
-- `id uuid PK`, `story_id`, `user_id`, `liked_at`
-- Unique `(story_id, user_id)`
+**Tabela `onboarding_journeys`**
+- `id uuid PK`
+- `user_id uuid` → `profiles(user_id) ON DELETE CASCADE` UNIQUE (1 jornada por user)
+- `started_at timestamptz NOT NULL DEFAULT now()`
+- `expected_completion_date date GENERATED ALWAYS AS ((started_at::date + interval '30 days')::date) STORED`
+- `completed_at timestamptz NULL`
+- `total_modules int NOT NULL` (snapshot na criação)
+- `completed_modules int NOT NULL DEFAULT 0`
+- `status text NOT NULL DEFAULT 'em_andamento' CHECK (status IN ('em_andamento','concluido','atrasado'))`
+- `last_activity_at timestamptz NULL` (pra coluna "último acesso" no admin)
+- `created_at`, `updated_at`
 
-## 2. RLS
+## 2. Triggers/Functions
 
-**curio_stories** (4 policies):
-- INSERT: `author_user_id = auth.uid()` (status forçado 'pendente' via trigger BEFORE INSERT)
-- SELECT: `status='aprovada'` OU `author_user_id=auth.uid()` OU `is_rh_or_admin(auth.uid())`
-- UPDATE: autor pode editar conteúdo se `status='pendente'`; moderador (`is_rh_or_admin`) pode mudar `status`/`moderation_note`/`moderated_*`/`published_at`
-- DELETE: nenhuma policy (bloqueado — usar status='arquivada')
+**`tg_create_onboarding_journey`** (AFTER INSERT em `profiles`)
+- Só dispara se `cargo IN ('colaborador','lider_setor')`
+- Conta módulos `active=true AND onboarding_track=true` → grava em `total_modules`
+- Insere `onboarding_journeys` com `ON CONFLICT DO NOTHING`
+- Enfileira `notification_events` tipo `onboarding_welcome` pro novo user
 
-**curio_story_likes** (3 policies):
-- INSERT: `user_id = auth.uid()` AND story está `aprovada`
-- SELECT: autenticado (agregado)
-- DELETE: `user_id = auth.uid()`
+**`tg_update_journey_on_completion`** (AFTER INSERT em `training_completions`)
+- Se módulo é `onboarding_track=true` e user tem journey ativa:
+  - Recalcula `completed_modules` (count distinct sobre completions×modules onboarding)
+  - Atualiza `last_activity_at = now()`
+  - Se `completed_modules >= total_modules` → `status='concluido'`, `completed_at=now()`
+  - Notifica gerente da unidade (`onboarding_completed`) e enfileira badge `cidadao_curio` em `notification_events` (achievements são unlockados via listener existente)
 
-## 3. Triggers/Functions
+**`tg_journey_status_recalc`** (BEFORE UPDATE)
+- Se `expected_completion_date < CURRENT_DATE` AND `status='em_andamento'` → `'atrasado'` (também aplicado pelo cron)
 
-- `tg_curio_story_force_pending` BEFORE INSERT: força `status='pendente'`, `moderated_*`/`published_at` NULL
-- `tg_curio_story_on_status_change` AFTER UPDATE: ao virar `aprovada` → push pro autor + set `published_at`; ao virar `rejeitada` → push com `moderation_note`
-- `tg_curio_story_notify_moderators` AFTER INSERT: enfileira notification_events pra cada moderador RH
-- Reaproveita `update_updated_at_column`
+**Cron diário** `onboarding-status-cron` (pg_cron + pg_net) às 03:30
+- UPDATE journeys SET status='atrasado' WHERE status='em_andamento' AND expected_completion_date < CURRENT_DATE
+- Notifica gerentes das unidades dos atrasados (`onboarding_late`)
+- Lembrete semanal: pra journeys `em_andamento` cujo `last_activity_at < now()-7d`, push pro user
 
-## 4. Storage
+## 3. RLS `onboarding_journeys`
 
-Bucket `curio-stories` privado, 5MB max:
-- Upload: autor (`auth.uid()::text = (storage.foldername(name))[1]`)
-- Leitura: qualquer autenticado
-- Update/Delete: só autor
+- SELECT próprio: `user_id = auth.uid()`
+- SELECT líder unidade: `is_leadership(auth.uid()) AND EXISTS (profiles p WHERE p.user_id=onboarding_journeys.user_id AND user_can_access_unit(auth.uid(), p.unit_id))`
+- SELECT moderador RH/admin: `is_rh_or_admin(auth.uid())`
+- INSERT/UPDATE/DELETE: nenhuma policy (só via SECURITY DEFINER triggers)
 
-## 5. Frontend
+## 4. Frontend
 
-**Hook `useCurioStories.ts`**: listagem (filtro status/value/search/paginação), criação, like/unlike (toggle), moderação, widget semana, hall do mês.
+**Hook `useOnboarding.ts`**
+- `useMyJourney()`: jornada do usuário + lista de módulos onboarding com status (locked/unlocked/in_progress/completed) — desbloqueio sequencial por `ordem`
+- `useJourneysAdmin(filters)`: listagem para painel RH
+- `useUnitOnboardings(unitId)`: pra widget gerente_loja
+- `useToggleOnboardingTrack()`: admin treinamento
+- `useResendIncentive(userId)`: insere notification_event manual
 
-**Páginas**:
-- `/historias` — feed paginado aprovadas, chips por valor, busca, FAB "+ Contar uma história"
-- `/historias/hall-do-mes` — top 5 curtidas no mês corrente
-- `/admin/historias` — tabs Pendentes/Aprovadas/Rejeitadas/Arquivadas, ações Aprovar/Rejeitar/Arquivar com `moderation_note`
+**Páginas**
+- `/onboarding` — trilha visual em "caminho" (steps verticais com conector). Reusa `/treinamento/:id` no click. Ao concluir → componente `CertificadoCidadaoCurio` com animação confetti + botão "Compartilhar no feed" (cria entrada em `noticias` ou `aviso`/feed simples; se não der, abre share nativo)
+- `/admin/onboarding` — tabs "Em andamento | Atrasados | Concluídos", filtro por unidade, botão "Reenviar incentivo"
 
-**Componentes** (`src/components/historias/`):
-- `HistoriaCard.tsx` — título, autor (nome+avatar), badge valor, content, foto, contador curtidas, botão curtir
-- `NovaHistoriaModal.tsx` — form com zod (title 5-100, content 30-1500, valor select, upload imagem opcional)
-- `ModeracaoHistoriaItem.tsx` — visualização inline + ações
-- `HistoriaSemanaWidget.tsx` — embutido no FeedColaborador
-- `HistoriaFiltrosChips.tsx`
+**Componentes** (`src/components/onboarding/`)
+- `OnboardingProgressBanner.tsx` — banner topo Dashboard, esconde se concluído ou se user não tem jornada
+- `OnboardingTrailStep.tsx` — step da trilha
+- `CertificadoCidadaoCurio.tsx`
+- `NovosNoTimeWidget.tsx` — pra dashboard gerente_loja
+- `JourneyRow.tsx` — linha admin
 
-**Validação client-side**: zod schemas espelham check constraints.
+**Integrações**
+- `Dashboard.tsx` ou `FeedColaborador.tsx`: insere `<OnboardingProgressBanner />` no topo
+- `AdminTreinamento.tsx`: switch "Faz parte do onboarding"
+- Painel gerente_loja (Dashboard): `<NovosNoTimeWidget />`
 
-## 6. Push notifications
+## 5. Notificações (via `notification_events`)
+- `onboarding_welcome` — no insert do profile
+- `onboarding_weekly_reminder` — cron
+- `onboarding_completed` — pro autor + pro gerente da unidade
+- `onboarding_late` — pro gerente quando passa 30 dias
+- `onboarding_incentive` — botão admin
 
-Via `notification_events` (já existe):
-- `story_submitted` → moderadores RH
-- `story_approved` → autor ("Sua história foi publicada!")
-- `story_rejected` → autor com `moderation_note`
+## 6. Navegação (`AppSidebar.tsx`)
+- "Onboarding" — visível pra qualquer user **enquanto sua jornada está em andamento** (chamada extra ao hook leve)
+- "Admin · Onboarding" — visível se `is_rh_or_admin` (master/admin/gerente_adm RH); guard de rota com `RhAdminOnly`
+- `App.tsx`: rotas `/onboarding` e `/admin/onboarding`
 
-## 7. Navegação (`AppSidebar.tsx`)
+## 7. Conquistas
+- Reusa achievements existentes: garante código `cidadao_curio` (cria via insert idempotente se não existir; mentor_1 já existe).
+- Unlock acionado pelo trigger ao concluir (insere em `notification_events` tipo `achievement_unlock` que o `AchievementUnlockListener` já consome) — alternativamente insere direto em `user_achievements` se a tabela existir e for compatível. **Conferir esquema antes**; se houver função pública `unlock_achievement(uid,code)`, usar; senão, apenas notification.
 
-- "Histórias" — todos os perfis (seção Cultura, abaixo de Pílulas de Cultura)
-- "Admin / Histórias" — `master`, `admin`, `gerente_adm` (com `is_rh_or_admin` no guard de rota)
-
-`App.tsx`: adicionar rotas `/historias`, `/historias/hall-do-mes`, `/admin/historias` (esta última com guard).
-
-## 8. Integração FeedColaborador
-
-Inserir `<HistoriaSemanaWidget />` em seção própria (após avisos urgentes, antes de pílulas).
+## 8. Seed
+- Coluna pronta. Seed de 10 cápsulas vem depois pelo usuário (separado).
 
 ## Arquivos tocados (previsão)
 
-**Criados**:
-- `supabase/migrations/<ts>_curio_stories.sql`
-- `src/hooks/useCurioStories.ts`
-- `src/pages/Historias.tsx`
-- `src/pages/HistoriasHallDoMes.tsx`
-- `src/pages/AdminHistorias.tsx`
-- `src/components/historias/HistoriaCard.tsx`
-- `src/components/historias/NovaHistoriaModal.tsx`
-- `src/components/historias/ModeracaoHistoriaItem.tsx`
-- `src/components/historias/HistoriaSemanaWidget.tsx`
-- `src/components/historias/HistoriaFiltrosChips.tsx`
+**Criados**
+- `supabase/migrations/<ts>_onboarding_cultural.sql`
+- `src/hooks/useOnboarding.ts`
+- `src/pages/Onboarding.tsx`
+- `src/pages/AdminOnboarding.tsx`
+- `src/components/onboarding/OnboardingProgressBanner.tsx`
+- `src/components/onboarding/OnboardingTrailStep.tsx`
+- `src/components/onboarding/CertificadoCidadaoCurio.tsx`
+- `src/components/onboarding/NovosNoTimeWidget.tsx`
+- `src/components/onboarding/JourneyRow.tsx`
 
-**Editados**:
+**Editados**
+- `supabase/insert/<ts>_cron.sql` (via insert tool — cron job)
 - `src/App.tsx` (rotas + guard)
 - `src/components/AppSidebar.tsx` (itens menu)
-- `src/pages/FeedColaborador.tsx` (widget)
+- `src/pages/Dashboard.tsx` ou `FeedColaborador.tsx` (banner + widget gerente)
+- `src/pages/AdminTreinamento.tsx` (toggle onboarding_track)
 - `src/integrations/supabase/types.ts` (auto)
 - `.lovable/plan.md`
 
 ## Regras respeitadas
 - Migration única reversível
-- Sem alterar RLS de outras tabelas
-- Validação client + server (check constraints + trigger)
-- Graceful: `culture_values` referenciada como nullable
-- DELETE bloqueado (status='arquivada')
+- Reusa `training_modules`/`training_completions`
+- Trigger restrito a `colaborador`/`lider_setor`
+- Nenhuma RLS de outras tabelas é alterada
+- Validação client + check constraints
 
 Aprova pra eu executar?

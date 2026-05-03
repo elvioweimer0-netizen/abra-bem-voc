@@ -85,6 +85,8 @@ import AuditoriaVisual from "@/pages/AuditoriaVisual";
 import Historias from "@/pages/Historias";
 import HistoriasHallDoMes from "@/pages/HistoriasHallDoMes";
 import AdminHistorias from "@/pages/AdminHistorias";
+import Onboarding from "@/pages/Onboarding";
+import AdminOnboarding from "@/pages/AdminOnboarding";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
