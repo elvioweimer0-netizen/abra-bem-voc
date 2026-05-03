@@ -326,6 +326,11 @@ export function AppSidebar() {
       : []),
   ];
 
+  const onboardingItems: MenuItem[] = [
+    ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
+    ...(isRhAdmin ? [{ title: "Admin · Onboarding", url: "/admin/onboarding", icon: GraduationCap }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
