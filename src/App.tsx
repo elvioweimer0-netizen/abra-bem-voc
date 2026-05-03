@@ -55,6 +55,8 @@ import PerfilTreinamentos from "@/pages/PerfilTreinamentos";
 import AdminTreinamento from "@/pages/AdminTreinamento";
 import UnidadePage from "@/pages/UnidadePage";
 import UnidadesIndex from "@/pages/UnidadesIndex";
+import Clima from "@/pages/Clima";
+import AdminClima from "@/pages/AdminClima";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -152,6 +154,8 @@ function ProtectedRoutes() {
         <Route path="/admin/treinamento" element={<AdminTreinamento />} />
         <Route path="/unidades" element={<UnidadesIndex />} />
         <Route path="/unidade/:id" element={<UnidadePage />} />
+        <Route path="/clima" element={<Clima />} />
+        <Route path="/admin/clima" element={<AdminClima />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

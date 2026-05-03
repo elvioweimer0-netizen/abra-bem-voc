@@ -29,7 +29,9 @@ import {
   Map,
   History,
   GraduationCap,
+  HeartPulse,
 } from "lucide-react";
+import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
@@ -143,6 +145,7 @@ export function AppSidebar() {
   const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
+  const { canViewClima, canManageClima } = useClimateAccess();
 
   const profileAny = profile as any;
   const myUnitId = profileAny?.unit_id as string | undefined;
@@ -247,8 +250,13 @@ export function AppSidebar() {
       ]
     : [];
 
-  const adminTreinamento: MenuItem[] = isRhAdmin
-    ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }]
+  const adminTreinamento: MenuItem[] = [
+    ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
+    ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
+  ];
+
+  const climaItems: MenuItem[] = canViewClima
+    ? [{ title: "Clima", url: "/clima", icon: HeartPulse }]
     : [];
 
   return (
@@ -270,6 +278,7 @@ export function AppSidebar() {
         <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Visitas" items={visitas} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Clima" items={climaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
