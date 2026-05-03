@@ -65,8 +65,8 @@ export function useActiveStories() {
       await Promise.all(
         stories.map(async (s) => {
           s.signed_url = await signUrl(s.media_url);
-          s.author = profMap.get(s.author_user_id);
-          s.unit = unitMap.get(s.unit_id);
+          s.author = profMap.get(s.author_user_id) as any;
+          s.unit = unitMap.get(s.unit_id) as any;
         })
       );
 
@@ -244,8 +244,8 @@ export function useAdminAllStories() {
       const unitMap = new Map((unitsData ?? []).map((u: any) => [u.id, u]));
       await Promise.all(list.map(async (s) => {
         s.signed_url = await signUrl(s.media_url);
-        s.author = profMap.get(s.author_user_id);
-        s.unit = unitMap.get(s.unit_id);
+        s.author = profMap.get(s.author_user_id) as any;
+        s.unit = unitMap.get(s.unit_id) as any;
       }));
       return list;
     },
