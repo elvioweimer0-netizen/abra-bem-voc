@@ -1,107 +1,133 @@
-# Caderno do Gerente / Playbook — Plano de Execução
+# Pergunta da Semana pro Líder — Plano
 
-Feature de base de conhecimento prática para líderes: artigos curtos com categoria, script, "o que NÃO fazer", exemplo real e vídeo. Inclui visualizações, feedback útil/não útil, versionamento e widget de sugestão.
+Ritual semanal de reflexão para liderança: master/admin posta pergunta na segunda, líderes respondem até quarta 23:59, depois discussão aberta com comentários. Mecanismo anti-contágio: só vê respostas dos outros após submeter a sua.
 
 ---
 
-## 1) Banco de dados (migration única)
+## 1) Banco (migration única)
 
-### Tabelas
+### `leadership_questions`
+- `week_start_date date UNIQUE NOT NULL` (segunda-feira)
+- `question_text text` (CHECK 20–500)
+- `context_note text`
+- `target_roles text[]` default `{master,admin,supervisor,gerente_loja,gerente_adm}`
+- `deadline_date date NOT NULL` (default = `week_start_date + 2 dias` = quarta)
+- `created_by`, `active`, timestamps
 
-**`playbook_categories`**
-- `code` (slug único), `name`, `icon`, `description`, `ordem`, `active`
-- SEED imediato das 6 categorias: `como_conduzir`, `como_abordar`, `como_cobrar`, `como_ensinar`, `como_reconhecer`, `como_resolver`
+### `leadership_answers`
+- `question_id` FK cascade
+- `user_id` FK cascade
+- `answer_text` (CHECK 50–2000)
+- `submitted_at`, `edited_at`
+- UNIQUE `(question_id, user_id)`
 
-**`playbook_articles`**
-- `category_id` FK restrict, `title` (5–150), `context` (markdown), `script`, `what_not_to_do`, `real_example`, `video_url`, `tags text[]`, `visible_to text[]` default com 8 cargos, `created_by`, `version int default 1`, `active`, `featured_until timestamptz` (para o "Destaque por 1 semana")
-- Trigger `BEFORE UPDATE`: incrementa `version` e atualiza `updated_at` quando `context/script/what_not_to_do/real_example/video_url/title` mudam
-- Índice GIN em `tags` e `visible_to`
+### `leadership_answer_comments`
+- `answer_id` FK cascade, `author_user_id`, `comment_text` (CHECK 5–500)
+- INDEX `(answer_id, created_at desc)`
 
-**`playbook_article_views`**
-- `article_id`, `user_id`, `viewed_at`
-- Índice `(article_id, user_id)` e `(user_id, viewed_at desc)` para o widget de sugestão
-
-**`playbook_article_feedback`**
-- `article_id`, `user_id`, `useful boolean`, `comment`, `created_at`, `updated_at`
-- Unique `(article_id, user_id)` → upsert pelo cliente
-
-### Função helper
-- `is_rh_or_admin(uid)`: retorna true se master/admin OU (`gerente_adm` AND setor = 'RH')
+### Funções helper (SECURITY DEFINER, search_path=public)
+- `is_eligible_for_leadership_question(_uid, _question_id) bool` — cargo do user ∈ target_roles
+- `user_already_answered(_uid, _question_id) bool`
+- `question_deadline_passed(_question_id) bool`
 
 ### RLS
 
-| Tabela | SELECT | INSERT/UPDATE | DELETE |
-|---|---|---|---|
-| categories | autenticados | `is_rh_or_admin` | `is_rh_or_admin` |
-| articles | `active=true AND cargo ∈ visible_to` OU master/admin | `is_rh_or_admin` | bloqueado (soft via active) |
-| views | próprio OU admin/RH | `user_id=auth.uid()` | — |
-| feedback | próprio OU admin/RH | `user_id=auth.uid()` | próprio |
+**leadership_questions**
+- SELECT: `is_eligible_for_leadership_question(auth.uid(), id) OR has_role(admin/master/supervisor)`
+- INSERT/UPDATE/DELETE: master/admin/supervisor
+
+**leadership_answers**
+- INSERT: `user_id=auth.uid()` AND elegível
+- SELECT: própria OU (elegível AND `user_already_answered(auth.uid(), question_id)`) OU master/admin/supervisor
+- UPDATE: própria AND `now() <= deadline_date + 23:59:59`
+- DELETE: bloqueado
+
+**leadership_answer_comments**
+- SELECT: pode ver a answer
+- INSERT: `author_user_id=auth.uid()` AND pode ver answer AND `question_deadline_passed` (comentário só após deadline)
+- UPDATE: bloqueado
+- DELETE: autor OU master/admin
 
 ---
 
 ## 2) Frontend
 
-### Hooks (`src/hooks/usePlaybook.ts`)
-- `usePlaybookCategories()` — lista com contagem de artigos visíveis
-- `usePlaybookArticles({ categoryId, search })` — filtro + flag `viewed`
-- `usePlaybookArticle(id)` — detalhe + auto-mark view + feedback do usuário
-- `useSubmitFeedback()` — upsert
-- `usePlaybookSuggestion()` — sugere 1 artigo baseado em última categoria visitada / categoria menos vista
+### Hook `src/hooks/useLeadershipQuestions.ts`
+- `useCurrentLeadershipQuestion()` — pergunta da semana ativa
+- `useLeadershipQuestionHistory({ from, to, authorId })`
+- `useLeadershipAnswers(questionId)` — vazia se user ainda não respondeu (RLS faz isso); flag `userHasAnswered`
+- `useMyAnswer(questionId)`
+- `useSubmitAnswer()` / `useEditAnswer()`
+- `useAnswerComments(answerId)` / `useAddComment()` / `useDeleteComment()`
+- `useAdminLeadershipQuestions()` (lista com stats) / `useSaveQuestion()`
 
 ### Páginas
-- **`/caderno`** (`src/pages/Caderno.tsx`) — layout 2 colunas desktop / 1 mobile, busca topo, sidebar categorias com contadores, grid de cards (título, categoria, snippet, badge "Visto")
-- **`/caderno/:articleId`** (`src/pages/CadernoArtigo.tsx`) — sections renderizadas em markdown, vídeo embed, footer feedback 👍/👎 + comentário, botão "Editar" para RH/admin
-- **`/admin/caderno`** (`src/pages/AdminCaderno.tsx`) — tabs: Artigos / Categorias / Estatísticas. CRUD com modal/form, editor markdown (textarea + preview), toggle Destaque (seta `featured_until = now()+7d`), métricas (mais vistos, mais úteis, sem feedback)
+- **`/pergunta-semana`** (`PerguntaSemana.tsx`)
+  - Topo: question card grande com `context_note`, countdown até deadline
+  - Se ainda não respondeu E dentro do deadline: textarea + contador caracteres + Submeter
+  - Se respondeu: mostra resposta + Editar (até deadline)
+  - Banner "Responda pra ver as respostas dos colegas" antes de submeter
+  - Após submissão (ou após deadline): lista de respostas dos outros em Accordion + comentários (só após deadline)
+- **`/pergunta-semana/historico`** (`PerguntaSemanaHistorico.tsx`)
+  - Lista de perguntas passadas, filtros período + autor
+- **`/pergunta-semana/:questionId`** (`PerguntaSemanaDetalhe.tsx`)
+  - Visão completa de uma pergunta histórica + todas as respostas + comentários
+- **`/admin/pergunta-semana`** (`AdminPerguntaSemana.tsx`, master/admin/supervisor)
+  - Form criar pergunta (com seleção de target_roles, week_start_date, deadline)
+  - Lista futuras + stats (% respostas, top engajamento)
 
-### Componentes (`src/components/playbook/`)
-- `PlaybookCategoryList.tsx`
-- `PlaybookArticleCard.tsx`
-- `PlaybookArticleSection.tsx` (renderiza markdown via `react-markdown` já presente)
-- `PlaybookFeedbackBar.tsx`
-- `PlaybookArticleFormModal.tsx` (admin)
-- `PlaybookCategoryFormModal.tsx` (admin)
-- `PlaybookSuggestionWidget.tsx` (Dashboard)
+### Componentes (`src/components/leadership-questions/`)
+- `QuestionCard.tsx`
+- `QuestionCountdown.tsx`
+- `AnswerForm.tsx`
+- `AnswerList.tsx` + `AnswerItem.tsx`
+- `LeadershipAnswerComments.tsx`
+- `QuestionFormModal.tsx` (admin)
 
-### Navegação (`src/components/AppSidebar.tsx`)
-- Adicionar item "Caderno" para todos os líderes (não-colaborador)
-- Sub-item "Admin / Caderno" só para `is_rh_or_admin`
+### Navegação (`AppSidebar.tsx`)
+- Item "Pergunta da Semana" para cargos em target_roles default (master/admin/supervisor/gerente_loja/gerente_adm)
+- Sub-item "Admin · Perguntas" só master/admin/supervisor
 
-### Integrações leves
-- Adicionar `<PlaybookSuggestionWidget />` no `Dashboard.tsx`
-- Rotas em `src/App.tsx`
-
----
-
-## 3) Regras
-
-- Commit único reversível (1 migration + arquivos novos)
-- Não tocar em RLS de outras tabelas
-- Soft delete via `active=false`
-- Versionamento via trigger
-- Conteúdo dos artigos vem depois — apenas seed das 6 categorias
+### Rotas em `App.tsx`
+- 3 rotas + 1 admin com guards
 
 ---
 
-## 4) Arquivos previstos
+## 3) Push / lembretes
+
+Edge function `leadership-question-reminders` (POST, sem JWT) chamada por pg_cron 4x:
+- Seg 9h: envia notification_event "Pergunta da semana chegou" pra todos elegíveis
+- Ter 16h: lembrete pra quem ainda não respondeu
+- Qua 18h: "última chance" pra quem não respondeu
+- Qua 23:59: relatório pro autor (quantos responderam / não)
+
+Cron registrado em sql separado via insert tool (contém URL/anon key — não usar migration).
+
+---
+
+## 4) Anti-contágio
+
+Garantido **na RLS**: SELECT em `leadership_answers` exige `user_already_answered` (exceto a própria, autor da pergunta, e admin/supervisor). Não dá pra fraudar pelo client.
+
+---
+
+## 5) Arquivos previstos
 
 **Criar:**
-- `supabase/migrations/<timestamp>_playbook.sql`
-- `src/hooks/usePlaybook.ts`
-- `src/pages/Caderno.tsx`
-- `src/pages/CadernoArtigo.tsx`
-- `src/pages/AdminCaderno.tsx`
-- `src/components/playbook/PlaybookCategoryList.tsx`
-- `src/components/playbook/PlaybookArticleCard.tsx`
-- `src/components/playbook/PlaybookArticleSection.tsx`
-- `src/components/playbook/PlaybookFeedbackBar.tsx`
-- `src/components/playbook/PlaybookArticleFormModal.tsx`
-- `src/components/playbook/PlaybookCategoryFormModal.tsx`
-- `src/components/playbook/PlaybookSuggestionWidget.tsx`
+- `supabase/migrations/<ts>_leadership_questions.sql`
+- `supabase/functions/leadership-question-reminders/index.ts`
+- `src/hooks/useLeadershipQuestions.ts`
+- `src/pages/PerguntaSemana.tsx`
+- `src/pages/PerguntaSemanaHistorico.tsx`
+- `src/pages/PerguntaSemanaDetalhe.tsx`
+- `src/pages/AdminPerguntaSemana.tsx`
+- `src/components/leadership-questions/` (6 componentes acima)
 
 **Editar:**
-- `src/App.tsx` (3 rotas)
-- `src/components/AppSidebar.tsx` (item + sub-item)
-- `src/pages/Dashboard.tsx` (widget sugestão)
+- `src/App.tsx` (4 rotas + guard)
+- `src/components/AppSidebar.tsx` (seção)
 - `.lovable/plan.md`
 
-Aprova pra eu executar?
+**Pós-aprovação (separado, via insert tool):** SQL do pg_cron com URL real do projeto.
+
+Aprova?

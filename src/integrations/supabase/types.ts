@@ -1168,6 +1168,73 @@ export type Database = {
         }
         Relationships: []
       }
+      leadership_answer_comments: {
+        Row: {
+          answer_id: string
+          author_user_id: string
+          comment_text: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          answer_id: string
+          author_user_id: string
+          comment_text: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          answer_id?: string
+          author_user_id?: string
+          comment_text?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_answer_comments_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_answers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leadership_answers: {
+        Row: {
+          answer_text: string
+          edited_at: string | null
+          id: string
+          question_id: string
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_text: string
+          edited_at?: string | null
+          id?: string
+          question_id: string
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_text?: string
+          edited_at?: string | null
+          id?: string
+          question_id?: string
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leadership_inspections: {
         Row: {
           created_at: string
@@ -1386,6 +1453,42 @@ export type Database = {
             referencedColumns: ["unit_id"]
           },
         ]
+      }
+      leadership_questions: {
+        Row: {
+          active: boolean
+          context_note: string | null
+          created_at: string
+          created_by: string | null
+          deadline_date: string
+          id: string
+          question_text: string
+          target_roles: string[]
+          week_start_date: string
+        }
+        Insert: {
+          active?: boolean
+          context_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          deadline_date: string
+          id?: string
+          question_text: string
+          target_roles?: string[]
+          week_start_date: string
+        }
+        Update: {
+          active?: boolean
+          context_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          deadline_date?: string
+          id?: string
+          question_text?: string
+          target_roles?: string[]
+          week_start_date?: string
+        }
+        Relationships: []
       }
       manager_substitutions: {
         Row: {
@@ -3310,6 +3413,10 @@ export type Database = {
         Args: { _document_id: string; _user_id: string }
         Returns: boolean
       }
+      can_view_leadership_answer: {
+        Args: { _answer_id: string; _uid: string }
+        Returns: boolean
+      }
       can_view_playbook_article: {
         Args: { _article_id: string; _uid: string }
         Returns: boolean
@@ -3345,6 +3452,10 @@ export type Database = {
       }
       is_commitment_viewer: { Args: { _user_id: string }; Returns: boolean }
       is_culture_editor: { Args: { _user_id: string }; Returns: boolean }
+      is_eligible_for_leadership_question: {
+        Args: { _question_id: string; _uid: string }
+        Returns: boolean
+      }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
       is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
       is_rh_or_admin: { Args: { _uid: string }; Returns: boolean }
@@ -3356,9 +3467,17 @@ export type Database = {
         Args: { _motivos: Json; _unit_id: string; _user_id: string }
         Returns: boolean
       }
+      question_deadline_passed: {
+        Args: { _question_id: string }
+        Returns: boolean
+      }
       submit_quiz: {
         Args: { _answers: Json; _module_id: string }
         Returns: Json
+      }
+      user_already_answered_question: {
+        Args: { _question_id: string; _uid: string }
+        Returns: boolean
       }
       user_can_access_unit: {
         Args: { _unit_id: string; _user_id: string }

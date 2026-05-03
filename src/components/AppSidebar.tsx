@@ -146,7 +146,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const menuCollapsed = isMobile ? false : collapsed;
   const { signOut, profile } = useAuth();
-  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
+  const { cargo, isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
   const { canViewClima, canManageClima } = useClimateAccess();
@@ -290,6 +290,13 @@ export function AppSidebar() {
       ]
     : [];
 
+  const perguntaSemanaItems: MenuItem[] = (isAdmin || isSupervisor || cargo === "gerente_loja" || cargo === "gerente_adm" || cargo === "master")
+    ? [
+        { title: "Pergunta da Semana", url: "/pergunta-semana", icon: MessageSquare },
+        ...(isAdmin || isSupervisor ? [{ title: "Admin · Perguntas", url: "/admin/pergunta-semana", icon: MessageSquare }] : []),
+      ]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -314,6 +321,7 @@ export function AppSidebar() {
         <MenuSection label="Compromissos" items={compromissoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Conquistas" items={conquistasItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Caderno" items={cadernoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Pergunta da Semana" items={perguntaSemanaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
