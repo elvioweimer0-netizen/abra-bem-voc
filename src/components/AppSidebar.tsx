@@ -32,6 +32,7 @@ import {
   HeartPulse,
   Sunrise,
   Target,
+  Tv,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
