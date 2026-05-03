@@ -57,6 +57,7 @@ export default function FeedColaborador() {
         <p className="text-sm text-muted-foreground">Bem-vindo de volta</p>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Olá, {firstName} 👋</h1>
       </div>
+      <StoriesBar />
 
       <AvisosBanner />
 
