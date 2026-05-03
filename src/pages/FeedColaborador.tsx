@@ -9,6 +9,7 @@ import { BookOpen, Camera, MessageCircle, Sparkles, Users } from "lucide-react";
 import { TopCuriosMes } from "@/components/TopCuriosMes";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
+import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
 import type { Noticia } from "@/types/database";
 
 type TeamMate = { id: string; nome: string; cargo_titulo: string | null; cargo: string };
@@ -57,6 +58,8 @@ export default function FeedColaborador() {
       </div>
 
       <AvisosBanner />
+
+      <AniversariantesWidget />
 
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
 
