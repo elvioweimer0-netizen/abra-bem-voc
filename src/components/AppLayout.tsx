@@ -11,6 +11,7 @@ import { PwaSplash } from "@/components/PwaSplash";
 import { EncerrarVisitaBanner } from "@/components/visitas/EncerrarVisitaBanner";
 import { MoodPrompt } from "@/components/clima/MoodPrompt";
 import { PulsePrompt } from "@/components/clima/PulsePrompt";
+import { BirthdayBanner } from "@/components/birthdays/BirthdayBanner";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
