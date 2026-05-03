@@ -25,6 +25,7 @@ import PoliticasInternas from "@/pages/PoliticasInternas";
 import Noticias from "@/pages/Noticias";
 import EndomarketingPage from "@/pages/EndomarketingPage";
 import Avisos from "@/pages/Avisos";
+import AvisoDetalhe from "@/pages/AvisoDetalhe";
 import Galeria from "@/pages/Galeria";
 import Reunioes from "@/pages/Reunioes";
 import CriarReuniao from "@/pages/CriarReuniao";
