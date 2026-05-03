@@ -1,90 +1,99 @@
-# Humorômetro + Pulso Semanal
+# Plano — Daily Huddle Digital
 
-Dois sinais de clima organizacional: mood diário (1-5) e pergunta livre semanal (sexta). Líderes só veem agregados — nunca user_id.
+Feature isolada de `leadership_meetings`. Registro diário rápido (≤2min) feito pelo gerente da unidade às 9:30, com painel agregado pra direção/supervisão.
 
-## 1. Schema (migration única)
+## 1. Banco de dados (migration única)
 
-**`daily_mood`**
-- `id uuid pk`, `user_id uuid → profiles(user_id) ON DELETE CASCADE`, `unit_id uuid → units ON DELETE CASCADE`
-- `score smallint CHECK (score BETWEEN 1 AND 5)` (nullable quando `skipped=true`)
-- `skipped boolean DEFAULT false`, `note text`, `recorded_at timestamptz DEFAULT now()`
-- Unique index parcial em `(user_id, (recorded_at::date))`.
+**Tabela `daily_huddle_reports`**
+- `id uuid pk default gen_random_uuid()`
+- `report_date date not null`
+- `unit_id uuid not null references units(id) on delete cascade`
+- `author_user_id uuid references profiles(user_id) on delete set null`
+- `bo_dia text default ''` — boletim do dia (ocorrências, faltas, eventos)
+- `informativos text default ''` — recados, campanhas, treinamentos
+- `venda_dia_anterior numeric(12,2)` — nullable
+- `meta_dia numeric(12,2)` — nullable
+- `meta_status text check (in 'no_caminho','em_risco','atingida','nao_atingida') default 'no_caminho'`
+- `observacao text default ''`
+- `submitted_at timestamptz default now()`
+- `updated_at timestamptz default now()` (trigger `update_updated_at_column`)
+- `UNIQUE (report_date, unit_id)`
+- `INDEX (report_date DESC, unit_id)`
 
-**`pulse_questions`**
-- `id`, `week_start_date date UNIQUE` (segunda-feira), `question_text text`, `active boolean DEFAULT true`, `created_at`.
+**RLS**
+- `SELECT`: master/admin/supervisor (tudo) **OU** `user_can_access_unit(auth.uid(), unit_id)` (gerente_loja/encarregado/líder da unidade veem só a sua).
+- `INSERT`: `is_leadership(auth.uid())` AND `user_can_access_unit(auth.uid(), unit_id)` AND `author_user_id = auth.uid()`.
+- `UPDATE`: `author_user_id = auth.uid()` AND `report_date = current_date` (mesmo dia, só autor). Master/admin podem editar a qualquer momento.
+- `DELETE`: nenhuma policy (bloqueado).
 
-**`pulse_answers`**
-- `id`, `question_id → pulse_questions ON DELETE CASCADE`, `user_id → profiles(user_id) ON DELETE CASCADE`
-- `unit_id → units`, `answer_text text` (≤500 chars validado client + check), `answered_at timestamptz DEFAULT now()`
-- Unique `(question_id, user_id)`.
+## 2. Frontend
 
-## 2. RLS + helper
+**Hook** `src/hooks/useDailyHuddle.ts`
+- `useTodayReport(unitId)` — busca registro de hoje
+- `useHuddleHistory(unitId, days=7)` — últimos 7
+- `useHuddlePanel(date)` — todos os relatórios de uma data + lista de unidades visíveis (junta com `useAccessibleUnits`)
+- `useUpsertHuddle()` — mutation insert/update
 
-Função `public.can_view_climate(_user_id uuid, _unit_id uuid)` retorna true se master/admin/supervisor/gerente_adm OU `is_unit_manager(_user_id, _unit_id)`. Reutilizada nas views.
+**Componente** `src/components/daily-huddle/DailyHuddleForm.tsx`
+- 4 campos principais: `bo_dia` (textarea), `informativos` (textarea), bloco numérico (`venda_dia_anterior`, `meta_dia`, `meta_status` select com 4 opções), `observacao` (textarea).
+- Botão "Salvar Daily" — usa `useUpsertHuddle`. Se já existe hoje, vira "Atualizar".
 
-**daily_mood**
-- INSERT/DELETE: `user_id = auth.uid()`.
-- SELECT: apenas `user_id = auth.uid()`. Agregado para líderes vai pelas views.
+**Página** `src/pages/DailyHuddle.tsx` (`/daily-huddle`) — perfis líderes
+- Header: data atual + dia da semana em PT-BR
+- Se hoje é dia útil (seg-sex) e não há registro → form em destaque
+- Histórico: lista colapsável dos últimos 7 dias da unidade do usuário (gerente_loja/encarregado/líder veem própria unidade; admin/master/supervisor veem dropdown de unidade)
+- Card de cada dia mostra: status meta com chip colorido + preview do `bo_dia`
 
-**pulse_questions**
-- SELECT: todo autenticado (precisa ler a pergunta da semana).
-- INSERT/UPDATE/DELETE: master/admin.
+**Página** `src/pages/DailyHuddlePainel.tsx` (`/daily-huddle/painel`) — master/admin/supervisor
+- Filtro de data (default: hoje)
+- Grid responsivo de cards (1 por unidade visível)
+- Cada card: nome unidade, badge **preenchido** (verde) ou **pendente** (âmbar piscante se hoje), venda dia anterior, status meta com cor (`no_caminho`=azul, `em_risco`=âmbar, `atingida`=verde, `nao_atingida`=vermelho)
+- Click → Sheet/Dialog com conteúdo completo
 
-**pulse_answers**
-- INSERT: `user_id = auth.uid()`.
-- SELECT: apenas `user_id = auth.uid()`. Líderes leem só via view (sem user_id).
-- Sem UPDATE/DELETE.
+**Cores via tokens semânticos** (`bg-primary`, `bg-warning`, `bg-success`, `bg-destructive`) — sem cor hardcoded.
 
-## 3. Views agregadas (security_invoker = off, owner postgres)
+## 3. Notificações push
 
-**`v_mood_aggregate`** — `unit_id, setor, day, avg_score, count`
-- Filtra `daily_mood` ignorando skipped, agrupa por unit/setor/dia.
-- WHERE `public.can_view_climate(auth.uid(), unit_id)` na própria view.
+Reaproveita `notification_events` existente (mesma estrutura que `enqueue_high_occurrence_notification`).
 
-**`v_pulse_aggregate`** — `question_id, week_start_date, question_text, unit_id, answer_text, answered_at`
-- Sem `user_id`. WHERE `public.can_view_climate(auth.uid(), unit_id)`.
-- Adiciono ORDER BY `answered_at` (não revela ordem de chegada por pessoa pois sem id de user).
+**Edge Function** `supabase/functions/daily-huddle-reminders/index.ts`
+- Endpoint único, decide ação por horário atual em `America/Fortaleza`.
+- **9:25 seg-sex (exceto terça)**: enfileira notificação pra todos com `is_leadership` em unidades de loja: "Daily 9:30 chegando — registre o BO do dia".
+- **10:00 seg-sex**: pega unidades sem `daily_huddle_reports` de hoje → notifica usuários cujo `nome ILIKE '%roberto%' OR '%guga%'` OR `has_role('admin'/'master')` com lista de unidades pendentes.
 
-Conferi `is_unit_manager` já cobre gerente/gerente_loja/gerente_adm/admin/master/supervisor — bate com o pedido.
+**Cron** via `supabase--insert` (pg_cron + pg_net), 2 jobs:
+- `daily-huddle-9-25`: `25 12 * * 1,3,4,5` (UTC; 9:25 BRT = 12:25 UTC; seg, qua, qui, sex — pula terça)
+- `daily-huddle-10-00`: `0 13 * * 1-5` (10:00 BRT = 13:00 UTC, seg-sex)
 
-## 4. Frontend
+`config.toml`: `verify_jwt = false` pra função (chamada por cron).
 
-**Hooks globais** (montados no `AppLayout`):
-- `useDailyMoodPrompt`: ao logar/abrir, checa se `daily_mood` do dia existe pro user; se não, dispara `<MoodPrompt>`. localStorage `mood_prompt_dismissed_<yyyy-mm-dd>` evita reabrir após "Pular".
-- `usePulseWeekly`: se hoje é sexta E existe `pulse_questions` ativa da semana E user ainda não respondeu, abre `<PulsePrompt>`. Mesmo padrão de dismiss.
+## 4. Navegação
 
-**Componentes**:
-- `MoodPrompt.tsx` — Dialog com 5 botões (😞😕😐🙂😄 / Péssimo–Ótimo), textarea opcional, botão "Pular hoje".
-- `PulsePrompt.tsx` — Dialog com a pergunta + textarea (máx 500), enviar/dispensar.
+- `src/App.tsx`: rotas `/daily-huddle` e `/daily-huddle/painel` dentro do `AppLayout`.
+- `src/components/AppSidebar.tsx`: novo item **"Daily Huddle"** visível pra `is_leadership` (gerente, gerente_loja, encarregado, lider_setor, supervisor, admin, master). "Painel Daily" só pra admin/master/supervisor.
 
-**Páginas**:
-- `/clima` (líderes elegíveis) — `Clima.tsx`
-  - Filtro por unidade (escopo `useAccessibleUnits`).
-  - Recharts LineChart `avg_score × dia` (últimos 30d).
-  - Tabela "Pulso da semana" com filtro semana/unidade, lista answer_text anônima.
-  - Alerta visual: badge vermelho quando `avg_score < 3` em 2+ dias consecutivos por unidade.
-- `/admin/clima` (master/admin apenas) — `AdminClima.tsx`
-  - Form criar/editar pergunta semanal (date picker da segunda-feira), tabela histórico.
+## Arquivos tocados
 
-**Sidebar**: novo item "Clima" para master/admin/supervisor/gerente_loja/gerente_adm. Item "Admin · Clima" só master/admin.
+**Novos**
+- `supabase/migrations/<ts>_daily_huddle.sql`
+- `supabase/functions/daily-huddle-reminders/index.ts`
+- `src/hooks/useDailyHuddle.ts`
+- `src/components/daily-huddle/DailyHuddleForm.tsx`
+- `src/components/daily-huddle/HuddleStatusBadge.tsx`
+- `src/components/daily-huddle/HuddlePanelCard.tsx`
+- `src/pages/DailyHuddle.tsx`
+- `src/pages/DailyHuddlePainel.tsx`
 
-## 5. Arquivos a tocar
+**Editados**
+- `src/App.tsx` (2 rotas)
+- `src/components/AppSidebar.tsx` (item nav)
+- `supabase/config.toml` (bloco da função)
+- `src/integrations/supabase/types.ts` (auto, pós-migration)
 
-**Migration**: `supabase/migrations/<ts>_climate.sql`
+## Regras respeitadas
+- Não toca em `leadership_meetings` nem RLS de outras tabelas.
+- Tudo reversível: migration única + arquivos novos + 3 edits pontuais.
+- Cron via `supabase--insert` (segredos do projeto, não em migration).
+- Anonimato N/A; somente gestão e líderes acessam.
 
-**Criar**:
-- `src/hooks/useDailyMoodPrompt.ts`, `src/hooks/usePulseWeekly.ts`, `src/hooks/useClimateAccess.ts`
-- `src/components/clima/MoodPrompt.tsx`, `PulsePrompt.tsx`, `MoodChart.tsx`, `PulseTable.tsx`
-- `src/pages/Clima.tsx`, `src/pages/AdminClima.tsx`
-
-**Editar**:
-- `src/App.tsx` (rotas `/clima`, `/admin/clima`)
-- `src/components/AppLayout.tsx` (montar prompts globais)
-- `src/components/AppSidebar.tsx` (item Clima)
-
-## 6. Garantias
-- Views são o único caminho pra líderes — `user_id` nunca sai do banco.
-- Migration única e reversível; nenhuma RLS de outra tabela alterada.
-- Sem dependência de Treinamento/Organograma; coexiste com features atuais.
-
-Aprova pra eu rodar a migration e implementar?
+Aprova pra eu executar?
