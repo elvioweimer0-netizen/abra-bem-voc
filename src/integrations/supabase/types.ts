@@ -2704,6 +2704,68 @@ export type Database = {
           },
         ]
       }
+      milestone_celebrations: {
+        Row: {
+          celebrated_at: string
+          created_at: string
+          id: string
+          milestone_date: string
+          milestone_type: string
+          post_visible: boolean
+          praise_id: string | null
+          user_id: string
+        }
+        Insert: {
+          celebrated_at?: string
+          created_at?: string
+          id?: string
+          milestone_date: string
+          milestone_type: string
+          post_visible?: boolean
+          praise_id?: string | null
+          user_id: string
+        }
+        Update: {
+          celebrated_at?: string
+          created_at?: string
+          id?: string
+          milestone_date?: string
+          milestone_type?: string
+          post_visible?: boolean
+          praise_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_celebrations_praise_id_fkey"
+            columns: ["praise_id"]
+            isOneToOne: false
+            referencedRelation: "praises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_celebrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "milestone_celebrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "milestone_celebrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       noticias: {
         Row: {
           conteudo: string
@@ -5170,6 +5232,7 @@ export type Database = {
         | "melhoria"
         | "outro"
         | "aniversario"
+        | "aniversario_curio"
       reuniao_status: "agendada" | "em_andamento" | "finalizada" | "cancelada"
       reuniao_tipo: "online" | "presencial" | "hibrida"
       schedule_status: "rascunho" | "publicada"
@@ -5417,6 +5480,7 @@ export const Constants = {
         "melhoria",
         "outro",
         "aniversario",
+        "aniversario_curio",
       ],
       reuniao_status: ["agendada", "em_andamento", "finalizada", "cancelada"],
       reuniao_tipo: ["online", "presencial", "hibrida"],
