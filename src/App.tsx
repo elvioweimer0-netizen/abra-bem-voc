@@ -141,6 +141,7 @@ function ProtectedRoutes() {
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/endomarketing" element={<EndomarketingPage />} />
         <Route path="/avisos" element={<Avisos />} />
+        <Route path="/avisos/:id" element={<AvisoDetalhe />} />
         <Route path="/galeria" element={<Galeria />} />
         <Route path="/reunioes" element={<Reunioes />} />
         <Route path="/reunioes/criar" element={<CriarReuniao />} />
