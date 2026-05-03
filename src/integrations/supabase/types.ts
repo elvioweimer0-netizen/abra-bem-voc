@@ -2355,6 +2355,7 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          grouping_key: string | null
           id: string
           payload: Json
           recipient_user_id: string | null
@@ -2366,6 +2367,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
+          grouping_key?: string | null
           id?: string
           payload?: Json
           recipient_user_id?: string | null
@@ -2377,6 +2379,7 @@ export type Database = {
         Update: {
           body?: string
           created_at?: string
+          grouping_key?: string | null
           id?: string
           payload?: Json
           recipient_user_id?: string | null
@@ -2412,7 +2415,9 @@ export type Database = {
       notification_preferences: {
         Row: {
           created_at: string
+          digest_frequency: string
           general_announcements: boolean
+          group_notifications: boolean
           hr_messages: boolean
           id: string
           important_notices: boolean
@@ -2421,7 +2426,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          digest_frequency?: string
           general_announcements?: boolean
+          group_notifications?: boolean
           hr_messages?: boolean
           id?: string
           important_notices?: boolean
@@ -2430,7 +2437,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          digest_frequency?: string
           general_announcements?: boolean
+          group_notifications?: boolean
           hr_messages?: boolean
           id?: string
           important_notices?: boolean
@@ -4344,6 +4353,22 @@ export type Database = {
       }
     }
     Views: {
+      notification_groups: {
+        Row: {
+          earliest_at: string | null
+          event_count: number | null
+          grouping_key: string | null
+          latest_at: string | null
+          sample_body: string | null
+          sample_payload: Json | null
+          sample_title: string | null
+          type: Database["public"]["Enums"]["notification_event_type"] | null
+          unit_id: string | null
+          unread_count: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       v_aniversariantes_hoje: {
         Row: {
           cargo: Database["public"]["Enums"]["cargo_tipo"] | null
@@ -4594,6 +4619,10 @@ export type Database = {
         }[]
       }
       fn_my_day_overview: { Args: never; Returns: Json }
+      fn_notification_grouping_key: {
+        Args: { _payload: Json; _type: string }
+        Returns: string
+      }
       get_user_departamento: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["setor_tipo"]
