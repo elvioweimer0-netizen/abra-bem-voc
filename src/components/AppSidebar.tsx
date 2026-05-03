@@ -144,6 +144,10 @@ export function AppSidebar() {
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
 
+  const profileAny = profile as any;
+  const myUnitId = profileAny?.unit_id as string | undefined;
+  const unitHomeUrl = myUnitId ? `/unidade/${myUnitId}` : "/unidades";
+
   const closeOnNav = () => isMobile && setOpenMobile(false);
 
   // ───── Feed users: menu mínimo ─────
