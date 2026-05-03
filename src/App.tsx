@@ -196,6 +196,9 @@ function ProtectedRoutes() {
         <Route path="/perfil/conquistas" element={<MinhasConquistas />} />
         <Route path="/conquistas/ranking" element={<LeaderOnly><ConquistasRanking /></LeaderOnly>} />
         <Route path="/admin/conquistas" element={<AdminOnly><AdminConquistas /></AdminOnly>} />
+        <Route path="/caderno" element={<LeaderOnly><Caderno /></LeaderOnly>} />
+        <Route path="/caderno/:articleId" element={<LeaderOnly><CadernoArtigo /></LeaderOnly>} />
+        <Route path="/admin/caderno" element={<RhAdminOnly><AdminCaderno /></RhAdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
