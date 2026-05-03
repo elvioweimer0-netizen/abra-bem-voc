@@ -1923,6 +1923,174 @@ export type Database = {
         }
         Relationships: []
       }
+      playbook_article_feedback: {
+        Row: {
+          article_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          useful: boolean | null
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          useful?: boolean | null
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          useful?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_article_feedback_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "playbook_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbook_article_views: {
+        Row: {
+          article_id: string
+          id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          article_id: string
+          id?: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          article_id?: string
+          id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_article_views_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "playbook_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbook_articles: {
+        Row: {
+          active: boolean
+          category_id: string
+          context: string
+          created_at: string
+          created_by: string | null
+          featured_until: string | null
+          id: string
+          real_example: string | null
+          script: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          version: number
+          video_url: string | null
+          visible_to: string[]
+          what_not_to_do: string | null
+        }
+        Insert: {
+          active?: boolean
+          category_id: string
+          context: string
+          created_at?: string
+          created_by?: string | null
+          featured_until?: string | null
+          id?: string
+          real_example?: string | null
+          script?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          version?: number
+          video_url?: string | null
+          visible_to?: string[]
+          what_not_to_do?: string | null
+        }
+        Update: {
+          active?: boolean
+          category_id?: string
+          context?: string
+          created_at?: string
+          created_by?: string | null
+          featured_until?: string | null
+          id?: string
+          real_example?: string | null
+          script?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          version?: number
+          video_url?: string | null
+          visible_to?: string[]
+          what_not_to_do?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "playbook_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbook_categories: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          ordem: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          ordem?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          ordem?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       praise_applause: {
         Row: {
           created_at: string
@@ -3142,6 +3310,10 @@ export type Database = {
         Args: { _document_id: string; _user_id: string }
         Returns: boolean
       }
+      can_view_playbook_article: {
+        Args: { _article_id: string; _uid: string }
+        Returns: boolean
+      }
       can_view_team_member: {
         Args: { _member_id: string; _user_id: string }
         Returns: boolean
@@ -3175,6 +3347,7 @@ export type Database = {
       is_culture_editor: { Args: { _user_id: string }; Returns: boolean }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
       is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_rh_or_admin: { Args: { _uid: string }; Returns: boolean }
       is_unit_manager: {
         Args: { _unit_id: string; _user_id: string }
         Returns: boolean

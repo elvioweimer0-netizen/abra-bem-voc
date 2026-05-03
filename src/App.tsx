@@ -68,7 +68,11 @@ import AdminCultura from "@/pages/AdminCultura";
 import MinhasConquistas from "@/pages/MinhasConquistas";
 import ConquistasRanking from "@/pages/ConquistasRanking";
 import AdminConquistas from "@/pages/AdminConquistas";
+import Caderno from "@/pages/Caderno";
+import CadernoArtigo from "@/pages/CadernoArtigo";
+import AdminCaderno from "@/pages/AdminCaderno";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
+import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -88,6 +92,12 @@ function AdminOnly({ children }: { children: ReactNode }) {
 function SupervisorOnly({ children }: { children: ReactNode }) {
   const { isAdmin, isSupervisor } = useRole();
   if (!isAdmin && !isSupervisor) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function RhAdminOnly({ children }: { children: ReactNode }) {
+  const isRh = useIsRhAdmin();
+  if (!isRh) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -186,6 +196,9 @@ function ProtectedRoutes() {
         <Route path="/perfil/conquistas" element={<MinhasConquistas />} />
         <Route path="/conquistas/ranking" element={<LeaderOnly><ConquistasRanking /></LeaderOnly>} />
         <Route path="/admin/conquistas" element={<AdminOnly><AdminConquistas /></AdminOnly>} />
+        <Route path="/caderno" element={<LeaderOnly><Caderno /></LeaderOnly>} />
+        <Route path="/caderno/:articleId" element={<LeaderOnly><CadernoArtigo /></LeaderOnly>} />
+        <Route path="/admin/caderno" element={<RhAdminOnly><AdminCaderno /></RhAdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
