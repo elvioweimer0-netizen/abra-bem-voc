@@ -5,6 +5,20 @@ import { toast } from "sonner";
 
 export type MetaStatus = "no_caminho" | "em_risco" | "atingida" | "nao_atingida";
 
+export type AgendaTopico = {
+  tipo: "alerta" | "reconhecimento" | "decisao";
+  titulo: string;
+  acao_sugerida: string;
+  deep_link: string;
+  fonte: string;
+};
+
+export type SuggestedAgenda = {
+  generated_at: string;
+  tempo_estimado_min: number;
+  topicos: AgendaTopico[];
+};
+
 export type HuddleReport = {
   id: string;
   report_date: string;
@@ -18,6 +32,9 @@ export type HuddleReport = {
   observacao: string;
   submitted_at: string;
   updated_at: string;
+  suggested_agenda: SuggestedAgenda | null;
+  final_agenda: string | null;
+  agenda_used: boolean;
 };
 
 export type HuddleInput = {
