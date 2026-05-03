@@ -16,7 +16,7 @@ import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadg
 type Unit = { id: string; code: string; name: string };
 type TeamMember = { id: string; unit_id: string; sector: string; role: string; cargo: string; nome?: string | null; telefone?: string | null; data_admissao?: string | null; foto_url?: string | null };
 type Evaluation = { nota_geral: number; observacoes: string | null; mes: string; criado_em: string };
-type Praise = { id: string; motivo: string; categoria: string; criado_em: string };
+type Praise = { id: string; motivo: string; categoria: string; criado_em: string; praise_type?: string | null };
 
 const sectorLabels: Record<string, string> = { acougue: "Açougue", padaria: "Padaria", hortifruti: "Hortifruti", mercearia: "Mercearia", frente_caixa: "Frente de Caixa", deposito: "Depósito", geral: "Geral" };
 const cargoLabels: Record<string, string> = { admin: "Admin", master: "Master", supervisor: "Supervisor", gerente: "Gerente", gerente_loja: "Gerente Loja", gerente_adm: "Gerente Adm.", encarregado: "Encarregado", fiscal: "Fiscal", lider_setor: "Líder de Setor", colaborador: "Colaborador" };
@@ -70,7 +70,7 @@ export default function MeuPerfil() {
       db.from("team_members").select("id,unit_id,sector,role,cargo,nome,telefone,data_admissao,foto_url").eq("user_id", profile.user_id).maybeSingle(),
       profile.unit_id ? db.from("team_members").select("id", { count: "exact", head: true }).eq("unit_id", profile.unit_id) : Promise.resolve({ count: 0 }),
       db.from("encarregado_evaluations").select("nota_geral,observacoes,mes,criado_em").order("criado_em", { ascending: false }).limit(8),
-      db.from("praises").select("id,motivo,categoria,criado_em").order("criado_em", { ascending: false }).limit(8),
+      db.from("praises").select("id,motivo,categoria,criado_em,praise_type").order("criado_em", { ascending: false }).limit(20),
       db.from("praises").select("id", { count: "exact", head: true }).eq("autor_id", profile.user_id),
     ]);
     setUnits(unitData || []); setMember(memberData || null); setTeamCount(count || 0); setEvaluations(evalData || []); setReceivedPraises(praisesData || []); setGivenPraises(givenCount || 0);
