@@ -29,7 +29,7 @@ export type UnitStoryGroup = {
 
 async function signUrl(path: string) {
   const { data } = await supabase.storage.from("stories").createSignedUrl(path, 60 * 60);
-  return data?.signed_url ?? data?.signedUrl ?? "";
+  return (data as any)?.signedUrl ?? "";
 }
 
 export function useActiveStories() {
