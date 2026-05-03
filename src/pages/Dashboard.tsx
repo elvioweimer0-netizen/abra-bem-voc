@@ -31,7 +31,7 @@ import { useTodayPill } from "@/hooks/useCulturePills";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser } = useRole();
+  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser, cargo } = useRole();
   const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
   const showAdminMetrics = isGerente || isAdmin;
