@@ -65,6 +65,8 @@ export default function FeedColaborador() {
 
       <AniversariantesWidget />
 
+      <MilestonesWeekWidget />
+
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
 
       <HistoriaSemanaWidget />
