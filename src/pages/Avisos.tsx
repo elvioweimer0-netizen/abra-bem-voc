@@ -171,7 +171,7 @@ export default function Avisos() {
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhum aviso.</TableCell></TableRow>
               ) : avisos.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-medium">{a.titulo}</TableCell>
+                  <TableCell className="font-medium"><Link to={`/avisos/${a.id}`} className="hover:underline">{a.titulo}</Link><div className="mt-1"><AvisoEngagementSummary avisoId={a.id} /></div></TableCell>
                   <TableCell>{a.unidade || "Geral"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
