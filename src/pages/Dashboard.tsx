@@ -28,6 +28,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser } = useRole();
+  const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
@@ -123,6 +124,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       <AvisosBanner />
+      {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
