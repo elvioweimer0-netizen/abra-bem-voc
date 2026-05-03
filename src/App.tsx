@@ -180,6 +180,9 @@ function ProtectedRoutes() {
         <Route path="/cultura" element={<Cultura />} />
         <Route path="/cultura/valor/:code" element={<CulturaValor />} />
         <Route path="/admin/cultura" element={<AdminCultura />} />
+        <Route path="/perfil/conquistas" element={<MinhasConquistas />} />
+        <Route path="/conquistas/ranking" element={<LeaderOnly><ConquistasRanking /></LeaderOnly>} />
+        <Route path="/admin/conquistas" element={<AdminOnly><AdminConquistas /></AdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
