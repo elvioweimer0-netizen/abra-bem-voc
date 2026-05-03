@@ -3147,6 +3147,7 @@ export type Database = {
           role: Database["public"]["Enums"]["cargo_tipo"] | null
           setor: Database["public"]["Enums"]["setor_tipo"] | null
           telefone: string | null
+          theme_preference: string
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           unit_id: string | null
           updated_at: string
@@ -3176,6 +3177,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
           telefone?: string | null
+          theme_preference?: string
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           unit_id?: string | null
           updated_at?: string
@@ -3205,6 +3207,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
           telefone?: string | null
+          theme_preference?: string
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           unit_id?: string | null
           updated_at?: string
