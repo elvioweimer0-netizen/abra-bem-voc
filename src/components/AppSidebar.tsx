@@ -144,6 +144,10 @@ export function AppSidebar() {
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
 
+  const profileAny = profile as any;
+  const myUnitId = profileAny?.unit_id as string | undefined;
+  const unitHomeUrl = myUnitId ? `/unidade/${myUnitId}` : "/unidades";
+
   const closeOnNav = () => isMobile && setOpenMobile(false);
 
   // ───── Feed users: menu mínimo ─────
@@ -152,6 +156,7 @@ export function AppSidebar() {
       { title: "Início", url: "/", icon: Home },
       { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
       { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
+      { title: "Minha Unidade", url: unitHomeUrl, icon: Building },
     ];
     const feedComunicacao: MenuItem[] = [
       { title: "Avisos", url: "/avisos", icon: Bell },
@@ -214,6 +219,7 @@ export function AppSidebar() {
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },
+        { title: isAdmin || isSupervisor ? "Unidades" : "Minha Unidade", url: isAdmin || isSupervisor ? "/unidades" : unitHomeUrl, icon: Building },
       ];
 
   const gestao: MenuItem[] = [
