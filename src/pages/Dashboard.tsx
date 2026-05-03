@@ -126,6 +126,7 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      <StoriesBar />
       <AvisosBanner />
       <AniversariantesWidget />
       <PlaybookSuggestionWidget />
