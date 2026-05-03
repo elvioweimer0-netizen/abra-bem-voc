@@ -20,6 +20,7 @@ import { CalendarClock, CheckCircle2, ClipboardList, Gauge, MapPin } from "lucid
 import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
+import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -120,6 +121,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       <AvisosBanner />
+      <CommitmentsWidget />
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 
