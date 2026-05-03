@@ -10,7 +10,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Settings, User, UserCircle } from "lucide-react";
+import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Search, Settings, User, UserCircle } from "lucide-react";
+import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,6 +41,8 @@ export function AppHeader() {
   const { profile, signOut } = useAuth();
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
+  const { setOpen: setCmdkOpen } = useCommandPalette();
+  const cmdkAllowed = ["master", "admin", "supervisor", "gerente_loja", "gerente", "gerente_adm", "encarregado"].includes(realCargo);
 
   const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", "/curio-de-ouro", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
   const showBack = !rootRoutes.includes(location.pathname);
@@ -117,6 +120,19 @@ export function AppHeader() {
                 </SelectContent>
               </Select>
             </>
+          )}
+
+          {cmdkAllowed && (
+            <button
+              type="button"
+              onClick={() => setCmdkOpen(true)}
+              aria-label="Abrir busca rápida (Ctrl+K)"
+              className="hidden md:inline-flex items-center gap-2 h-9 px-3 rounded-md border border-border bg-muted/40 text-xs text-muted-foreground hover:bg-muted transition-colors"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span>Buscar...</span>
+              <kbd className="ml-2 inline-flex items-center rounded bg-background px-1.5 py-0.5 text-[10px] font-mono border border-border">⌘K</kbd>
+            </button>
           )}
 
           {profile && (

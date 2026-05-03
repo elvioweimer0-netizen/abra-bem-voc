@@ -94,6 +94,8 @@ import TvDisplay from "@/pages/TvDisplay";
 import AdminTvDisplays from "@/pages/AdminTvDisplays";
 import CuriozinhoHistorico from "@/pages/CuriozinhoHistorico";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
+import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
+import { CommandPalette } from "@/components/command-palette/CommandPalette";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
@@ -313,14 +315,17 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <PushPermission />
-          <PwaInstallPrompt />
-          <Routes>
+          <CommandPaletteProvider>
+            <PushPermission />
+            <PwaInstallPrompt />
+            <CommandPalette />
+            <Routes>
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/trocar-senha" element={<ChangePasswordRoute />} />
             <Route path="/tv/:token" element={<TvDisplay />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
+          </CommandPaletteProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
