@@ -306,6 +306,18 @@ export function AppSidebar() {
     ? [{ title: "Heatmap", url: "/heatmap", icon: Gauge }]
     : [];
 
+  const pdiItems: MenuItem[] = [
+    ...(["master", "admin", "supervisor", "gerente_loja", "gerente", "gerente_adm", "encarregado", "lider_setor", "colaborador", "fiscal"].includes(cargo)
+      ? [{ title: "Meu PDI", url: "/pdi", icon: Target }]
+      : []),
+    ...(["master", "admin", "supervisor", "gerente_loja", "gerente", "encarregado"].includes(cargo)
+      ? [{ title: "PDI da Equipe", url: "/pdi/equipe", icon: Target }]
+      : []),
+    ...((isAdmin || isSupervisor)
+      ? [{ title: "PDI · Visão Geral", url: "/pdi/admin", icon: Target }]
+      : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
