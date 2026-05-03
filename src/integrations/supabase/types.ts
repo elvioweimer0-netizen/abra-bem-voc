@@ -593,6 +593,82 @@ export type Database = {
         }
         Relationships: []
       }
+      churn_risk_signals: {
+        Row: {
+          calculated_at: string
+          created_at: string
+          gerente_notified_at: string | null
+          id: string
+          recommended_action: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          rh_escalated_at: string | null
+          risk_score: number
+          signals: Json
+          status: string
+          unit_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string
+          created_at?: string
+          gerente_notified_at?: string | null
+          id?: string
+          recommended_action?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rh_escalated_at?: string | null
+          risk_score: number
+          signals?: Json
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string
+          created_at?: string
+          gerente_notified_at?: string | null
+          id?: string
+          recommended_action?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rh_escalated_at?: string | null
+          risk_score?: number
+          signals?: Json
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "churn_risk_signals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "churn_risk_signals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "churn_risk_signals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       colaboradores: {
         Row: {
           cargo: Database["public"]["Enums"]["cargo_tipo"]
@@ -4668,6 +4744,10 @@ export type Database = {
       regenerate_tv_display_token: {
         Args: { _display_id: string }
         Returns: string
+      }
+      resolve_churn_risk: {
+        Args: { _id: string; _note: string; _status: string }
+        Returns: undefined
       }
       run_onboarding_status_cron: { Args: never; Returns: undefined }
       seed_default_tv_cards: {
