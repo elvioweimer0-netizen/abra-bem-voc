@@ -338,6 +338,11 @@ export function AppSidebar() {
     ...(isRhAdmin ? [{ title: "Admin · Onboarding", url: "/admin/onboarding", icon: GraduationCap }] : []),
   ];
 
+  const waAllowed = ["master", "admin", "supervisor", "gerente_loja", "gerente_adm", "gerente", "encarregado"].includes(cargo);
+  const whatsappItems: MenuItem[] = waAllowed
+    ? [{ title: "Resumo WhatsApp", url: "/whatsapp-resumo", icon: MessageSquare }]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
