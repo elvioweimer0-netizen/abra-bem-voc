@@ -961,8 +961,10 @@ export type Database = {
       }
       daily_huddle_reports: {
         Row: {
+          agenda_used: boolean
           author_user_id: string | null
           bo_dia: string
+          final_agenda: string | null
           id: string
           informativos: string
           meta_dia: number | null
@@ -970,13 +972,16 @@ export type Database = {
           observacao: string
           report_date: string
           submitted_at: string
+          suggested_agenda: Json | null
           unit_id: string
           updated_at: string
           venda_dia_anterior: number | null
         }
         Insert: {
+          agenda_used?: boolean
           author_user_id?: string | null
           bo_dia?: string
+          final_agenda?: string | null
           id?: string
           informativos?: string
           meta_dia?: number | null
@@ -984,13 +989,16 @@ export type Database = {
           observacao?: string
           report_date: string
           submitted_at?: string
+          suggested_agenda?: Json | null
           unit_id: string
           updated_at?: string
           venda_dia_anterior?: number | null
         }
         Update: {
+          agenda_used?: boolean
           author_user_id?: string | null
           bo_dia?: string
+          final_agenda?: string | null
           id?: string
           informativos?: string
           meta_dia?: number | null
@@ -998,6 +1006,7 @@ export type Database = {
           observacao?: string
           report_date?: string
           submitted_at?: string
+          suggested_agenda?: Json | null
           unit_id?: string
           updated_at?: string
           venda_dia_anterior?: number | null

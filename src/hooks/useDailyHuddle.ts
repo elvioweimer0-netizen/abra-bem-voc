@@ -5,6 +5,20 @@ import { toast } from "sonner";
 
 export type MetaStatus = "no_caminho" | "em_risco" | "atingida" | "nao_atingida";
 
+export type AgendaTopico = {
+  tipo: "alerta" | "reconhecimento" | "decisao";
+  titulo: string;
+  acao_sugerida: string;
+  deep_link: string;
+  fonte: string;
+};
+
+export type SuggestedAgenda = {
+  generated_at: string;
+  tempo_estimado_min: number;
+  topicos: AgendaTopico[];
+};
+
 export type HuddleReport = {
   id: string;
   report_date: string;
@@ -18,6 +32,9 @@ export type HuddleReport = {
   observacao: string;
   submitted_at: string;
   updated_at: string;
+  suggested_agenda: SuggestedAgenda | null;
+  final_agenda: string | null;
+  agenda_used: boolean;
 };
 
 export type HuddleInput = {
@@ -82,6 +99,45 @@ export function useHuddlePanel(date?: string) {
       if (error) throw error;
       return (data ?? []) as HuddleReport[];
     },
+  });
+}
+
+export function useSetHuddleAgenda() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { unit_id: string; report_date?: string; final_agenda: string; agenda_used: boolean }) => {
+      const d = input.report_date ?? todayISO();
+      const { data: existing } = await supabase
+        .from("daily_huddle_reports")
+        .select("id")
+        .eq("unit_id", input.unit_id)
+        .eq("report_date", d)
+        .maybeSingle();
+      if (existing) {
+        const { error } = await supabase
+          .from("daily_huddle_reports")
+          .update({ final_agenda: input.final_agenda, agenda_used: input.agenda_used })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("daily_huddle_reports").insert({
+          unit_id: input.unit_id,
+          report_date: d,
+          bo_dia: "",
+          informativos: "",
+          meta_status: "no_caminho",
+          observacao: "",
+          final_agenda: input.final_agenda,
+          agenda_used: input.agenda_used,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Pauta salva");
+      qc.invalidateQueries({ queryKey: ["daily-huddle"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar pauta"),
   });
 }
 
