@@ -26,6 +26,7 @@ import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWid
 import { StoriesBar } from "@/components/stories/StoriesBar";
 import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggestionWidget";
 import { NovosNoTimeWidget } from "@/components/onboarding/NovosNoTimeWidget";
+import { CartaCuriozinhoCard } from "@/components/curiozinho/CartaCuriozinhoCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
