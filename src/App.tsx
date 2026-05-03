@@ -5,7 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { OfflineProvider } from "@/contexts/OfflineContext";
 import { AppLayout } from "@/components/AppLayout";
+import SincronizacaoPerfil from "@/pages/SincronizacaoPerfil";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { PushPermission } from "@/components/PushPermission";
 import { Button } from "@/components/ui/button";
@@ -220,6 +222,7 @@ function ProtectedRoutes() {
         <Route path="/colaboradores" element={<LeaderOnly><Colaboradores /></LeaderOnly>} />
         <Route path="/colaboradores/:id" element={<LeaderOnly><ColaboradorPerfil /></LeaderOnly>} />
         <Route path="/meu-perfil" element={<MeuPerfil />} />
+        <Route path="/perfil/sincronizacao" element={<SincronizacaoPerfil />} />
         <Route path="/advertencias" element={<LeaderOnly><Advertencias /></LeaderOnly>} />
         <Route path="/suspensoes" element={<LeaderOnly><Suspensoes /></LeaderOnly>} />
         <Route path="/departamentos" element={<LeaderOnly><Departamentos /></LeaderOnly>} />
