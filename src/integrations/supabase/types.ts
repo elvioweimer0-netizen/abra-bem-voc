@@ -2529,6 +2529,70 @@ export type Database = {
           },
         ]
       }
+      weekly_commitments: {
+        Row: {
+          commitment_text: string
+          created_at: string
+          evaluated_at: string | null
+          evidencia: string
+          id: string
+          ordem: number
+          status: string
+          unit_id: string | null
+          updated_at: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          commitment_text: string
+          created_at?: string
+          evaluated_at?: string | null
+          evidencia?: string
+          id?: string
+          ordem: number
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          commitment_text?: string
+          created_at?: string
+          evaluated_at?: string | null
+          evidencia?: string
+          id?: string
+          ordem?: number
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_commitments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_commitments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "weekly_commitments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       work_schedules: {
         Row: {
           created_at: string
@@ -2679,6 +2743,7 @@ export type Database = {
         Args: { _area: string; _user_id: string }
         Returns: boolean
       }
+      is_commitment_viewer: { Args: { _user_id: string }; Returns: boolean }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
       is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
       is_unit_manager: {
