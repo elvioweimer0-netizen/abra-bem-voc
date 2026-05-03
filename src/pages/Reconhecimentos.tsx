@@ -171,7 +171,33 @@ export default function Reconhecimentos() {
           <DialogContent>
             <DialogHeader><DialogTitle>Publicar elogio</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div><Label>Destinatário</Label><Select value={form.destinatario} onValueChange={(destinatario) => setForm({ ...form, destinatario })}><SelectTrigger><SelectValue placeholder="Selecionar pessoa" /></SelectTrigger><SelectContent>{members.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome || m.cargo}</SelectItem>)}</SelectContent></Select></div>
+              {allowedTypes.length > 1 && (
+                <div>
+                  <Label>Tipo de elogio</Label>
+                  <Select value={form.praise_type} onValueChange={(v) => setForm({ ...form, praise_type: v as PraiseType, destinatario: "" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {allowedTypes.map((t) => (
+                        <SelectItem key={t} value={t}>{PRAISE_TYPE_ICON[t]} {PRAISE_TYPE_LABEL[t]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {form.praise_type === "liderado" && "Reconheça alguém que você lidera."}
+                    {form.praise_type === "peer" && "Reconheça um colega de mesmo cargo na sua unidade."}
+                    {form.praise_type === "equipe_externa" && "Reconheça alguém de outra equipe que você apoia."}
+                  </p>
+                </div>
+              )}
+              <div><Label>Destinatário</Label><Select value={form.destinatario} onValueChange={(destinatario) => setForm({ ...form, destinatario })}><SelectTrigger><SelectValue placeholder="Selecionar pessoa" /></SelectTrigger><SelectContent>{members.filter((m) => {
+                if (m.user_id && m.user_id === user?.id) return false;
+                if (form.praise_type === "peer") return m.unit_id === profile?.unit_id && !!m.user_id;
+                if (form.praise_type === "equipe_externa") {
+                  const perm = (profile as any)?.permission_units || [];
+                  return perm.includes(m.unit_id) || isAdmin || isSupervisor;
+                }
+                return true;
+              }).map((m) => <SelectItem key={m.id} value={m.id}>{m.nome || m.cargo}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Categoria</Label><Select value={form.categoria} onValueChange={(categoria) => setForm({ ...form, categoria })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(categoryLabels).filter(([v]) => v !== "todos").map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Motivo</Label><Textarea value={form.motivo} onChange={(e) => setForm({ ...form, motivo: e.target.value })} placeholder="Mínimo 20 caracteres" /></div>
               <div className="flex items-center justify-between"><Label>Tornar público</Label><Switch checked={form.publico} onCheckedChange={(publico) => setForm({ ...form, publico })} /></div>
