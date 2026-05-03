@@ -288,6 +288,8 @@ function ProtectedRoutes() {
         <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
         <Route path="/admin/tv-displays" element={<SupervisorOnly><AdminTvDisplays /></SupervisorOnly>} />
         <Route path="/curiozinho/historico" element={<CuriozinhoHistorico />} />
+        <Route path="/whatsapp-resumo" element={<WhatsappResumo />} />
+        <Route path="/whatsapp-resumo/historico" element={<WhatsappResumoHistorico />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
