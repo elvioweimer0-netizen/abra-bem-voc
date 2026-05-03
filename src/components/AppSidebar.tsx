@@ -146,7 +146,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const menuCollapsed = isMobile ? false : collapsed;
   const { signOut, profile } = useAuth();
-  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
+  const { cargo, isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
   const { canViewClima, canManageClima } = useClimateAccess();
