@@ -226,6 +226,7 @@ export function AppSidebar() {
     { title: "Galeria do Curió", url: "/galeria", icon: Camera },
     { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
     { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
+    { title: "Mentoria", url: "/mentoria", icon: Users },
   ];
 
   const operacao: MenuItem[] = isCentralAdm
