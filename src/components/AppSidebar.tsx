@@ -166,6 +166,7 @@ export function AppSidebar() {
     const feedPrincipal: MenuItem[] = [
       { title: "Início", url: "/", icon: Home },
       { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
+      { title: "Chat", url: "/chat", icon: MessageSquare },
       { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
       { title: "Minha Unidade", url: unitHomeUrl, icon: Building },
       ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
@@ -210,6 +211,7 @@ export function AppSidebar() {
   const principal: MenuItem[] = [
     { title: "Início", url: "/", icon: Home },
     { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
+    { title: "Chat", url: "/chat", icon: MessageSquare },
     { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
   ];
 
