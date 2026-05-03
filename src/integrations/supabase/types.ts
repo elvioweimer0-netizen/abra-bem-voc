@@ -1111,6 +1111,73 @@ export type Database = {
           },
         ]
       }
+      day_starts: {
+        Row: {
+          id: string
+          snapshot: Json | null
+          started_at: string
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          snapshot?: Json | null
+          started_at?: string
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          snapshot?: Json | null
+          started_at?: string
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day_starts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "day_starts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "day_starts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "day_starts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "day_starts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "day_starts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       document_approvals: {
         Row: {
           aprovado_por: string | null
@@ -4456,6 +4523,7 @@ export type Database = {
           unit_id: string
         }[]
       }
+      fn_my_day_overview: { Args: never; Returns: Json }
       get_user_departamento: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["setor_tipo"]

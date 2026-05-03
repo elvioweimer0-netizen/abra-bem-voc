@@ -1,96 +1,93 @@
-# Command Palette (Cmd+K / Ctrl+K)
+# Plano — Feature "Iniciar meu dia"
 
-Navegação rápida global com busca unificada em pessoas, unidades, avisos, artigos do caderno, páginas e ações rápidas. Sem mudança de schema, RLS herda das tabelas existentes.
+Briefing de turno em 1 clique pra perfis líderes (admin, supervisor, gerente, gerente_loja, gerente_adm, encarregado).
 
-## 1) Sem migration
+## 1) Banco de dados (migration única)
 
-Usa apenas tabelas existentes: `profiles`, `units`, `avisos`, `playbook_articles`. Reads via Supabase client respeitando RLS já configurada.
+### Tabela `day_starts`
+```sql
+CREATE TABLE public.day_starts (
+  id uuid PK default gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE,
+  started_at timestamptz NOT NULL DEFAULT now(),
+  unit_id uuid REFERENCES units(id),
+  snapshot jsonb
+);
+CREATE INDEX idx_day_starts_user_started ON day_starts(user_id, started_at DESC);
+```
 
-## 2) Hook `useCommandPalette`
+### RLS
+- `SELECT`: `user_id = auth.uid()` (+ admins/master via `has_role`)
+- `INSERT`: `user_id = auth.uid()`
+- Sem UPDATE/DELETE pra usuário comum
 
-Arquivo: **novo** `src/hooks/useCommandPalette.ts`
+### View `v_my_day_overview` (SECURITY INVOKER)
+Retorna pro `auth.uid()` corrente:
+- `unit_id`, `nome`
+- `mood_avg_today` (avg de `daily_mood` últimas 24h da unidade)
+- `checklist_pendente_count` (templates ativos − completions de hoje)
+- `ocorrencias_abertas_count` (`leadership_occurrences` da unidade sem resolução)
+- `top_acoes` (jsonb): compromissos vencendo + avisos urgentes não lidos + metas PDI próximas do prazo (top 3)
+- `proxima_reuniao` (huddle 9:30 hoje)
+- `ultimo_curio_ouro` (último praise recebido)
+- `aniversariantes_hoje` (jsonb agregado da unidade)
+- `day_started_today` (boolean), `day_started_at`
 
-- Context provider global (`CommandPaletteProvider`) com estado `{ open, setOpen, toggle }`.
-- Listener `keydown` em `window` para `Cmd+K` (Mac) / `Ctrl+K` (Win/Linux) → `e.preventDefault()` + toggle. Ignora se foco em input/textarea já está digitando outro atalho.
-- Escape fecha (delegado ao Dialog do shadcn).
-- Provider montado no `App.tsx` (ou `AppLayout.tsx`) acima do router para alcance global.
+Toda a view com `LEFT JOIN` + `COALESCE` + `EXCEPTION WHEN OTHERS` em wrapper SQL function pra graceful degradation.
 
-## 3) Componente `CommandPalette`
+## 2) Edge function `day-start-reminders` (cron 07:00 BRT)
 
-Arquivo: **novo** `src/components/command-palette/CommandPalette.tsx`
+- Pra cada gerente/encarregado ativo sem registro em `day_starts` hoje
+- Insere em `notification_events`: type `day_start_reminder`, "Bom dia! Toque pra iniciar seu dia 🌅"
+- Falha graciosamente
 
-Stack: shadcn `CommandDialog` + `cmdk` (já instalado, ver `src/components/ui/command.tsx`).
+Cron via `pg_cron` + `pg_net` (10:00 UTC = 07:00 BRT).
 
-Estrutura:
-- `<CommandDialog open onOpenChange>` com `<CommandInput placeholder="Buscar pessoas, unidades, páginas, ações..." autoFocus />`.
-- `<CommandList>` com 6 `<CommandGroup heading=...>`:
-  1. **Páginas** (estático, sempre visível quando query vazio)
-  2. **Ações rápidas** (estático)
-  3. **Pessoas** (dinâmico)
-  4. **Unidades** (dinâmico)
-  5. **Avisos** (dinâmico)
-  6. **Caderno** (dinâmico)
-- Cada `<CommandItem>`: ícone (lucide) + título + subtítulo (cargo/unidade/data) usando classes semânticas (`text-muted-foreground`).
-- Filtro: cmdk já filtra automaticamente por substring. Usamos `value` composto (`"nome cargo unidade"`) para casar campos extras.
-- Navegação ↑↓/Enter/Esc: nativo do cmdk.
+## 3) Frontend
 
-### Categorias
+### Hook `src/hooks/useDayStart.ts`
+- `useMyDayOverview()` — query única na view (5min staleTime)
+- `useStartMyDay()` — mutation: insere em `day_starts` + invalida cache
 
-a) **Pessoas** — `profiles.select('user_id, nome, cargo, unidade, foto_url')` limit 200. Click → `navigate('/perfil/' + user_id)` (rota existente: `ColaboradorPerfil` ou `MembroDetalhe` — confirmo no App.tsx ao implementar; fallback: `/colaboradores`).
+### Componente `src/components/day-start/IniciarMeuDiaCard.tsx`
+- Card destaque no topo do `Dashboard.tsx` (acima do `CartaCuriozinhoCard`) pra perfis líderes
+- Estado A (não iniciado): botão grande `bg-primary` "🌅 Iniciar meu dia"
+- Estado B (iniciado): "Dia iniciado às HH:MM ✓" + botão outline "Ver briefing"
+- Click → abre `IniciarMeuDiaModal`
 
-b) **Unidades** — `units.select('id, nome, codigo')`. Click → `navigate('/unidade/' + id)`.
+### Componente `src/components/day-start/IniciarMeuDiaModal.tsx`
+Dialog fullscreen com seções (cada uma com fallback gracioso):
+1. Saudação "Bom dia, {firstName}!" + data formatada
+2. **Sua loja agora**: 3 mini-stats (humor, checklists, ocorrências)
+3. **Top 3 ações de hoje**: lista com deep links
+4. **Próxima reunião**: card huddle 9:30 com link `/daily-huddle`
+5. **Último Curió de Ouro**: card emocional
+6. **Aniversariantes hoje** (condicional): chips com nomes
+7. CTA `Iniciar agora` → chama `useStartMyDay`, snapshot = dados da view, fecha modal
 
-c) **Avisos** — `avisos.select('id, titulo, created_at').eq('ativo', true).order('created_at', desc).limit(50)`. Click → `/avisos/:id`.
+Visibilidade só pra `isLider` (do `useRole`).
 
-d) **Caderno** — `playbook_articles.select('id, titulo, tags').eq('publicado', true).limit(100)`. Click → `/caderno/:id`.
+### Integração
+- `Dashboard.tsx`: render `<IniciarMeuDiaCard />` no topo (condicional `isLider`)
+- `supabase/config.toml`: registrar `day-start-reminders` com `verify_jwt = false`
 
-e) **Páginas** (lista estática):
-   - Painel `/painel`, Clima `/clima`, Compromissos `/compromissos`, Heatmap `/heatmap`, Cultura `/cultura`, Conquistas `/conquistas/ranking`, PDI `/pdi`, Auditoria Visual `/auditoria-visual`, Histórias `/historias`, Onboarding `/onboarding`, Meu Score `/meu-score`, Ranking de Scores `/scores/ranking`, TV Displays `/admin/tv-displays`.
+## 4) Regras técnicas
+- Migration única, idempotente (`IF NOT EXISTS`)
+- Não tocar RLS de outras tabelas
+- View com `security_invoker = on` → herda RLS automático
+- Mutation insere com `user_id: auth.uid()` + `unit_id` do profile
 
-f) **Ações rápidas**:
-   - "Novo aviso" → `/avisos?new=1` (ou rota existente)
-   - "Iniciar reunião 9:30" → `/daily-huddle`
-   - "Abrir checklist hoje" → `/checklist-diario`
-   - "Dar Curió de Ouro" → `/curio-de-ouro?new=1`
+## Arquivos a tocar
+**Criados:**
+- `supabase/migrations/<ts>_day_starts.sql`
+- `supabase/functions/day-start-reminders/index.ts`
+- `src/hooks/useDayStart.ts`
+- `src/components/day-start/IniciarMeuDiaCard.tsx`
+- `src/components/day-start/IniciarMeuDiaModal.tsx`
 
-### Cache
-
-- React Query: `useQuery(['cmdk','people'], …, { staleTime: 5 * 60_000, enabled: open })`. Mesmo padrão para units/avisos/articles. Carrega só na 1ª abertura, revalida após 5min.
-
-## 4) Trigger visual no header
-
-Edita: `src/components/AppHeader.tsx`
-
-- Botão entre o lockup central e os ícones da direita (escondido em `<sm`):
-  ```tsx
-  <button onClick={openPalette} className="hidden md:inline-flex items-center gap-2 h-9 px-3 rounded-md border bg-muted/50 text-xs text-muted-foreground hover:bg-muted">
-    <Search className="h-3.5 w-3.5" />
-    <span>Buscar...</span>
-    <kbd className="ml-2 rounded bg-background px-1.5 py-0.5 text-[10px] font-mono border">⌘K</kbd>
-  </button>
-  ```
-- Visível apenas se `useRole()` retorna cargo em `['master','admin','supervisor','gerente_loja','gerente_adm','encarregado','gerente']`. Atalho global continua funcionando para esses cargos também (gate dentro do listener).
-
-## 5) Acessibilidade
-
-- `autoFocus` no input (já é default do `CommandDialog`).
-- `aria-label="Buscar no Conecta Curió"` no `CommandInput`.
-- `aria-label` no botão trigger.
-- Esc/Tab/setas: nativo do cmdk + Radix Dialog.
-
-## Arquivos tocados
-
-Criados:
-- `src/hooks/useCommandPalette.tsx` (Context + Provider + hook + atalho global)
-- `src/components/command-palette/CommandPalette.tsx`
-
-Editados:
-- `src/App.tsx` (montar `<CommandPaletteProvider>` + `<CommandPalette/>` global)
-- `src/components/AppHeader.tsx` (botão trigger gated por cargo)
-
-Garantias:
-- Commit único reversível, sem migration.
-- RLS herdada de cada tabela; usuário só vê o que já podia ver.
-- Sem mudanças em outras features ou políticas.
+**Editados:**
+- `src/pages/Dashboard.tsx` (insere card)
+- `supabase/config.toml` (registra função)
+- `src/integrations/supabase/types.ts` (auto)
 
 Aprova?
