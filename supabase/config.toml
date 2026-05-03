@@ -37,3 +37,6 @@ verify_jwt = false
 
 [functions.setup-auto-groups]
 verify_jwt = false
+
+[functions.detect-milestones]
+verify_jwt = false
