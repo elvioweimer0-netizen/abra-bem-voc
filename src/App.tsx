@@ -87,6 +87,9 @@ import HistoriasHallDoMes from "@/pages/HistoriasHallDoMes";
 import AdminHistorias from "@/pages/AdminHistorias";
 import Onboarding from "@/pages/Onboarding";
 import AdminOnboarding from "@/pages/AdminOnboarding";
+import MeuScore from "@/pages/MeuScore";
+import ScoresRanking from "@/pages/ScoresRanking";
+import AdminScoreDimensions from "@/pages/AdminScoreDimensions";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
@@ -141,6 +144,20 @@ function PdiAdminAccess({ children }: { children: ReactNode }) {
 function AuditoriaAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const allowed = ["master", "admin", "supervisor", "gerente_adm"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function MyScoreAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["gerente_loja", "gerente_adm", "encarregado", "master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function ScoresRankingAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor"].includes(cargo);
   if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
@@ -259,6 +276,9 @@ function ProtectedRoutes() {
         <Route path="/admin/historias" element={<RhAdminOnly><AdminHistorias /></RhAdminOnly>} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/admin/onboarding" element={<RhAdminOnly><AdminOnboarding /></RhAdminOnly>} />
+        <Route path="/meu-score" element={<MyScoreAccess><MeuScore /></MyScoreAccess>} />
+        <Route path="/scores/ranking" element={<ScoresRankingAccess><ScoresRanking /></ScoresRankingAccess>} />
+        <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

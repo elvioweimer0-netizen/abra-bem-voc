@@ -241,6 +241,7 @@ export function AppSidebar() {
     ...(isSupervisor || isAdmin ? [{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }] : []),
     ...(isGerente || isSupervisor || isAdmin ? [{ title: "Inspeções", url: "/inspecoes", icon: SearchCheck }] : []),
     ...(isGerente ? [{ title: "Avaliações de Encarregado", url: "/avaliacoes", icon: Star }, { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion }, { title: "Relatórios da Unidade", url: "/relatorios", icon: Gauge }] : []),
+    ...(["gerente_loja", "gerente_adm", "encarregado"].includes(cargo) ? [{ title: "Meu Score", url: "/meu-score", icon: Gauge }] : []),
   ];
 
   const visitas: MenuItem[] = (isAdmin || isSupervisor)
@@ -268,6 +269,7 @@ export function AppSidebar() {
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
     ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
     ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
+    ...(isAdmin ? [{ title: "Dimensões do Score", url: "/admin/score-dimensions", icon: Gauge }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima
@@ -312,6 +314,7 @@ export function AppSidebar() {
     ? [
         { title: "Heatmap", url: "/heatmap", icon: Gauge },
         { title: "Auditoria Visual", url: "/auditoria-visual", icon: Camera },
+        ...((isAdmin || isSupervisor) ? [{ title: "Ranking de Gerentes", url: "/scores/ranking", icon: Gauge }] : []),
       ]
     : [];
 

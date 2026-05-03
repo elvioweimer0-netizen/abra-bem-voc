@@ -1708,6 +1708,124 @@ export type Database = {
         }
         Relationships: []
       }
+      manager_score_dimensions: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          metric_query_name: string
+          name: string
+          ordem: number
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metric_query_name: string
+          name: string
+          ordem?: number
+          updated_at?: string
+          weight: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metric_query_name?: string
+          name?: string
+          ordem?: number
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      manager_scores_monthly: {
+        Row: {
+          calculated_at: string
+          dimension_breakdown: Json
+          final_score: number
+          id: string
+          month: number
+          notes: string | null
+          unit_id: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          calculated_at?: string
+          dimension_breakdown?: Json
+          final_score: number
+          id?: string
+          month: number
+          notes?: string | null
+          unit_id?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          calculated_at?: string
+          dimension_breakdown?: Json
+          final_score?: number
+          id?: string
+          month?: number
+          notes?: string | null
+          unit_id?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_scores_monthly_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_scores_monthly_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "manager_scores_monthly_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "manager_scores_monthly_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "manager_scores_monthly_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "manager_scores_monthly_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       manager_substitutions: {
         Row: {
           created_at: string
