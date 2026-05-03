@@ -57,6 +57,10 @@ export default function DailyHuddle() {
         <Card><CardContent className="p-6 text-sm text-muted-foreground">Selecione uma unidade para registrar ou consultar o Daily.</CardContent></Card>
       )}
 
+      {unitId && (
+        <SuggestedAgendaCard unitId={unitId} report={todayReport ?? null} />
+      )}
+
       {unitId && isWeekday && (
         <DailyHuddleForm unitId={unitId} existing={todayReport ?? undefined} />
       )}
