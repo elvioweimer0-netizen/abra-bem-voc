@@ -302,6 +302,10 @@ export function AppSidebar() {
     ...(isAdmin ? [{ title: "Admin · Stories", url: "/admin/stories", icon: Camera }] : []),
   ];
 
+  const analiseItems: MenuItem[] = (isAdmin || isSupervisor || isGerenteAdm)
+    ? [{ title: "Heatmap", url: "/heatmap", icon: Gauge }]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
