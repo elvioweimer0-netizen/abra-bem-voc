@@ -250,8 +250,13 @@ export function AppSidebar() {
       ]
     : [];
 
-  const adminTreinamento: MenuItem[] = isRhAdmin
-    ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }]
+  const adminTreinamento: MenuItem[] = [
+    ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
+    ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
+  ];
+
+  const climaItems: MenuItem[] = canViewClima
+    ? [{ title: "Clima", url: "/clima", icon: HeartPulse }]
     : [];
 
   return (
