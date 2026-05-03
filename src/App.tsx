@@ -316,6 +316,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/trocar-senha" element={<ChangePasswordRoute />} />
+            <Route path="/tv/:token" element={<TvDisplay />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </AuthProvider>
