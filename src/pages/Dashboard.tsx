@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
+import { CulturePillCard } from "@/components/culture/CulturePillCard";
+import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
   const navigate = useNavigate();
