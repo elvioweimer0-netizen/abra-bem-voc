@@ -151,6 +151,20 @@ export function AppHeader() {
               >
                 {unitShort}
               </Badge>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => cycleTheme()}
+                    aria-label={`Tema: ${themeLabel}. Clique para alternar`}
+                    className="h-9 w-9"
+                  >
+                    <ThemeIcon className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Tema: {themeLabel}</TooltipContent>
+              </Tooltip>
               <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
