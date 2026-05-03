@@ -1,116 +1,121 @@
-# Heatmap de Pendências por Unidade
+# PDI dos Encarregados — Plano de Implementação
 
-Visão consolidada de 8 indicadores operacionais por unidade, com cores progressivas e drill-down via deep link.
-
----
-
-## 1. Banco de Dados (migration única)
-
-### Função SQL agregadora
-Em vez de uma view (que não suporta parâmetro de período de forma natural), criar **`public.fn_heatmap_indicators(_period text)`** retornando `setof record` com:
-- `unit_id uuid`
-- `total_advertencias int`
-- `total_ocorrencias int`
-- `total_suspensoes int`
-- `total_checklist_atrasados int`
-- `total_faltas_setor int`
-- `total_vagas_abertas int`
-- `mood_baixo_count int`
-- `avisos_pendentes int`
-
-Características:
-- `SECURITY INVOKER` + `STABLE` + `SET search_path=public` — herda RLS do chamador.
-- `_period in ('hoje','semana','mes','trimestre')` → traduz para `interval`.
-- **Graceful degradation**: cada indicador é calculado em sub-CTE com `to_regclass('public.<tabela>')`; se NULL, retorna 0.
-- Itera sobre `units` para garantir linha por unidade (mesmo zerada).
-
-Adicionalmente, criar **view `public.v_heatmap_indicators`** que chama a função com período `'mes'` por padrão (atalho para uso direto), também `security_invoker=on`.
-
-Frontend chama via `supabase.rpc('fn_heatmap_indicators', { _period })`.
-
-### Mapeamento dos indicadores
-| Indicador | Fonte | Janela |
-|---|---|---|
-| Advertências | `advertencias` (via `colaboradores.unidade` → `units.code`) | Período |
-| Ocorrências | `leadership_occurrences.unit_id` | Período |
-| Suspensões | `suspensoes` (via `colaboradores.unidade`) | Período |
-| Checklist atrasado | `checklist_completions` esperados − completos do dia | Hoje sempre |
-| Faltas setor | `attendance_records.status='falta'` | Período |
-| Vagas abertas | `team_members` ativos sem `user_id` OU sem `profiles` ativo | snapshot atual |
-| Humor baixo | `daily_mood.score < 3` agregado por `unit_id` | últimos 7 dias |
-| Avisos pendentes | `avisos.urgente=true` ativos sem `aviso_reads` para >50% da unidade | snapshot atual |
-
-`to_regclass` blinda cada CTE — se a tabela não existir, retorna 0.
+Feature de Plano de Desenvolvimento Individual (PDI) por trimestre, com metas atribuídas pelo gerente ao encarregado, atualizações de progresso e visão consolidada para liderança.
 
 ---
 
-## 2. Frontend
+## 1. Schema SQL (migration única)
+
+### Tabela `pdi_goals`
+```
+id uuid PK default gen_random_uuid()
+encarregado_user_id uuid NOT NULL  -- FK profiles(user_id) ON DELETE CASCADE
+gerente_user_id     uuid           -- FK profiles(user_id) ON DELETE SET NULL
+unit_id             uuid           -- FK units(id)
+trimestre smallint NOT NULL CHECK (trimestre BETWEEN 1 AND 4)
+ano       smallint NOT NULL CHECK (ano >= 2025)
+titulo    text NOT NULL CHECK (length(titulo) BETWEEN 5 AND 100)
+descricao text NOT NULL
+meta_valor    numeric
+meta_unidade  text
+valor_atual   numeric
+status text NOT NULL DEFAULT 'em_andamento'
+       CHECK (status IN ('em_andamento','atingida','parcialmente_atingida','nao_atingida','cancelada'))
+prazo date
+created_at timestamptz default now()
+updated_at timestamptz default now()
+closed_at  timestamptz
+```
+Index: `(encarregado_user_id, trimestre, ano)`. Trigger `update_updated_at_column` no UPDATE.
+
+### Tabela `pdi_progress_updates`
+```
+id uuid PK
+goal_id uuid NOT NULL  -- FK pdi_goals ON DELETE CASCADE
+autor_user_id uuid NOT NULL  -- FK profiles(user_id)
+valor_atual numeric
+observacao text NOT NULL
+created_at timestamptz default now()
+```
+Index: `(goal_id, created_at desc)`. Trigger ao inserir: atualiza `pdi_goals.valor_atual` e `updated_at`.
+
+---
+
+## 2. RLS
+
+### `pdi_goals`
+- **INSERT**: `gerente_user_id = auth.uid()` AND líder (`gerente_loja|master|admin|supervisor`) AND `user_can_access_unit(auth.uid(), unit_id)`
+- **SELECT**: dono (encarregado), autor (gerente), `master|admin|supervisor`, ou `gerente_loja` com `user_can_access_unit`
+- **UPDATE**: mesmo critério SELECT restrito a autor original ou líder
+- **DELETE**: só `master|admin`
+
+### `pdi_progress_updates`
+- **INSERT**: `autor_user_id = auth.uid()` AND tem acesso ao goal (encarregado dono ou líder elegível via SELECT do goal)
+- **SELECT**: mesmo critério SELECT do goal pai
+- **UPDATE/DELETE**: bloqueado (sem policy permissiva)
+
+Helper SQL: `can_view_pdi_goal(_uid uuid, _goal uuid)` security definer pra reutilizar nas policies de updates.
+
+---
+
+## 3. Frontend
+
+### Páginas
+- `src/pages/Pdi.tsx` → `/pdi` (encarregado/lider_setor/colaborador): cards das próprias metas do trimestre atual, filtro de trimestre/ano, click abre drawer detalhe + timeline + botão "Adicionar atualização".
+- `src/pages/PdiEquipe.tsx` → `/pdi/equipe` (gerente_loja, encarregado): lista equipe com até 3 metas resumo + status; botão "Nova meta pra X".
+- `src/pages/PdiAdmin.tsx` → `/pdi/admin` (master/admin/supervisor): tabela consolidada com filtros loja/trimestre/ano/status, expansão por linha.
+
+### Componentes (`src/components/pdi/`)
+- `PdiGoalCard.tsx` — barra de progresso (`valor_atual / meta_valor`), badge de status, badge "atrasada" (vermelho) se `prazo < today` e status `em_andamento`.
+- `PdiGoalForm.tsx` — modal: encarregado select (filtrado por unit acessível), trimestre/ano default = atual, título (5–100), descrição, meta_valor, meta_unidade, prazo.
+- `PdiProgressForm.tsx` — modal: textarea + valor opcional.
+- `PdiProgressTimeline.tsx` — lista cronológica dos updates.
+- `PdiGoalDetailDrawer.tsx` — junta tudo.
 
 ### Hook
-`src/hooks/useHeatmap.ts`
-- `useHeatmap(period)` → chama `rpc('fn_heatmap_indicators')`, cruza com `useAccessibleUnits()` para filtrar só as visíveis.
-- `refetchInterval: 60_000`.
-
-### Componentes
-- `src/components/heatmap/HeatmapTable.tsx` — tabela 8×N (linhas = indicadores, colunas = unidades).
-- `src/components/heatmap/HeatmapCell.tsx` — célula com número grande, cor por threshold.
-- `src/components/heatmap/HeatmapDetailDrawer.tsx` — `Sheet` lateral com lista resumida + botão "Abrir página completa" usando deep link:
-  - Advertências → `/advertencias?unit=...`
-  - Ocorrências → `/ocorrencias?unit=...`
-  - Suspensões → `/suspensoes?unit=...`
-  - Checklist → `/checklist-diario?unit=...`
-  - Faltas → `/escala-semana?unit=...`
-  - Vagas → `/colaboradores?unit=...&status=vaga`
-  - Humor baixo → `/clima?unit=...`
-  - Avisos pendentes → `/avisos?urgente=1`
-- `src/components/heatmap/PeriodChips.tsx` — chips "Hoje / Semana / Mês / Trimestre".
-
-### Thresholds
-```ts
-const THRESHOLDS = {
-  advertencias:    [0, 2],   // 0=verde, 1-2=amarelo, 3+=vermelho
-  ocorrencias:     [0, 1],
-  suspensoes:      [0, 0],   // qualquer >0 já amarelo
-  checklist:       [0, 2],
-  faltas:          [0, 1],
-  vagas:           [0, 0],
-  mood_baixo:      [0, 3],
-  avisos_pend:     [0, 0],
-};
-// retorna bg-emerald-50 / bg-amber-50 / bg-rose-50 / bg-rose-200
-```
-
-### Página
-`src/pages/Heatmap.tsx` — header com título, `<PeriodChips>`, botão refresh manual, `<HeatmapTable>`.
-
-### Rota e guard
-`src/App.tsx`:
-```tsx
-<Route path="/heatmap" element={<HeatmapAccess><Heatmap /></HeatmapAccess>} />
-```
-`HeatmapAccess` aceita `master | admin | supervisor | gerente_adm`; outros → `<NotFound />`.
-
-### Sidebar
-`src/components/AppSidebar.tsx` — nova seção **"Análise"** com item "Heatmap" (ícone `LayoutGrid`), visível apenas para os 4 perfis.
+- `src/hooks/usePdi.ts`: `useMyGoals`, `useTeamGoals`, `useAdminGoals(filters)`, `useGoalUpdates(goalId)`, `useCreateGoal`, `useAddProgress`, `useUpdateGoalStatus`.
 
 ---
 
-## 3. Arquivos tocados
+## 4. Navegação (`AppSidebar.tsx`)
+- "PDI" → `/pdi` (encarregado, lider_setor, colaborador)
+- "PDI da Equipe" → `/pdi/equipe` (gerente_loja, encarregado)
+- "PDI · Visão Geral" → `/pdi/admin` (master, admin, supervisor) — na seção "Análise" existente.
 
-**Migration**
-- `supabase/migrations/<ts>_heatmap_indicators.sql` (função `fn_heatmap_indicators` + view `v_heatmap_indicators`)
+---
 
-**Frontend criados**
-- `src/hooks/useHeatmap.ts`
-- `src/pages/Heatmap.tsx`
-- `src/components/heatmap/HeatmapTable.tsx`
-- `src/components/heatmap/HeatmapCell.tsx`
-- `src/components/heatmap/HeatmapDetailDrawer.tsx`
-- `src/components/heatmap/PeriodChips.tsx`
+## 5. Push / Notificações
+- Trigger `tg_pdi_notify_new_goal` AFTER INSERT em `pdi_goals` → insere em `notification_events` (`type='pdi_new_goal'`) pro encarregado.
+- Edge function agendada `pdi-trimestre-cleanup` (cron diário): no 1º dia de cada trimestre, encontra metas do trimestre anterior com status `em_andamento` e dispara push pro `gerente_user_id` (`type='pdi_overdue_goal'`).
 
-**Frontend editados**
-- `src/App.tsx` (rota + guard)
-- `src/components/AppSidebar.tsx` (seção Análise)
+---
+
+## 6. Routing & Guards
+- `App.tsx`: 3 rotas novas com guards via `useUserRole`/profile. Componente `PdiAdminAccess` análogo ao `HeatmapAccess`.
+
+---
+
+## Arquivos tocados
+**Criados**
+- `supabase/migrations/<ts>_pdi.sql`
+- `supabase/functions/pdi-trimestre-cleanup/index.ts`
+- `src/hooks/usePdi.ts`
+- `src/components/pdi/PdiGoalCard.tsx`
+- `src/components/pdi/PdiGoalForm.tsx`
+- `src/components/pdi/PdiProgressForm.tsx`
+- `src/components/pdi/PdiProgressTimeline.tsx`
+- `src/components/pdi/PdiGoalDetailDrawer.tsx`
+- `src/pages/Pdi.tsx`
+- `src/pages/PdiEquipe.tsx`
+- `src/pages/PdiAdmin.tsx`
+
+**Editados**
+- `src/App.tsx` (rotas + guard)
+- `src/components/AppSidebar.tsx` (3 itens)
+- `src/integrations/supabase/types.ts` (auto)
+- `.lovable/plan.md`
+
+**Cron job**: `pdi-trimestre-cleanup-daily` agendado via `pg_cron` (insert tool, não migration).
 
 ---
 

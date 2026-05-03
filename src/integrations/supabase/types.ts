@@ -2026,6 +2026,176 @@ export type Database = {
         }
         Relationships: []
       }
+      pdi_goals: {
+        Row: {
+          ano: number
+          closed_at: string | null
+          created_at: string
+          descricao: string
+          encarregado_user_id: string
+          gerente_user_id: string | null
+          id: string
+          meta_unidade: string | null
+          meta_valor: number | null
+          prazo: string | null
+          status: string
+          titulo: string
+          trimestre: number
+          unit_id: string | null
+          updated_at: string
+          valor_atual: number | null
+        }
+        Insert: {
+          ano: number
+          closed_at?: string | null
+          created_at?: string
+          descricao: string
+          encarregado_user_id: string
+          gerente_user_id?: string | null
+          id?: string
+          meta_unidade?: string | null
+          meta_valor?: number | null
+          prazo?: string | null
+          status?: string
+          titulo: string
+          trimestre: number
+          unit_id?: string | null
+          updated_at?: string
+          valor_atual?: number | null
+        }
+        Update: {
+          ano?: number
+          closed_at?: string | null
+          created_at?: string
+          descricao?: string
+          encarregado_user_id?: string
+          gerente_user_id?: string | null
+          id?: string
+          meta_unidade?: string | null
+          meta_valor?: number | null
+          prazo?: string | null
+          status?: string
+          titulo?: string
+          trimestre?: number
+          unit_id?: string | null
+          updated_at?: string
+          valor_atual?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_goals_encarregado_user_id_fkey"
+            columns: ["encarregado_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_encarregado_user_id_fkey"
+            columns: ["encarregado_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_encarregado_user_id_fkey"
+            columns: ["encarregado_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_gerente_user_id_fkey"
+            columns: ["gerente_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_gerente_user_id_fkey"
+            columns: ["gerente_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_gerente_user_id_fkey"
+            columns: ["gerente_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
+      pdi_progress_updates: {
+        Row: {
+          autor_user_id: string
+          created_at: string
+          goal_id: string
+          id: string
+          observacao: string
+          valor_atual: number | null
+        }
+        Insert: {
+          autor_user_id: string
+          created_at?: string
+          goal_id: string
+          id?: string
+          observacao: string
+          valor_atual?: number | null
+        }
+        Update: {
+          autor_user_id?: string
+          created_at?: string
+          goal_id?: string
+          id?: string
+          observacao?: string
+          valor_atual?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_progress_updates_autor_user_id_fkey"
+            columns: ["autor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_progress_updates_autor_user_id_fkey"
+            columns: ["autor_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_progress_updates_autor_user_id_fkey"
+            columns: ["autor_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pdi_progress_updates_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "pdi_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       playbook_article_feedback: {
         Row: {
           article_id: string
@@ -3544,6 +3714,10 @@ export type Database = {
       }
       can_view_leadership_answer: {
         Args: { _answer_id: string; _uid: string }
+        Returns: boolean
+      }
+      can_view_pdi_goal: {
+        Args: { _goal_id: string; _uid: string }
         Returns: boolean
       }
       can_view_playbook_article: {
