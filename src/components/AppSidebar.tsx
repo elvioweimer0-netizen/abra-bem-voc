@@ -181,6 +181,7 @@ export function AppSidebar() {
       { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
       { title: "Documentos", url: "/rh/cartilha", icon: ScrollText },
       { title: "Falar com RH", url: "/central-adm/rh", icon: Users },
+      { title: "Mentoria", url: "/mentoria", icon: Users },
     ];
     return (
       <Sidebar collapsible="offcanvas" className="border-r-0">
