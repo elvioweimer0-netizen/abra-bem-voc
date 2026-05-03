@@ -3506,6 +3506,147 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_votes: {
+        Row: {
+          id: string
+          option_id: string
+          poll_id: string
+          user_id: string
+          voted_at: string
+        }
+        Insert: {
+          id?: string
+          option_id: string
+          poll_id: string
+          user_id: string
+          voted_at?: string
+        }
+        Update: {
+          id?: string
+          option_id?: string
+          poll_id?: string
+          user_id?: string
+          voted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          allow_anonymous: boolean
+          author_user_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          notified_30min: boolean
+          options: Json
+          question: string
+          status: string
+          target_roles: string[]
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allow_anonymous?: boolean
+          author_user_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          notified_30min?: boolean
+          options: Json
+          question: string
+          status?: string
+          target_roles?: string[]
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allow_anonymous?: boolean
+          author_user_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          notified_30min?: boolean
+          options?: Json
+          question?: string
+          status?: string
+          target_roles?: string[]
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "polls_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "polls_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "polls_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polls_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "polls_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       praise_applause: {
         Row: {
           created_at: string
@@ -5280,6 +5421,10 @@ export type Database = {
       is_culture_editor: { Args: { _user_id: string }; Returns: boolean }
       is_eligible_for_leadership_question: {
         Args: { _question_id: string; _uid: string }
+        Returns: boolean
+      }
+      is_eligible_for_poll: {
+        Args: { _poll_id: string; _uid: string }
         Returns: boolean
       }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }

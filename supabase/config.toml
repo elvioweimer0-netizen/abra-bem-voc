@@ -40,3 +40,6 @@ verify_jwt = false
 
 [functions.detect-milestones]
 verify_jwt = false
+
+[functions.polls-tick]
+verify_jwt = false
