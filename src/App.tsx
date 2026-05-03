@@ -281,6 +281,7 @@ function ProtectedRoutes() {
         <Route path="/meu-score" element={<MyScoreAccess><MeuScore /></MyScoreAccess>} />
         <Route path="/scores/ranking" element={<ScoresRankingAccess><ScoresRanking /></ScoresRankingAccess>} />
         <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
+        <Route path="/admin/tv-displays" element={<SupervisorOnly><AdminTvDisplays /></SupervisorOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
