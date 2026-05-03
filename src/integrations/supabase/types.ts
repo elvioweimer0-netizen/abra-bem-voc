@@ -446,6 +446,124 @@ export type Database = {
         }
         Relationships: []
       }
+      culture_pill_likes: {
+        Row: {
+          id: string
+          liked_at: string
+          pill_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          liked_at?: string
+          pill_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          liked_at?: string
+          pill_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culture_pill_likes_pill_id_fkey"
+            columns: ["pill_id"]
+            isOneToOne: false
+            referencedRelation: "culture_pills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      culture_pills: {
+        Row: {
+          active: boolean
+          content: string
+          created_at: string
+          created_by: string | null
+          display_date: string
+          id: string
+          image_url: string | null
+          link_url: string | null
+          title: string
+          updated_at: string
+          value_id: string
+        }
+        Insert: {
+          active?: boolean
+          content: string
+          created_at?: string
+          created_by?: string | null
+          display_date: string
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          title: string
+          updated_at?: string
+          value_id: string
+        }
+        Update: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          display_date?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          title?: string
+          updated_at?: string
+          value_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culture_pills_value_id_fkey"
+            columns: ["value_id"]
+            isOneToOne: false
+            referencedRelation: "culture_values"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      culture_values: {
+        Row: {
+          active: boolean
+          code: string
+          color: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          ordem: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          color?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          ordem?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          color?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          ordem?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_huddle_reports: {
         Row: {
           author_user_id: string | null
@@ -2744,6 +2862,7 @@ export type Database = {
         Returns: boolean
       }
       is_commitment_viewer: { Args: { _user_id: string }; Returns: boolean }
+      is_culture_editor: { Args: { _user_id: string }; Returns: boolean }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
       is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
       is_unit_manager: {

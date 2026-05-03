@@ -35,6 +35,8 @@ import {
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
+import { useCanEditCulture } from "@/hooks/useCanEditCulture";
+import { Sparkles as SparklesIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
 import { Button } from "@/components/ui/button";
@@ -148,6 +150,7 @@ export function AppSidebar() {
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
   const { canViewClima, canManageClima } = useClimateAccess();
+  const canEditCulture = useCanEditCulture();
 
   const profileAny = profile as any;
   const myUnitId = profileAny?.unit_id as string | undefined;
@@ -166,6 +169,7 @@ export function AppSidebar() {
     const feedComunicacao: MenuItem[] = [
       { title: "Avisos", url: "/avisos", icon: Bell },
       { title: "Notícias", url: "/noticias", icon: Megaphone },
+      { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
       { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
       { title: "Galeria do Curió", url: "/galeria", icon: Camera },
       { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
@@ -207,6 +211,7 @@ export function AppSidebar() {
   const comunicacao: MenuItem[] = [
     { title: "Avisos", url: "/avisos", icon: Bell },
     { title: "Notícias", url: "/noticias", icon: Megaphone },
+    { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
     { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
     { title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy },
     { title: "Galeria do Curió", url: "/galeria", icon: Camera },
@@ -255,6 +260,7 @@ export function AppSidebar() {
   const adminTreinamento: MenuItem[] = [
     ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
+    ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima

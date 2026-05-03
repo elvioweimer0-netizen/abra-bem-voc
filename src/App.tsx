@@ -61,6 +61,9 @@ import DailyHuddle from "@/pages/DailyHuddle";
 import DailyHuddlePainel from "@/pages/DailyHuddlePainel";
 import Compromissos from "@/pages/Compromissos";
 import CompromissosBoard from "@/pages/CompromissosBoard";
+import Cultura from "@/pages/Cultura";
+import CulturaValor from "@/pages/CulturaValor";
+import AdminCultura from "@/pages/AdminCultura";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -164,6 +167,9 @@ function ProtectedRoutes() {
         <Route path="/daily-huddle/painel" element={<SupervisorOnly><DailyHuddlePainel /></SupervisorOnly>} />
         <Route path="/compromissos" element={<LeaderOnly><Compromissos /></LeaderOnly>} />
         <Route path="/compromissos/board" element={<SupervisorOnly><CompromissosBoard /></SupervisorOnly>} />
+        <Route path="/cultura" element={<Cultura />} />
+        <Route path="/cultura/valor/:code" element={<CulturaValor />} />
+        <Route path="/admin/cultura" element={<AdminCultura />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

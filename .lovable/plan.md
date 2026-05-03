@@ -1,115 +1,126 @@
-# Plano — Compromissos Públicos da Semana
+# Pílulas de Cultura Curió — Plano de Implementação
 
-Cada líder declara até **3 compromissos** na segunda e avalia o resultado na sexta. Visível só pra liderança (transparência horizontal); colaboradores não veem.
+Feature pra reforçar diariamente os valores da Curió com micro-conteúdos ("pílulas") visíveis no Feed e no Painel, com curtidas, navegação por valor e CRUD administrativo.
 
-## 1. Banco de dados (migration única)
+## 1. Banco de Dados (migration única)
 
-**Tabela `weekly_commitments`**
+### Tabela `culture_values`
 - `id uuid pk default gen_random_uuid()`
-- `user_id uuid not null references profiles(user_id) on delete cascade`
-- `unit_id uuid references units(id) on delete set null` (snapshot da unidade do autor)
-- `week_start_date date not null` (sempre segunda-feira da semana)
-- `commitment_text text not null check (char_length(commitment_text) between 10 and 200)`
-- `ordem smallint not null check (ordem between 1 and 3)`
-- `status text not null default 'em_andamento' check (status in ('em_andamento','cumprido','parcial','nao_cumprido','cancelado'))`
-- `evidencia text default ''`
-- `evaluated_at timestamptz`
-- `created_at`, `updated_at` (trigger `update_updated_at_column`)
-- `UNIQUE (user_id, week_start_date, ordem)` — limita 3/semana
-- `INDEX (week_start_date desc, unit_id)`, `INDEX (user_id, week_start_date desc)`
+- `code text unique not null` (ex: `acolhimento`, `qualidade`, `compromisso`, `familia_curio`)
+- `name text not null`
+- `description text default ''`
+- `color text not null default '#6366f1'` (HSL/hex pra badge)
+- `icon text not null default 'sparkles'` (nome lucide-react)
+- `ordem smallint not null default 0`
+- `active boolean not null default true`
+- `created_at`, `updated_at`
 
-**Função helper `is_commitment_viewer(_user_id)`** (SECURITY DEFINER)
-Retorna `true` para: admin, master, supervisor, gerente_loja, gerente, gerente_adm, encarregado, fiscal, lider_setor (todos exceto colaborador).
+**Seed (no mesmo migration):**
+| code | name | descrição curta |
+|---|---|---|
+| acolhimento | Acolhimento | Recebemos cada pessoa com calor humano |
+| qualidade | Qualidade | Excelência em tudo que entregamos |
+| compromisso | Compromisso | Palavra dada, palavra cumprida |
+| familia_curio | Família Curió | Somos um time, somos família |
 
-**RLS**
-- `SELECT`: `is_commitment_viewer(auth.uid())`.
-- `INSERT`: `user_id = auth.uid()` AND `is_commitment_viewer(auth.uid())` (mesma lista). Evidência precisa estar vazia, status `em_andamento`.
-- `UPDATE`: `user_id = auth.uid()` AND (
-    - **edição do texto** permitida até quarta-feira (`current_date <= week_start_date + 2`), OU
-    - **avaliação** permitida até domingo (`current_date <= week_start_date + 6`)
-  ). Admin/master sempre podem.
-- `DELETE`: nenhuma policy.
+### Tabela `culture_pills`
+- `id uuid pk`
+- `title text not null` (≤ 80 chars)
+- `content text not null check (char_length(content) <= 280)`
+- `value_id uuid fk culture_values(id) on delete restrict`
+- `image_url text nullable`
+- `link_url text nullable`
+- `display_date date not null unique` (1 pílula por dia)
+- `active boolean default true`
+- `created_by uuid fk profiles(user_id) on delete set null`
+- `created_at`, `updated_at`
+- Índice em `display_date desc`, `value_id`
 
-## 2. Frontend
+### Tabela `culture_pill_likes`
+- `id uuid pk`
+- `pill_id uuid fk culture_pills(id) on delete cascade`
+- `user_id uuid not null` (= auth.uid())
+- `liked_at timestamptz default now()`
+- `unique (pill_id, user_id)`
+- Índice em `pill_id`
 
-**Hook** `src/hooks/useWeeklyCommitments.ts`
-- Helper local `getMonday(date)` → segunda da semana ISO.
-- `useMyCommitments(weekStart)` — meus compromissos da semana.
-- `useCommitmentHistory(userId, limit=8)` — semanas passadas do autor.
-- `useCommitmentsBoard(weekStart)` — todos os líderes acessíveis com seus compromissos da semana.
-- `useDeclareCommitments()` — cria 3 registros (transação client-side com upsert por `(user_id, week_start, ordem)`).
-- `useEvaluateCommitment()` — atualiza status + evidencia + evaluated_at.
+### Helper function
+- `is_culture_editor(_user_id uuid)` retorna true se: `master`, `admin`, ou `gerente_adm` cujo `cargo_titulo|descricao|nome` contém "rh"/"recursos humanos"/"marketing". Stable, security definer, search_path=public.
 
-**Componentes** em `src/components/commitments/`
-- `CommitmentStatusBadge.tsx` — chip colorido por status (token semântico).
-- `DeclararCompromissosModal.tsx` — Dialog com 3 textareas (10–200 chars, contador). Botão "Publicar".
-- `AvaliarCompromissosModal.tsx` — Dialog que lista os 3 compromissos da semana atual com select status + textarea evidencia + "Salvar avaliação".
-- `CommitmentCard.tsx` — card de pessoa: avatar, nome, unidade, lista dos 3 compromissos com status.
-- `CommitmentsWidget.tsx` — para o Dashboard/Painel: mostra status do usuário (declarar/avaliar/ok) + CTA.
+## 2. RLS
 
-**Páginas**
-- `src/pages/Compromissos.tsx` (`/compromissos`, líderes)
-  - Header: "Semana de DD/MM a DD/MM".
-  - Caixa de ação:
-    - se hoje ∈ [seg..qua] e sem declaração → CTA "Declarar compromissos".
-    - se hoje ∈ [sex..dom] e há declaração sem avaliação → CTA "Avaliar".
-  - Lista atual (3 cards horizontais).
-  - Accordion "Semanas anteriores" usando `useCommitmentHistory`.
-- `src/pages/CompromissosBoard.tsx` (`/compromissos/board`, master/admin/supervisor)
-  - Filtro de semana.
-  - Kanban com 4 colunas (Em andamento, Parcial, Cumprido, Não cumprido) + coluna lateral "Sem declaração". Cards `CommitmentCard` agrupados por status (cada compromisso individual vira card pra granularidade).
+**culture_values & culture_pills:**
+- SELECT: `authenticated` → `true` (todos veem)
+- INSERT/UPDATE: `is_culture_editor(auth.uid())`
+- DELETE: bloqueado (preserva histórico). Para "remover" usa `active=false`.
 
-**Widget no Painel**: incluir `<CommitmentsWidget />` no `Dashboard.tsx` apenas se `isLider`.
+**culture_pill_likes:**
+- SELECT: `authenticated` → `true` (contador público)
+- INSERT: `user_id = auth.uid()`
+- DELETE: `user_id = auth.uid()`
+- UPDATE: bloqueado
 
-## 3. Notificações push (edge function + cron)
+## 3. Frontend
 
-**Edge function** `supabase/functions/commitments-reminders/index.ts`
-- modes: `declare` (segunda 8:30), `evaluate` (sexta 16:00), `late` (terça 9:00).
-- `declare`: avisa todos viewers que ainda não declararam essa semana.
-- `late`: viewers sem declaração até terça → reminder.
-- `evaluate`: viewers com declaração e sem `evaluated_at` para algum item.
-- Insere em `notification_events` (mesmo padrão do daily-huddle).
+### Hook `useCulturePills.ts`
+- `useTodayPill()` → pílula com `display_date = hoje` + value join + count likes + my_liked
+- `useCulturePillsList(valueCode?, page)` → paginação 12/página
+- `useCultureValues()` → lista valores ativos
+- `useToggleLike(pillId)` → mutation insert/delete + invalidate
+- `useScheduledPills(monthStart)` → para calendário admin
+- `useCulturePillCRUD()` → upsert/toggle active
+- `useCanEditCulture()` → checa se user é editor (mesma regra do helper, baseada em roles + cargo)
 
-**Crons via `supabase--insert`** (timezone BRT → UTC = +3):
-- `commitments-declare`: `30 11 * * 1` (08:30 BRT seg)
-- `commitments-late`:    `0 12 * * 2` (09:00 BRT ter)
-- `commitments-evaluate`:`0 19 * * 5` (16:00 BRT sex)
+### Componentes (`src/components/culture/`)
+- `CulturePillCard.tsx` — card destaque com cor do valor, ícone, título, conteúdo, botão curtir (Heart lucide), contador, opcional imagem/link. Variante `compact` pra topo de Feed/Painel.
+- `CultureValueBadge.tsx` — pill colorido com ícone + nome.
+- `CulturePillFormModal.tsx` — admin: título, conteúdo (counter 280), valor select, imagem upload (bucket existente `galeria` ou novo `culture` — usarei `galeria` pra evitar bucket novo), link, data (date picker valida unique).
+- `CultureCalendar.tsx` — grid mensal com pílulas marcadas por cor do valor; click abre form de edição/criação naquela data.
 
-`supabase/config.toml`: bloco `[functions.commitments-reminders]` com `verify_jwt = false`.
+### Páginas
+- `/cultura` (`Cultura.tsx`) — header com chips de valores (filtro), grid de pílulas paginado, link "ver todas do valor X".
+- `/cultura/valor/:code` (`CulturaValor.tsx`) — header do valor (cor, ícone, descrição), lista de pílulas só desse valor.
+- `/admin/cultura` (`AdminCultura.tsx`) — gate `useCanEditCulture`. Tabs: Calendário | Lista | Valores. Botão "Importar pacote inicial" gera 7 pílulas de exemplo distribuídas pelos 4 valores nos próximos 7 dias úteis (só inserir se o dia estiver vazio).
+
+### Integrações
+- `FeedColaborador` (Comunicação): inserir `<CulturePillCard variant="compact">` no topo, antes da lista.
+- `Dashboard` (Painel): inserir mesmo card numa nova seção "Pílula do dia" acima dos widgets existentes.
 
 ## 4. Navegação
 
-`src/components/AppSidebar.tsx`: nova seção "Compromissos" com:
-- "Compromissos" (`/compromissos`) — `isLider`.
-- "Quadro" (`/compromissos/board`) — `isAdmin || isSupervisor`.
+`AppSidebar.tsx`:
+- Item raiz **Cultura** (ícone `Sparkles`) → `/cultura` — visível pra todos autenticados.
+- Sub-item **Admin Cultura** → `/admin/cultura` — visível só se `useCanEditCulture()` true.
 
-`src/App.tsx`: 2 rotas dentro de `AppLayout` com guards `LeaderOnly` e `SupervisorOnly`.
+`App.tsx`: rotas `/cultura`, `/cultura/valor/:code`, `/admin/cultura` dentro de `<AppLayout>` protegidas.
 
-## Arquivos tocados
+## 5. Regras
 
-**Novos**
-- `supabase/migrations/<ts>_weekly_commitments.sql`
-- `supabase/functions/commitments-reminders/index.ts`
-- `src/hooks/useWeeklyCommitments.ts`
-- `src/components/commitments/CommitmentStatusBadge.tsx`
-- `src/components/commitments/DeclararCompromissosModal.tsx`
-- `src/components/commitments/AvaliarCompromissosModal.tsx`
-- `src/components/commitments/CommitmentCard.tsx`
-- `src/components/commitments/CommitmentsWidget.tsx`
-- `src/pages/Compromissos.tsx`
-- `src/pages/CompromissosBoard.tsx`
+- Tudo numa migration reversível (CREATE TABLE + policies + helper + INSERT seed).
+- Não mexer em RLS de outras tabelas.
+- Sem novo bucket: imagens reutilizam `galeria`.
+- Sem cron / sem edge function (não pediu notificação).
+- Anonimato dos likes: contador público é OK (não viola anonimato — é like opt-in).
 
-**Editados**
-- `src/App.tsx` (2 rotas + imports)
-- `src/components/AppSidebar.tsx` (seção)
-- `src/pages/Dashboard.tsx` (widget no topo, atrás de `isLider`)
-- `supabase/config.toml` (bloco da função)
-- `src/integrations/supabase/types.ts` (auto pós-migration)
+## 6. Arquivos a serem tocados
 
-## Regras respeitadas
-- Não toca em RLS de outras tabelas.
-- Função helper isolada (`is_commitment_viewer`) — não altera funções existentes.
-- Cron via `supabase--insert` (segredos), não em migration.
-- Tudo reversível via revert do commit.
+**Novos:**
+- `supabase/migrations/<timestamp>_culture_pills.sql`
+- `src/hooks/useCulturePills.ts`
+- `src/components/culture/CulturePillCard.tsx`
+- `src/components/culture/CultureValueBadge.tsx`
+- `src/components/culture/CulturePillFormModal.tsx`
+- `src/components/culture/CultureCalendar.tsx`
+- `src/pages/Cultura.tsx`
+- `src/pages/CulturaValor.tsx`
+- `src/pages/AdminCultura.tsx`
+
+**Editados:**
+- `src/App.tsx` (3 rotas)
+- `src/components/AppSidebar.tsx` (item Cultura + sub Admin)
+- `src/pages/Dashboard.tsx` (card pílula do dia no topo)
+- `src/components/comunicacao/FeedColaborador.tsx` (ou equivalente — vou localizar)
+- `src/integrations/supabase/types.ts` (auto)
+- `.lovable/plan.md`
 
 Aprova pra eu executar?

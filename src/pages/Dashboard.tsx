@@ -21,11 +21,14 @@ import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
+import { CulturePillCard } from "@/components/culture/CulturePillCard";
+import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser } = useRole();
+  const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
@@ -121,6 +124,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       <AvisosBanner />
+      {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />

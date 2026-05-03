@@ -7,6 +7,8 @@ import { AvisosBanner } from "@/components/AvisosBanner";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Camera, MessageCircle, Sparkles, Users } from "lucide-react";
 import { TopCuriosMes } from "@/components/TopCuriosMes";
+import { CulturePillCard } from "@/components/culture/CulturePillCard";
+import { useTodayPill } from "@/hooks/useCulturePills";
 import type { Noticia } from "@/types/database";
 
 type TeamMate = { id: string; nome: string; cargo_titulo: string | null; cargo: string };
@@ -24,6 +26,7 @@ export default function FeedColaborador() {
   const { isLiderSetor } = useRole();
   const [noticias, setNoticias] = useState<Noticia[]>([]);
   const [equipe, setEquipe] = useState<TeamMate[]>([]);
+  const { data: todayPill } = useTodayPill();
 
   const firstName = profile?.nome?.split(" ")[0] ?? "time Curió";
 
@@ -54,6 +57,8 @@ export default function FeedColaborador() {
       </div>
 
       <AvisosBanner />
+
+      {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
 
       <TopCuriosMes />
 
