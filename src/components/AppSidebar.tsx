@@ -297,6 +297,11 @@ export function AppSidebar() {
       ]
     : [];
 
+  const storiesItems: MenuItem[] = [
+    { title: "Meus Stories", url: "/perfil/stories", icon: Camera },
+    ...(isAdmin ? [{ title: "Admin · Stories", url: "/admin/stories", icon: Camera }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
