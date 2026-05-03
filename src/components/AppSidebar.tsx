@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
+import { useHasActiveJourney } from "@/hooks/useOnboarding";
 import { useCanEditCulture } from "@/hooks/useCanEditCulture";
 import { Sparkles as SparklesIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -149,6 +150,7 @@ export function AppSidebar() {
   const { cargo, isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
+  const hasActiveOnboarding = useHasActiveJourney();
   const { canViewClima, canManageClima } = useClimateAccess();
   const canEditCulture = useCanEditCulture();
 
@@ -165,6 +167,7 @@ export function AppSidebar() {
       { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
       { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
       { title: "Minha Unidade", url: unitHomeUrl, icon: Building },
+      ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
     ];
     const feedComunicacao: MenuItem[] = [
       { title: "Avisos", url: "/avisos", icon: Bell },
@@ -324,6 +327,11 @@ export function AppSidebar() {
       : []),
   ];
 
+  const onboardingItems: MenuItem[] = [
+    ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
+    ...(isRhAdmin ? [{ title: "Admin · Onboarding", url: "/admin/onboarding", icon: GraduationCap }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -352,6 +360,7 @@ export function AppSidebar() {
         <MenuSection label="Stories" items={storiesItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Análise" items={analiseItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="PDI" items={pdiItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Onboarding" items={onboardingItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />

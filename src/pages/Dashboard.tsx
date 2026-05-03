@@ -25,12 +25,13 @@ import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
 import { StoriesBar } from "@/components/stories/StoriesBar";
 import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggestionWidget";
+import { NovosNoTimeWidget } from "@/components/onboarding/NovosNoTimeWidget";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser } = useRole();
+  const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser, cargo } = useRole();
   const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
   const showAdminMetrics = isGerente || isAdmin;
@@ -132,6 +133,7 @@ export default function Dashboard() {
       <PlaybookSuggestionWidget />
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
+      {cargo === "gerente_loja" && <NovosNoTimeWidget />}
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 

@@ -257,6 +257,8 @@ function ProtectedRoutes() {
         <Route path="/historias" element={<Historias />} />
         <Route path="/historias/hall-do-mes" element={<HistoriasHallDoMes />} />
         <Route path="/admin/historias" element={<RhAdminOnly><AdminHistorias /></RhAdminOnly>} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/admin/onboarding" element={<RhAdminOnly><AdminOnboarding /></RhAdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
