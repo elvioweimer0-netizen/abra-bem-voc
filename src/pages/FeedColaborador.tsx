@@ -59,6 +59,8 @@ export default function FeedColaborador() {
 
       <AvisosBanner />
 
+      <AniversariantesWidget />
+
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
 
       <TopCuriosMes />
