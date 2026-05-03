@@ -10,11 +10,12 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Monitor, Moon, Search, Settings, Sun, User, UserCircle } from "lucide-react";
+import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, MessageCircle, Monitor, Moon, Search, Settings, Sun, User, UserCircle } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { useChatUnreadBadge } from "@/hooks/useConversations";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
