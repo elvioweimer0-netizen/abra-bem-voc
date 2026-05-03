@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Search, Settings, User, UserCircle } from "lucide-react";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
