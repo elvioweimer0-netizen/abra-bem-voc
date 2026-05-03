@@ -4,3 +4,6 @@ verify_jwt = false
 
 [functions.geocode-units]
 verify_jwt = false
+
+[functions.daily-huddle-reminders]
+verify_jwt = false
