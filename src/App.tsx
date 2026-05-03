@@ -276,6 +276,9 @@ function ProtectedRoutes() {
         <Route path="/admin/historias" element={<RhAdminOnly><AdminHistorias /></RhAdminOnly>} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/admin/onboarding" element={<RhAdminOnly><AdminOnboarding /></RhAdminOnly>} />
+        <Route path="/meu-score" element={<MyScoreAccess><MeuScore /></MyScoreAccess>} />
+        <Route path="/scores/ranking" element={<ScoresRankingAccess><ScoresRanking /></ScoresRankingAccess>} />
+        <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
