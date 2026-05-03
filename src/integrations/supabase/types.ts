@@ -446,6 +446,54 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_mood: {
+        Row: {
+          id: string
+          note: string | null
+          recorded_at: string
+          recorded_date: string | null
+          score: number | null
+          skipped: boolean
+          unit_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          note?: string | null
+          recorded_at?: string
+          recorded_date?: string | null
+          score?: number | null
+          skipped?: boolean
+          unit_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          note?: string | null
+          recorded_at?: string
+          recorded_date?: string | null
+          score?: number | null
+          skipped?: boolean
+          unit_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_mood_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_mood_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       document_approvals: {
         Row: {
           aprovado_por: string | null
@@ -1723,6 +1771,89 @@ export type Database = {
           },
         ]
       }
+      pulse_answers: {
+        Row: {
+          answer_text: string
+          answered_at: string
+          id: string
+          question_id: string
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          answer_text: string
+          answered_at?: string
+          id?: string
+          question_id: string
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          answer_text?: string
+          answered_at?: string
+          id?: string
+          question_id?: string
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pulse_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "pulse_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "v_pulse_aggregate"
+            referencedColumns: ["question_id"]
+          },
+          {
+            foreignKeyName: "pulse_answers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_answers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
+      pulse_questions: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          question_text: string
+          week_start_date: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          question_text: string
+          week_start_date: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          question_text?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           created_at: string
@@ -2378,6 +2509,58 @@ export type Database = {
       }
     }
     Views: {
+      v_mood_aggregate: {
+        Row: {
+          avg_score: number | null
+          day: string | null
+          responses: number | null
+          setor: string | null
+          skips: number | null
+          unit_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_mood_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_mood_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
+      v_pulse_aggregate: {
+        Row: {
+          answer_text: string | null
+          answered_at: string | null
+          question_id: string | null
+          question_text: string | null
+          unit_id: string | null
+          week_start_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pulse_answers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_answers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       v_unit_checklist_progress: {
         Row: {
           data: string | null
@@ -2394,6 +2577,10 @@ export type Database = {
     Functions: {
       can_review_document_role: {
         Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_climate: {
+        Args: { _unit_id: string; _user_id: string }
         Returns: boolean
       }
       can_view_document: {
