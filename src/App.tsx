@@ -123,6 +123,7 @@ function ProtectedRoutes() {
 
   return (
     <AppLayout>
+      <AchievementUnlockListener />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/colaboradores" element={<LeaderOnly><Colaboradores /></LeaderOnly>} />
