@@ -72,6 +72,8 @@ import MinhasConquistas from "@/pages/MinhasConquistas";
 import ConquistasRanking from "@/pages/ConquistasRanking";
 import AdminConquistas from "@/pages/AdminConquistas";
 import MilestonesAdmin from "@/pages/MilestonesAdmin";
+import MentoriaPage from "@/pages/MentoriaPage";
+import MinhasMentoriasPage from "@/pages/MinhasMentoriasPage";
 import Caderno from "@/pages/Caderno";
 import CadernoArtigo from "@/pages/CadernoArtigo";
 import AdminCaderno from "@/pages/AdminCaderno";
