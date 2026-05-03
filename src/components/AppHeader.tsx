@@ -41,6 +41,8 @@ export function AppHeader() {
   const { profile, signOut } = useAuth();
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
+  const { setOpen: setCmdkOpen } = useCommandPalette();
+  const cmdkAllowed = ["master", "admin", "supervisor", "gerente_loja", "gerente", "gerente_adm", "encarregado"].includes(realCargo);
 
   const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", "/curio-de-ouro", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
   const showBack = !rootRoutes.includes(location.pathname);
