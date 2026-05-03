@@ -12,6 +12,7 @@ import { EncerrarVisitaBanner } from "@/components/visitas/EncerrarVisitaBanner"
 import { MoodPrompt } from "@/components/clima/MoodPrompt";
 import { PulsePrompt } from "@/components/clima/PulsePrompt";
 import { BirthdayBanner } from "@/components/birthdays/BirthdayBanner";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (

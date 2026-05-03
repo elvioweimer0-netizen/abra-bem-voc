@@ -339,6 +339,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ThemeProvider>
+          <OfflineProvider>
           <CommandPaletteProvider>
             <PushPermission />
             <PwaInstallPrompt />
@@ -350,6 +351,7 @@ const App = () => (
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
           </CommandPaletteProvider>
+          </OfflineProvider>
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
