@@ -1,100 +1,94 @@
-# Plano: POLLS RÁPIDAS
+# Plano: FEEDBACK AO GERENTE (Espelho Trimestral)
 
-Sistema de enquetes rápidas com votação anônima agregada, expiração automática e push notifications.
+Sistema anônimo trimestral para colaboradores avaliarem seus gerentes de loja em 5 dimensões. Anonimato garantido via hash irreversível server-side e view agregada com mínimo de 3 respostas.
 
 ## 1. Schema SQL (migração única)
 
-### Tabela `polls`
-- `id` uuid pk, `author_user_id` fk profiles, `unit_id` fk units (nullable = global)
-- `question` text (5-200 chars), `options` jsonb (array `{id, label}`, 2-4 itens validado por trigger)
-- `expires_at` timestamptz, `target_roles` text[] default '{}' (vazio = todos)
-- `allow_anonymous` bool default true
-- `status` text check ('ativa','encerrada','cancelada') default 'ativa'
-- Index `(status, expires_at)`
+### Tabelas
+- **manager_feedback_cycles**: `year`, `quarter` (1-4), `closes_at`, `status` ('aberto','fechado','consolidado'). Unique `(year, quarter)`.
+- **manager_feedback_questions**: `code` unique, `question_text`, `ordem`, `scale_min`/`scale_max`, `active`. Seed das 5 perguntas (`feedback_util`, `justo`, `ouve`, `acolhe`, `ensina`).
+- **manager_feedback_responses**: `cycle_id`, `manager_user_id`, `respondent_hash` (text, gerado server-side), `question_id`, `score` (1-5), `comment`. Unique `(cycle_id, manager_user_id, respondent_hash, question_id)`.
 
-### Tabela `poll_votes`
-- `id` uuid pk, `poll_id` fk polls cascade, `user_id` fk profiles cascade
-- `option_id` text, `voted_at` timestamptz
-- Unique `(poll_id, user_id)`
+### Segredo + função de hash
+- Secret `MANAGER_FEEDBACK_SALT` (runtime) — usado pela função.
+- Função `public.compute_feedback_hash(_user_id uuid, _cycle_id uuid)` SECURITY DEFINER:
+  - `digest(salt || ':' || _user_id || ':' || _cycle_id, 'sha256')` em hex.
+  - Salt lido de tabela interna `app_secrets` populada via migration (acessível só por admin) OU via `current_setting('app.feedback_salt', true)`. **Decisão:** criar `app_secrets(key text pk, value text)` com RLS bloqueada (sem policies) — função SECURITY DEFINER lê direto.
+- Trigger BEFORE INSERT em `manager_feedback_responses` força `respondent_hash := compute_feedback_hash(auth.uid(), NEW.cycle_id)` (cliente NÃO controla).
 
-### Função helper `is_eligible_for_poll(_uid, _poll_id)`
-SECURITY DEFINER: retorna true se `target_roles` vazio OR cargo do user ∈ target_roles. Usada em RLS.
+### View agregada
+- `v_manager_feedback_aggregated` com `security_invoker = true`:
+  - SELECT manager_user_id, cycle_id, question_id, avg(score), count(*), jsonb por bucket de score (1-5).
+  - Filtro `HAVING count(*) >= 3`.
 
-### Trigger validação opções
-Garante 2-4 opções com `id` e `label` no insert/update.
+### RLS
+- **cycles**: SELECT autenticados; INSERT/UPDATE master/admin/supervisor.
+- **questions**: SELECT autenticados; INSERT/UPDATE master/admin.
+- **responses**:
+  - INSERT: cycle aberto AND `manager_user_id` é gerente (gerente_loja/gerente) da mesma unidade do `auth.uid()` AND respondente NÃO é o próprio manager.
+  - SELECT: bloqueado (sem policy) → ninguém lê linhas brutas. Apenas a view (que respeita RLS via security_invoker mas precisa de policy de SELECT na tabela). 
+  - **Ajuste:** policy SELECT só para master/admin (auditoria) + a view será `security_definer` para agregação anônima (alternativa). 
+  - **Decisão final:** view `security_invoker` + policy SELECT permitindo `master/admin/supervisor` e o próprio manager AGREGADO via função `get_manager_aggregated(...)` SECURITY DEFINER. Tabela continua bloqueada para todos exceto master.
+  - **Refinado:** policy SELECT apenas master/admin. Função SECURITY DEFINER `fn_manager_feedback_aggregated(_manager_id, _cycle_id)` retorna agregados (com `count >= 3`) e é chamada pelo gerente, supervisor e admin. View para admins.
 
-### Cron job (pg_cron)
-- A cada 5min: chama edge `polls-tick` (encerra expiradas + dispara push 30min/encerramento).
+### Índices
+- `(cycle_id, manager_user_id)`, `(manager_user_id)`.
 
-## 2. RLS
-
-**polls**
-- SELECT: autenticados elegíveis (`is_eligible_for_poll` OR autor)
-- INSERT: `is_leadership(auth.uid())` AND author=self
-- UPDATE/DELETE: author=self
-
-**poll_votes**
-- INSERT: `user_id=auth.uid()` AND poll status='ativa' AND `expires_at>now()` AND `is_eligible_for_poll`
-- SELECT: autor da poll OR votante=self
-- UPDATE/DELETE: revogado (sem policy)
-
-## 3. Edge Functions
-
-- `polls-tick`: encerra polls com `expires_at<now()`, status='ativa' → status='encerrada' + notification_event para autor; também notifica autor quando faltam ≤30min.
-- Notificação na criação: trigger SQL que insere em `notification_events` para users elegíveis da unidade (ou todos se unit_id null).
-
-## 4. Frontend
+## 2. Frontend
 
 ### Hooks
-- `usePolls(filter)` — lista
-- `usePoll(id)` — detalhe + opções
-- `usePollResults(id)` — agregado por opção e por unidade (pra autor)
-- `useVotePoll()` — mutation
-- `useCreatePoll()` — mutation
-- `useMyEligiblePolls()` — feed
+- `useActiveCycle()` — ciclo aberto atual.
+- `useFeedbackQuestions()` — perguntas ativas.
+- `useSubmitFeedback()` — batch insert de respostas.
+- `useMyManager()` — descobre gerente_loja da unidade do user.
+- `useManagerAggregated(managerId, cycleId)` — chama RPC.
+- `useFeedbackCycles()` / `useAdminCycles()` — admin.
 
 ### Componentes
-- `NovaPollModal.tsx` — question, 2-4 opções dinâmicas, chips de prazo (1h/4h/12h/24h), multi-select de cargos
-- `PollCard.tsx` — estado ativo (botões de voto + countdown) / encerrado (barras + total)
-- `PollResultsBars.tsx` — barras coloridas com %
-- `PollUnitBreakdown.tsx` — só pra autor, agrupado por unidade
+- `FeedbackBanner` (global, no AppLayout) — banner durante ciclo aberto, esconde se já respondeu.
+- `FeedbackForm` — 5 perguntas com `RadioGroup` 1-5, comment opcional. Disclaimer de anonimato em destaque.
+- `ManagerScoreCard` — card por pergunta com média + barras de distribuição.
+- `TrendChart` — linha por pergunta ao longo dos ciclos (recharts).
+- `ManagerComparison` — tabela comparativa para admin.
 
 ### Páginas/Rotas
-- `/polls` — `PollsListPage` (tabs: Ativas / Encerradas / Minhas)
-- `/polls/:id` — `PollDetailPage`
-- Integração no `FeedColaborador`: card de polls ativas elegíveis no topo
-- Botão "+ Nova poll" no header do Feed para líderes
+- `/feedback-gerente` — formulário (colaborador/encarregado/lider_setor/fiscal).
+- `/meu-feedback` — dashboard pro gerente_loja (agregado próprio).
+- `/admin/feedback-gerentes` — comparativo (master/admin/supervisor).
+- `/admin/feedback-gerentes/ciclos` — CRUD ciclos+perguntas.
 
 ### Sidebar
-- Item "Polls" visível a todos os perfis
+- "Feedback ao gerente" pra elegíveis.
+- "Meu feedback" pra gerentes_loja.
+- Item admin pra master/admin/supervisor.
 
-## 5. Arquivos tocados
+## 3. Ética & anonimato
+- Hash NUNCA exposto ao cliente; gerado em trigger.
+- Disclaimer no formulário: "Seu gerente nunca verá quem respondeu. Apenas médias agregadas com mínimo de 3 respostas são exibidas."
+- View/RPC esconde resultados se `count < 3` ("aguardando mais respostas").
+- Comentários exibidos sem qualquer metadado (apenas texto, embaralhados aleatoriamente).
+
+## 4. Arquivos tocados
 
 **Criados:**
-- `supabase/migrations/<ts>_polls.sql`
-- `supabase/functions/polls-tick/index.ts`
-- `src/hooks/usePolls.ts`
-- `src/hooks/usePoll.ts`
-- `src/hooks/useVotePoll.ts`
-- `src/components/polls/NovaPollModal.tsx`
-- `src/components/polls/PollCard.tsx`
-- `src/components/polls/PollResultsBars.tsx`
-- `src/components/polls/PollUnitBreakdown.tsx`
-- `src/components/polls/PollsFeedWidget.tsx`
-- `src/pages/PollsListPage.tsx`
-- `src/pages/PollDetailPage.tsx`
+- `supabase/migrations/<ts>_manager_feedback.sql`
+- `src/hooks/useManagerFeedback.ts`
+- `src/components/feedback/FeedbackBanner.tsx`
+- `src/components/feedback/FeedbackForm.tsx`
+- `src/components/feedback/ManagerScoreCard.tsx`
+- `src/components/feedback/FeedbackTrendChart.tsx`
+- `src/pages/FeedbackGerentePage.tsx`
+- `src/pages/MeuFeedbackPage.tsx`
+- `src/pages/AdminFeedbackGerentesPage.tsx`
+- `src/pages/AdminFeedbackCiclosPage.tsx`
 
 **Editados:**
 - `src/App.tsx` (rotas)
-- `src/components/AppSidebar.tsx` (nav)
-- `src/pages/FeedColaborador.tsx` (widget + botão Nova Poll)
+- `src/components/AppSidebar.tsx`
+- `src/components/AppLayout.tsx` (banner global)
 - `src/integrations/supabase/types.ts` (auto)
-- `supabase/config.toml` (registro do cron, se necessário)
-- `.lovable/plan.md`
 
-## Regras
-- Único commit reversível
-- 1 voto por user via UNIQUE + RLS
-- Não toca RLS de outras tabelas
+## 5. Secret necessário
+Vou pedir o secret **MANAGER_FEEDBACK_SALT** (string aleatória forte) **antes** de rodar a migration, pra inserir no `app_secrets`.
 
 Aprova pra executar?
