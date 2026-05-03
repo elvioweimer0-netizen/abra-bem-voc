@@ -167,6 +167,7 @@ export function AppSidebar() {
       { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
       { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
       { title: "Minha Unidade", url: unitHomeUrl, icon: Building },
+      ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
     ];
     const feedComunicacao: MenuItem[] = [
       { title: "Avisos", url: "/avisos", icon: Bell },
