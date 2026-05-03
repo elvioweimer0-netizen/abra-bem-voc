@@ -2704,6 +2704,122 @@ export type Database = {
           },
         ]
       }
+      mentorship_requests: {
+        Row: {
+          created_at: string
+          id: string
+          mentor_response: string | null
+          mentor_user_id: string
+          message: string
+          requester_user_id: string
+          responded_at: string | null
+          status: string
+          topic_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentor_response?: string | null
+          mentor_user_id: string
+          message: string
+          requester_user_id: string
+          responded_at?: string | null
+          status?: string
+          topic_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentor_response?: string | null
+          mentor_user_id?: string
+          message?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          status?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorship_requests_mentor_user_id_fkey"
+            columns: ["mentor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "mentorship_requests_mentor_user_id_fkey"
+            columns: ["mentor_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "mentorship_requests_mentor_user_id_fkey"
+            columns: ["mentor_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "mentorship_requests_requester_user_id_fkey"
+            columns: ["requester_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "mentorship_requests_requester_user_id_fkey"
+            columns: ["requester_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "mentorship_requests_requester_user_id_fkey"
+            columns: ["requester_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "mentorship_requests_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "mentorship_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentorship_topics: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          ordem: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          ordem?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       milestone_celebrations: {
         Row: {
           celebrated_at: string
@@ -4497,6 +4613,62 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "achievements"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_mentorship_offers: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          message: string | null
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message?: string | null
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message?: string | null
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mentorship_offers_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "mentorship_topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_mentorship_offers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_mentorship_offers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_mentorship_offers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
           },
         ]
       }
