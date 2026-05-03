@@ -23,6 +23,7 @@ import FeedColaborador from "@/pages/FeedColaborador";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
+import { StoriesBar } from "@/components/stories/StoriesBar";
 import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggestionWidget";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
@@ -125,6 +126,7 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      <StoriesBar />
       <AvisosBanner />
       <AniversariantesWidget />
       <PlaybookSuggestionWidget />

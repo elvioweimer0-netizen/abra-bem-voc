@@ -10,6 +10,7 @@ import { TopCuriosMes } from "@/components/TopCuriosMes";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
+import { StoriesBar } from "@/components/stories/StoriesBar";
 import type { Noticia } from "@/types/database";
 
 type TeamMate = { id: string; nome: string; cargo_titulo: string | null; cargo: string };
@@ -56,6 +57,7 @@ export default function FeedColaborador() {
         <p className="text-sm text-muted-foreground">Bem-vindo de volta</p>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Olá, {firstName} 👋</h1>
       </div>
+      <StoriesBar />
 
       <AvisosBanner />
 

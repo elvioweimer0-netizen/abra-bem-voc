@@ -297,6 +297,11 @@ export function AppSidebar() {
       ]
     : [];
 
+  const storiesItems: MenuItem[] = [
+    { title: "Meus Stories", url: "/perfil/stories", icon: Camera },
+    ...(isAdmin ? [{ title: "Admin · Stories", url: "/admin/stories", icon: Camera }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -322,6 +327,7 @@ export function AppSidebar() {
         <MenuSection label="Conquistas" items={conquistasItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Caderno" items={cadernoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Pergunta da Semana" items={perguntaSemanaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Stories" items={storiesItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />

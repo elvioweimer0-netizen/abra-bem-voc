@@ -75,6 +75,8 @@ import PerguntaSemana from "@/pages/PerguntaSemana";
 import PerguntaSemanaHistorico from "@/pages/PerguntaSemanaHistorico";
 import PerguntaSemanaDetalhe from "@/pages/PerguntaSemanaDetalhe";
 import AdminPerguntaSemana from "@/pages/AdminPerguntaSemana";
+import MeusStories from "@/pages/MeusStories";
+import AdminStories from "@/pages/AdminStories";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
@@ -207,6 +209,8 @@ function ProtectedRoutes() {
         <Route path="/pergunta-semana/historico" element={<LeaderOnly><PerguntaSemanaHistorico /></LeaderOnly>} />
         <Route path="/pergunta-semana/:questionId" element={<LeaderOnly><PerguntaSemanaDetalhe /></LeaderOnly>} />
         <Route path="/admin/pergunta-semana" element={<SupervisorOnly><AdminPerguntaSemana /></SupervisorOnly>} />
+        <Route path="/perfil/stories" element={<MeusStories />} />
+        <Route path="/admin/stories" element={<AdminOnly><AdminStories /></AdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
