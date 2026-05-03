@@ -106,6 +106,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 md:space-y-8">
       <HeaderHome />
+      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || isEncarregado || cargo === "gerente_loja") && <IniciarMeuDiaCard />}
       {(isAdmin || isSupervisor || isGerente || isGerenteAdm || cargo === "gerente_loja") && <CartaCuriozinhoCard />}
       <Card className="border-border card-shadow">
         <CardContent className="p-5">
