@@ -10,7 +10,10 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Search, Settings, User, UserCircle } from "lucide-react";
+import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Monitor, Moon, Search, Settings, Sun, User, UserCircle } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
@@ -43,6 +46,9 @@ export function AppHeader() {
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
   const { setOpen: setCmdkOpen } = useCommandPalette();
+  const { theme, cycleTheme } = useTheme();
+  const ThemeIcon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
+  const themeLabel = theme === "light" ? "Claro" : theme === "dark" ? "Escuro" : "Sistema";
   const cmdkAllowed = ["master", "admin", "supervisor", "gerente_loja", "gerente", "gerente_adm", "encarregado"].includes(realCargo);
 
   const rootRoutes = ["/", "/avisos", "/reunioes-lideranca", "/assistente", "/curio-de-ouro", isSupervisor ? "/minhas-unidades" : "/minha-equipe"];
