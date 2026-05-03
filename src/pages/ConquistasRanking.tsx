@@ -3,7 +3,7 @@ import { useAchievementsRanking } from "@/hooks/useAchievements";
 import { Card } from "@/components/ui/card";
 import { Trophy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUnits } from "@/hooks/useUnits";
+import { useAccessibleUnits } from "@/hooks/useAccessibleUnits";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ConquistasRanking() {
