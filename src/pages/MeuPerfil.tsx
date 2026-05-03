@@ -98,6 +98,7 @@ export default function MeuPerfil() {
   }, [isAdmin, isSupervisor, isGerente, isEncarregado, units.length, givenPraises, receivedPraises.length, evaluations, admissionDate, sector]);
 
   return <div className="space-y-4 pb-20">
+    <MilestoneBanner />
     {showPhotoBanner && <Card className="border-primary/20 bg-primary/10"><CardContent className="flex items-center justify-between gap-3 p-3"><p className="text-sm font-medium text-foreground">📸 Adicione uma foto sua para personalizar seu perfil</p><div className="flex gap-2"><Button size="sm" onClick={() => fileRef.current?.click()}>Adicionar agora</Button><Button size="sm" variant="ghost" onClick={() => { localStorage.setItem("profile-photo-banner-dismissed", String(Date.now())); setShowPhotoBanner(false); }}>Mais tarde</Button></div></CardContent></Card>}
     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => uploadPhoto(e.target.files)} />
 
