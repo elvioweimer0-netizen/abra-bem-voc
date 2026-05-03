@@ -261,6 +261,7 @@ export function AppSidebar() {
     ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
+    ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima
@@ -275,6 +276,11 @@ export function AppSidebar() {
   const compromissoItems: MenuItem[] = [
     ...(isLider ? [{ title: "Compromissos", url: "/compromissos", icon: Target }] : []),
     ...(isAdmin || isSupervisor ? [{ title: "Quadro", url: "/compromissos/board", icon: ClipboardCheck }] : []),
+  ];
+
+  const conquistasItems: MenuItem[] = [
+    { title: "Minhas Conquistas", url: "/perfil/conquistas", icon: Trophy },
+    ...(isLider ? [{ title: "Ranking", url: "/conquistas/ranking", icon: Star }] : []),
   ];
 
   return (
@@ -299,6 +305,7 @@ export function AppSidebar() {
         <MenuSection label="Clima" items={climaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Daily" items={dailyItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Compromissos" items={compromissoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Conquistas" items={conquistasItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />

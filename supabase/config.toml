@@ -10,3 +10,6 @@ verify_jwt = false
 
 [functions.commitments-reminders]
 verify_jwt = false
+
+[functions.calculate-achievements]
+verify_jwt = false

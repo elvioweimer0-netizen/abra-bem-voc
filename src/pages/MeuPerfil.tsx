@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadgeRow";
 
 type Unit = { id: string; code: string; name: string };
 type TeamMember = { id: string; unit_id: string; sector: string; role: string; cargo: string; nome?: string | null; telefone?: string | null; data_admissao?: string | null; foto_url?: string | null };
@@ -121,9 +123,7 @@ export default function MeuPerfil() {
 
     {isEncarregado && <Card><CardContent className="p-4"><h2 className="font-bold text-foreground">Suas avaliações</h2><div className="mt-3 space-y-2">{evaluations.slice(0, 3).map((e) => <div key={`${e.mes}-${e.criado_em}`} className="rounded-lg border p-3"><p className="font-semibold text-foreground">⭐ {Number(e.nota_geral).toFixed(1)} • {e.mes}</p>{e.observacoes && <p className="text-sm text-muted-foreground">{e.observacoes}</p>}</div>)}{evaluations.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma avaliação registrada ainda.</p>}</div><Button className="mt-3 w-full" variant="outline">Solicitar feedback ao gerente</Button></CardContent></Card>}
 
-    <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Medal className="h-5 w-5 text-[hsl(var(--gold))]" /> Medalhas</h2><div className="grid grid-cols-2 gap-2">{[
-      ["🏆", "Funcionário do Mês", "Conquistada ao vencer o ranking mensal da unidade."], ["💯", "100% checklist", "Complete o checklist por 30 dias seguidos."], ["⭐", "Top elogiador", "Reconheça colegas com elogios consistentes."], ["👑", "Mais elogiado", "Receba o maior número de elogios no mês."],
-    ].map(([emoji, title, tip]) => <Tooltip key={title}><TooltipTrigger asChild><div className="rounded-lg border bg-card p-3 text-center"><p className="text-2xl">{emoji}</p><p className="mt-1 text-xs font-semibold text-foreground">{title}</p></div></TooltipTrigger><TooltipContent>{tip}</TooltipContent></Tooltip>)}</div></CardContent></Card>
+    <Card><CardContent className="p-4"><div className="flex items-center justify-between mb-3"><h2 className="flex items-center gap-2 font-bold text-foreground"><Medal className="h-5 w-5 text-[hsl(var(--gold))]" /> Conquistas</h2><Link to="/perfil/conquistas" className="text-xs text-primary font-semibold">Ver todas →</Link></div><AchievementsBadgeRow /></CardContent></Card>
 
     <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2><div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
 

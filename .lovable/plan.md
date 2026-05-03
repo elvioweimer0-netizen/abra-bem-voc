@@ -1,125 +1,144 @@
-# Pílulas de Cultura Curió — Plano de Implementação
+# Conquistas / Badges (Gamificação) — Plano
 
-Feature pra reforçar diariamente os valores da Curió com micro-conteúdos ("pílulas") visíveis no Feed e no Painel, com curtidas, navegação por valor e CRUD administrativo.
+Sistema de gamificação que premia colaboradores por hábitos, métricas e marcos. Cálculo 100% server-side, com cron diário, push de desbloqueio e UI pra ver/admin/rank.
 
-## 1. Banco de Dados (migration única)
+## 1. Schema (migration única)
 
-### Tabela `culture_values`
-- `id uuid pk default gen_random_uuid()`
-- `code text unique not null` (ex: `acolhimento`, `qualidade`, `compromisso`, `familia_curio`)
-- `name text not null`
-- `description text default ''`
-- `color text not null default '#6366f1'` (HSL/hex pra badge)
-- `icon text not null default 'sparkles'` (nome lucide-react)
-- `ordem smallint not null default 0`
-- `active boolean not null default true`
+### Tabela `achievements`
+- `id uuid pk`, `code text unique`, `name`, `description text`, `icon text` (lucide name)
+- `category text check (in disciplina|lideranca|cultura|operacao|treinamento|tempo_curio|outros)`
+- `criteria_type text check (in count|streak|threshold|one_time|date_based)`
+- `criteria_target int nullable`
+- `criteria_metric text not null` (string identificadora)
+- `role_filter text[] nullable` — cargos elegíveis; null = todos
+- `active bool default true`, `ordem smallint default 0`
 - `created_at`, `updated_at`
 
-**Seed (no mesmo migration):**
-| code | name | descrição curta |
-|---|---|---|
-| acolhimento | Acolhimento | Recebemos cada pessoa com calor humano |
-| qualidade | Qualidade | Excelência em tudo que entregamos |
-| compromisso | Compromisso | Palavra dada, palavra cumprida |
-| familia_curio | Família Curió | Somos um time, somos família |
-
-### Tabela `culture_pills`
-- `id uuid pk`
-- `title text not null` (≤ 80 chars)
-- `content text not null check (char_length(content) <= 280)`
-- `value_id uuid fk culture_values(id) on delete restrict`
-- `image_url text nullable`
-- `link_url text nullable`
-- `display_date date not null unique` (1 pílula por dia)
-- `active boolean default true`
-- `created_by uuid fk profiles(user_id) on delete set null`
-- `created_at`, `updated_at`
-- Índice em `display_date desc`, `value_id`
-
-### Tabela `culture_pill_likes`
-- `id uuid pk`
-- `pill_id uuid fk culture_pills(id) on delete cascade`
-- `user_id uuid not null` (= auth.uid())
-- `liked_at timestamptz default now()`
-- `unique (pill_id, user_id)`
-- Índice em `pill_id`
+### Tabela `user_achievements`
+- `id uuid pk`, `user_id uuid` (= profiles.user_id), `achievement_id uuid fk on delete cascade`
+- `current_progress numeric default 0`
+- `completed bool default false`, `unlocked_at timestamptz`
+- `last_calculated_at timestamptz default now()`
+- `unique (user_id, achievement_id)`
+- Indexes: `(user_id, completed, unlocked_at desc)`, `(achievement_id, completed)`
 
 ### Helper function
-- `is_culture_editor(_user_id uuid)` retorna true se: `master`, `admin`, ou `gerente_adm` cujo `cargo_titulo|descricao|nome` contém "rh"/"recursos humanos"/"marketing". Stable, security definer, search_path=public.
+- `can_view_user_achievements(_viewer uuid, _target uuid) bool` — true se viewer = target, ou master/admin/supervisor, ou gerente_loja da mesma unidade do target.
+
+### Seed: 15 achievements
+| code | category | metric | target | type | role_filter |
+|---|---|---|---|---|---|
+| disciplinado_30d | disciplina | daily_huddle_streak | 30 | streak | gerente,gerente_loja,encarregado |
+| lider_presente_4w | lideranca | aviso_reads_streak_4w | 4 | streak | gerente,gerente_loja,encarregado,supervisor,lider_setor |
+| gerador_cultura_10m | cultura | praises_given_count_month | 10 | threshold | null |
+| sem_mancha_60d | disciplina | days_without_advertencia | 60 | streak | gerente_loja |
+| estrela_do_mes | cultura | curio_do_mes_wins | 1 | one_time | null |
+| estudioso_5 | treinamento | training_completions_count | 5 | count | null |
+| comprometido_4w | disciplina | weekly_commitments_kept_streak | 4 | streak | gerente_loja |
+| fotografo_loja_7d | cultura | stories_streak_7d | 7 | streak | gerente,gerente_loja,encarregado,lider_setor |
+| fiscal_exemplar_50 | operacao | occurrences_resolved_count | 50 | count | fiscal |
+| veterano_5y | tempo_curio | years_at_curio | 5 | date_based | null |
+| aniversariante_feliz_20 | cultura | birthday_messages_sent | 20 | count | null |
+| mentor_1 | lideranca | onboarded_collaborators | 1 | count | gerente,gerente_loja,encarregado,lider_setor |
+| engajado_30d | disciplina | access_streak_30d | 30 | streak | null |
+| pioneiro | outros | manual_pioneiro | 1 | one_time | null |
+| kudos_receiver_50 | cultura | received_kudos_count | 50 | count | null |
 
 ## 2. RLS
 
-**culture_values & culture_pills:**
-- SELECT: `authenticated` → `true` (todos veem)
-- INSERT/UPDATE: `is_culture_editor(auth.uid())`
-- DELETE: bloqueado (preserva histórico). Para "remover" usa `active=false`.
+**achievements:**
+- SELECT authenticated → `active = true OR has_role admin/master`
+- INSERT/UPDATE/DELETE: master/admin
 
-**culture_pill_likes:**
-- SELECT: `authenticated` → `true` (contador público)
-- INSERT: `user_id = auth.uid()`
-- DELETE: `user_id = auth.uid()`
-- UPDATE: bloqueado
+**user_achievements:**
+- SELECT: `can_view_user_achievements(auth.uid(), user_id)`
+- INSERT/UPDATE/DELETE: bloqueado pra clients (sem policy → falha). Edge function usa service role.
 
-## 3. Frontend
+## 3. Edge Function `calculate-achievements`
 
-### Hook `useCulturePills.ts`
-- `useTodayPill()` → pílula com `display_date = hoje` + value join + count likes + my_liked
-- `useCulturePillsList(valueCode?, page)` → paginação 12/página
-- `useCultureValues()` → lista valores ativos
-- `useToggleLike(pillId)` → mutation insert/delete + invalidate
-- `useScheduledPills(monthStart)` → para calendário admin
-- `useCulturePillCRUD()` → upsert/toggle active
-- `useCanEditCulture()` → checa se user é editor (mesma regra do helper, baseada em roles + cargo)
+`supabase/functions/calculate-achievements/index.ts`
+- Auth: requer header `x-cron-secret` OU service role JWT (cron envia via pg_net).
+- Loop: `profiles ativo=true` × `achievements active=true` filtrado por `role_filter`.
+- Resolve métrica via switch graceful: cada métrica retorna `{progress, target?}` ou `null` se a tabela origem não existir (try/catch). Fontes:
+  - `daily_huddle_count|streak`: `daily_huddle_reports` por author_user_id
+  - `aviso_reads_streak_4w`: `aviso_reads` agrupado por semana
+  - `praises_given_count_month`: `praises` por autor_id no mês corrente
+  - `training_completions_count`: `training_completions`
+  - `weekly_commitments_kept_streak`: `weekly_commitments` status='cumprido' por week_start
+  - `stories_streak_7d`: `galeria` (publicado_por, daily)
+  - `occurrences_resolved_count`: `leadership_occurrences` status='resolvido' atribuido_a
+  - `years_at_curio`: `profiles.data_admissao` → ano completo
+  - `received_kudos_count`: `praises` destinatario
+  - `access_streak_30d`: `profiles.login_count` ou `last_login_at` (se existir; senão 0)
+  - `days_without_advertencia`: `advertencias` da unidade do gerente
+  - `curio_do_mes_wins`: `employee_of_month` ou ignora
+  - `birthday_messages_sent`: ignora se não houver tabela
+  - `onboarded_collaborators`: `profiles` criados na unidade nos últimos 90d
+  - `manual_pioneiro`: nunca incrementa via cron
+- Upsert em `user_achievements`. Se cruzar threshold pela primeira vez → marca `completed=true, unlocked_at=now()` E enfileira `notification_events` (`type='achievement_unlocked'`, recipient_user_id).
+- Retorna JSON `{users_processed, unlocks: [{user_id, code}]}`.
+- Cron: `pg_cron` job diário 03:00 BRT (06:00 UTC) via `pg_net.http_post` com header `x-cron-secret`.
 
-### Componentes (`src/components/culture/`)
-- `CulturePillCard.tsx` — card destaque com cor do valor, ícone, título, conteúdo, botão curtir (Heart lucide), contador, opcional imagem/link. Variante `compact` pra topo de Feed/Painel.
-- `CultureValueBadge.tsx` — pill colorido com ícone + nome.
-- `CulturePillFormModal.tsx` — admin: título, conteúdo (counter 280), valor select, imagem upload (bucket existente `galeria` ou novo `culture` — usarei `galeria` pra evitar bucket novo), link, data (date picker valida unique).
-- `CultureCalendar.tsx` — grid mensal com pílulas marcadas por cor do valor; click abre form de edição/criação naquela data.
+## 4. Frontend
+
+### Hook `useAchievements.ts`
+- `useMyAchievements()` → join achievements + user_achievements para auth.uid()
+- `useUserAchievements(userId)` → respeita RLS
+- `useAchievementsRanking(month, unitId?)` → top 10 by completed count no mês
+- `useAdminAchievements()` → lista CRUD para master/admin
+- `useUnlockToastListener()` → realtime em `user_achievements` filtrado pelo user pra disparar toast
+
+### Componentes (`src/components/achievements/`)
+- `AchievementCard.tsx` — ícone (lucide dinâmico), nome, descrição, barra %, lock state
+- `AchievementToast.tsx` — toast animado + confeti (lib `canvas-confetti` se já houver, senão CSS) + botão "Compartilhar no feed"
+- `AchievementsBadgeRow.tsx` — últimas 5 desbloqueadas (usado em MeuPerfil e ColaboradorPerfil)
+- `AchievementFormModal.tsx` — admin CRUD
 
 ### Páginas
-- `/cultura` (`Cultura.tsx`) — header com chips de valores (filtro), grid de pílulas paginado, link "ver todas do valor X".
-- `/cultura/valor/:code` (`CulturaValor.tsx`) — header do valor (cor, ícone, descrição), lista de pílulas só desse valor.
-- `/admin/cultura` (`AdminCultura.tsx`) — gate `useCanEditCulture`. Tabs: Calendário | Lista | Valores. Botão "Importar pacote inicial" gera 7 pílulas de exemplo distribuídas pelos 4 valores nos próximos 7 dias úteis (só inserir se o dia estiver vazio).
+- `/perfil/conquistas` (`MinhasConquistas.tsx`) — grid por categoria + tabs Todas/Desbloqueadas/Em progresso/Bloqueadas
+- `/conquistas/ranking` (`ConquistasRanking.tsx`) — só líderes; tabela top 10 do mês com filtro de unidade
+- `/admin/conquistas` (`AdminConquistas.tsx`) — só master/admin; lista, toggle ativo, modal CRUD, botão "Marcar pioneiro" para usuários selecionados
 
-### Integrações
-- `FeedColaborador` (Comunicação): inserir `<CulturePillCard variant="compact">` no topo, antes da lista.
-- `Dashboard` (Painel): inserir mesmo card numa nova seção "Pílula do dia" acima dos widgets existentes.
+### Realtime + push
+- Listener em App-level (componente `AchievementUnlockListener` montado no layout) que escuta INSERT/UPDATE em `user_achievements` onde `user_id = me AND completed = true` → dispara `AchievementToast` + chama push se ainda não disparado.
+- Push no servidor: já via `notification_events` enfileirado pela edge function (sistema existente lê e dispara).
 
-## 4. Navegação
+## 5. Navegação
 
-`AppSidebar.tsx`:
-- Item raiz **Cultura** (ícone `Sparkles`) → `/cultura` — visível pra todos autenticados.
-- Sub-item **Admin Cultura** → `/admin/cultura` — visível só se `useCanEditCulture()` true.
+- `MeuPerfil.tsx`: já tem tabs — adiciona aba **Conquistas** apontando pra `/perfil/conquistas` (ou inline tab content).
+- Sidebar:
+  - `Ranking de Conquistas` → `/conquistas/ranking` no grupo Comunicação, só `isLider`
+  - `Conquistas` no grupo Admin · RH → `/admin/conquistas`, só `isAdmin`/`isMaster`
 
-`App.tsx`: rotas `/cultura`, `/cultura/valor/:code`, `/admin/cultura` dentro de `<AppLayout>` protegidas.
+## 6. Regras
 
-## 5. Regras
+- Migration única: tabelas + RLS + seed 15 achievements + helper + cron schedule (cron via `supabase--insert` separado pq usa URL/anon key).
+- Sem mexer em RLS de outras tabelas.
+- Graceful: cada bloco de métrica em try/catch; tabela inexistente = skip silencioso.
+- Cron-only writes em `user_achievements`.
 
-- Tudo numa migration reversível (CREATE TABLE + policies + helper + INSERT seed).
-- Não mexer em RLS de outras tabelas.
-- Sem novo bucket: imagens reutilizam `galeria`.
-- Sem cron / sem edge function (não pediu notificação).
-- Anonimato dos likes: contador público é OK (não viola anonimato — é like opt-in).
-
-## 6. Arquivos a serem tocados
+## 7. Arquivos tocados
 
 **Novos:**
-- `supabase/migrations/<timestamp>_culture_pills.sql`
-- `src/hooks/useCulturePills.ts`
-- `src/components/culture/CulturePillCard.tsx`
-- `src/components/culture/CultureValueBadge.tsx`
-- `src/components/culture/CulturePillFormModal.tsx`
-- `src/components/culture/CultureCalendar.tsx`
-- `src/pages/Cultura.tsx`
-- `src/pages/CulturaValor.tsx`
-- `src/pages/AdminCultura.tsx`
+- `supabase/migrations/<ts>_achievements.sql`
+- `supabase/functions/calculate-achievements/index.ts`
+- `src/hooks/useAchievements.ts`
+- `src/components/achievements/AchievementCard.tsx`
+- `src/components/achievements/AchievementToast.tsx`
+- `src/components/achievements/AchievementsBadgeRow.tsx`
+- `src/components/achievements/AchievementFormModal.tsx`
+- `src/components/achievements/AchievementUnlockListener.tsx`
+- `src/pages/MinhasConquistas.tsx`
+- `src/pages/ConquistasRanking.tsx`
+- `src/pages/AdminConquistas.tsx`
 
 **Editados:**
 - `src/App.tsx` (3 rotas)
-- `src/components/AppSidebar.tsx` (item Cultura + sub Admin)
-- `src/pages/Dashboard.tsx` (card pílula do dia no topo)
-- `src/components/comunicacao/FeedColaborador.tsx` (ou equivalente — vou localizar)
+- `src/components/AppSidebar.tsx` (Ranking + Admin Conquistas)
+- `src/components/AppLayout.tsx` (montar AchievementUnlockListener)
+- `src/pages/MeuPerfil.tsx` (link/tab Conquistas)
+- `src/pages/ColaboradorPerfil.tsx` (BadgeRow)
+- `supabase/config.toml` (registrar função se necessário)
 - `src/integrations/supabase/types.ts` (auto)
 - `.lovable/plan.md`
 

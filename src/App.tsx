@@ -64,6 +64,10 @@ import CompromissosBoard from "@/pages/CompromissosBoard";
 import Cultura from "@/pages/Cultura";
 import CulturaValor from "@/pages/CulturaValor";
 import AdminCultura from "@/pages/AdminCultura";
+import MinhasConquistas from "@/pages/MinhasConquistas";
+import ConquistasRanking from "@/pages/ConquistasRanking";
+import AdminConquistas from "@/pages/AdminConquistas";
+import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -71,6 +75,12 @@ import { useRole } from "@/hooks/useRole";
 function LeaderOnly({ children }: { children: ReactNode }) {
   const { isLider } = useRole();
   if (!isLider) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function AdminOnly({ children }: { children: ReactNode }) {
+  const { isAdmin } = useRole();
+  if (!isAdmin) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -113,6 +123,7 @@ function ProtectedRoutes() {
 
   return (
     <AppLayout>
+      <AchievementUnlockListener />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/colaboradores" element={<LeaderOnly><Colaboradores /></LeaderOnly>} />
@@ -170,6 +181,9 @@ function ProtectedRoutes() {
         <Route path="/cultura" element={<Cultura />} />
         <Route path="/cultura/valor/:code" element={<CulturaValor />} />
         <Route path="/admin/cultura" element={<AdminCultura />} />
+        <Route path="/perfil/conquistas" element={<MinhasConquistas />} />
+        <Route path="/conquistas/ranking" element={<LeaderOnly><ConquistasRanking /></LeaderOnly>} />
+        <Route path="/admin/conquistas" element={<AdminOnly><AdminConquistas /></AdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
