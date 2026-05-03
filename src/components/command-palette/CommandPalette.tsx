@@ -57,6 +57,7 @@ const PAGES: { label: string; path: string; icon: any; keywords?: string }[] = [
   { label: "Caderno", path: "/caderno", icon: FileText },
   { label: "Reuniões", path: "/reunioes", icon: Calendar },
   { label: "Treinamento", path: "/treinamento", icon: GraduationCap },
+  { label: "Resumo WhatsApp", path: "/whatsapp-resumo", icon: Megaphone, keywords: "whatsapp zap resumo" },
 ];
 
 const ACTIONS: { label: string; path: string; icon: any }[] = [
