@@ -102,6 +102,45 @@ export function useHuddlePanel(date?: string) {
   });
 }
 
+export function useSetHuddleAgenda() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { unit_id: string; report_date?: string; final_agenda: string; agenda_used: boolean }) => {
+      const d = input.report_date ?? todayISO();
+      const { data: existing } = await supabase
+        .from("daily_huddle_reports")
+        .select("id")
+        .eq("unit_id", input.unit_id)
+        .eq("report_date", d)
+        .maybeSingle();
+      if (existing) {
+        const { error } = await supabase
+          .from("daily_huddle_reports")
+          .update({ final_agenda: input.final_agenda, agenda_used: input.agenda_used })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("daily_huddle_reports").insert({
+          unit_id: input.unit_id,
+          report_date: d,
+          bo_dia: "",
+          informativos: "",
+          meta_status: "no_caminho",
+          observacao: "",
+          final_agenda: input.final_agenda,
+          agenda_used: input.agenda_used,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Pauta salva");
+      qc.invalidateQueries({ queryKey: ["daily-huddle"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar pauta"),
+  });
+}
+
 export function useUpsertHuddle() {
   const qc = useQueryClient();
   const { profile } = useAuth();
