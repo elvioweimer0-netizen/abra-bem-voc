@@ -1,104 +1,115 @@
-# Carta do Curiozinho — Plano
+# Pré-Pauta Automática da Reunião 9:30
 
-Briefing diário gerado por IA pra liderança (gerente_loja, gerente_adm, supervisor, master, admin), entregue de manhã no topo do Painel. Conteúdo: saudação, 3 ações, 1 destaque, 1 alerta. Tom direto, baseado em snapshot real da unidade.
+Geração automática (06:25 BRT, antes do push das 09:25) de uma pauta sugerida para o Daily Huddle de cada gerente de loja, baseada em sinais da unidade nas últimas 24h. Gerente revisa, edita ou aceita; após reunião, vê histórico do que foi usado.
 
-## 1) Schema (1 migration)
+## 1) Migration SQL (única)
 
-**`curiozinho_briefings`**
-- `id uuid pk default gen_random_uuid()`
-- `user_id uuid NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE`
-- `briefing_date date NOT NULL`
-- `content_markdown text NOT NULL`
-- `alerts jsonb default '[]'::jsonb`         — `[{ severity, label, link? }]`
-- `suggestions jsonb default '[]'::jsonb`    — `[{ title, action_label, link }]`
-- `data_snapshot jsonb`                       — fonte do briefing pra auditoria
-- `opened_at timestamptz`
-- `helpful boolean`
-- `created_at`, `updated_at`
-- UNIQUE (user_id, briefing_date)
-- Index (user_id, briefing_date desc)
+Arquivo: `supabase/migrations/<ts>_huddle_pre_pauta.sql`
 
-**RLS**
-- `SELECT`: `user_id = auth.uid()` (cada um só vê o próprio).
-- `UPDATE`: `user_id = auth.uid()` mas restrito às colunas `opened_at` e `helpful` via trigger `tg_briefing_user_update` que rejeita alteração de outras colunas.
-- `INSERT`/demais `UPDATE`: bloqueado pra anon/authenticated. Edge function usa service role.
+```sql
+ALTER TABLE public.daily_huddle_reports
+  ADD COLUMN IF NOT EXISTS suggested_agenda jsonb,
+  ADD COLUMN IF NOT EXISTS final_agenda text,
+  ADD COLUMN IF NOT EXISTS agenda_used boolean NOT NULL DEFAULT false;
+```
 
-## 2) Edge function `generate-daily-briefing` (verify_jwt = false, cron-friendly)
+Sem mudanças em RLS de outras tabelas. RLS já existente em `daily_huddle_reports` cobre os novos campos.
 
-Fluxo:
-1. Lista users alvo: `cargo IN (gerente_loja, gerente_adm, supervisor, master, admin)`, `ativo = true`, `user_id NOT NULL`.
-2. Pra cada user, monta snapshot dos últimos 7 dias com queries graceful (try/catch por bloco; se tabela faltar/erro → ignora):
-   - `daily_mood` da unidade: média + lista de colaboradores com 3 dias consecutivos < 3.
-   - `checklist_completions` vs `checklist_templates`: % completude.
-   - `advertencias`, `leadership_occurrences`, `suspensoes` da unidade: contagens.
-   - `avisos` ativos vs `aviso_reads` faltando do próprio user.
-   - `daily_huddle` preenchidos últimos 7 dias.
-   - Compromissos cumpridos vs pendentes (`commitments`).
-   - Aniversariantes próximos 7 dias na unidade.
-   - Se `is_rh_or_admin`: histórias `pendente` em `curio_stories`.
-   - "Curió de Ouro" recentes (`praises` ou achievements).
-3. Chama Lovable AI Gateway (`google/gemini-3-flash-preview`) com tool calling estruturado retornando:
-   ```json
-   { "saudacao": "...", "acoes": [3 strings], "destaque": "...", "alerta": "..." | null }
-   ```
-4. Renderiza markdown final + monta `alerts` (do alerta + thresholds duros do snapshot, ex.: humor crítico) e `suggestions` (cada ação vira sugestão com link inferido por keyword: checklist→/checklist-diario, advertência→/advertencias, huddle→/daily-huddle, etc.).
-5. Upsert em `curiozinho_briefings` com `briefing_date = current_date` (ON CONFLICT DO NOTHING — não regera no mesmo dia).
-6. Falha graciosa: se LLM erro/timeout → grava briefing fallback estático ("Bom dia! Hoje sem dados novos. Confira seu painel.") sem alertas.
+Estrutura JSON de `suggested_agenda`:
+```json
+{
+  "tempo_estimado_min": 15,
+  "generated_at": "2026-...",
+  "topicos": [
+    { "tipo": "alerta|reconhecimento|decisao",
+      "titulo": "string",
+      "acao_sugerida": "string",
+      "deep_link": "/rota/no/app",
+      "fonte": "heatmap|compromissos|pdi|aniversarios|avisos|curio_ouro" }
+  ]
+}
+```
 
-Cron via `pg_cron` + `pg_net`: 06:00 BRT (09:00 UTC). Inserido como SQL separado (não migration) usando `supabase--insert`.
+## 2) Edge Function `generate-meeting-agenda`
+
+Arquivo: `supabase/functions/generate-meeting-agenda/index.ts` + entrada em `supabase/config.toml` (`verify_jwt = false`, chamada por cron com service role).
+
+Para cada `unit` de loja ativa:
+- Identifica gerentes ativos (cargo `gerente_loja`/`gerente`) — opcional, basta gerar 1 pauta por unidade (chave única `unit_id + report_date`).
+- Coleta sinais (todos com try/catch individuais — graceful):
+  - **Heatmap**: `fn_heatmap_indicators('hoje')` → top 3 piores indicadores não-zero da unidade → tipo `alerta`.
+  - **Compromissos vencendo hoje**: `weekly_commitments` com `due_date = today` e status pendente → `decisao`, deep link `/compromissos`.
+  - **PDI próximo do prazo**: `pdi_goals` da unidade com prazo ≤ 7 dias e não concluídas → `decisao`, deep link `/pdi`.
+  - **Aniversariantes do dia**: `profiles.data_nascimento` filtrando dia/mês → `reconhecimento`, deep link `/`.
+  - **Avisos importantes não lidos**: `avisos` urgentes da unidade ainda sem leitura por parte da equipe → `alerta`, deep link `/avisos/:id`.
+  - **Curió de Ouro recente** (últimos 7 dias): última premiação → `reconhecimento`, deep link `/curio-de-ouro`.
+- Limita a ~6 tópicos no total (priorizando alertas críticos).
+- Calcula `tempo_estimado_min` ≈ 2min por tópico, mínimo 10, máximo 20.
+- Faz `upsert` em `daily_huddle_reports (unit_id, report_date)` com `suggested_agenda` (NÃO sobrescreve campos do gerente como `bo_dia`, `final_agenda`, `agenda_used`).
+- Após gerar, dispara `notification_events` tipo `huddle_agenda_ready` para gerentes da unidade (push 09:25 — vide §4).
+
+Cron diário (segunda a sexta) 09:25 BRT (12:25 UTC) via `pg_cron + pg_net`. Se LLM ou queries falharem em features ausentes, função segue e salva o que conseguiu.
 
 ## 3) Frontend
 
-### Card no Painel (`Dashboard.tsx`)
-- Componente novo `src/components/curiozinho/CartaCuriozinhoCard.tsx`.
-- Visível pra `gerente_loja | gerente_adm | supervisor | admin | master` (via `useRole`).
-- Hook `useDailyBriefing()` (TanStack Query, key `["briefing", userId, today]`, `staleTime: 5min`).
-- Estados: skeleton; vazio ("Seu briefing chega às 6h"); briefing pronto.
-- Header: avatar do Curiozinho + saudação + data + chevron expand.
-- Ao expandir: marca `opened_at` (mutation), renderiza `<ReactMarkdown>` do `content_markdown`.
-- Alerts como badges coloridos por severity (`info` muted / `warn` warning / `crit` destructive).
-- Suggestions como lista; cada item com botão "Fazer agora" → `navigate(link)`.
-- Footer: "👍 útil / 👎 não útil" (mutation seta `helpful`); disclaimer pequeno "Sugestões geradas por IA. Use seu julgamento.".
-- Inserido no topo do `Dashboard.tsx` antes do `HeaderHome`/após (logo após `<HeaderHome />`).
+### 3.1 `/daily-huddle` — Card "Pauta sugerida pelo Curiozinho"
 
-### Página `/curiozinho/historico`
-- `src/pages/CuriozinhoHistorico.tsx`.
-- Lista de briefings do próprio user agrupados por mês (Accordion por dia).
-- Filtro: select de mês (últimos 12).
-- Reaproveita render de markdown + alerts.
-- Rota adicionada em `App.tsx` dentro do `AppLayout`, sem gate especial (qualquer user logado vê o próprio histórico — vazio se não recebe).
+Arquivos:
+- **novo** `src/components/daily-huddle/SuggestedAgendaCard.tsx`:
+  - Mostra tópicos como lista com checkbox + ícone por `tipo` (alerta vermelho, decisao âmbar, reconhecimento verde) + chip da `fonte`.
+  - Cada tópico clicável navega via `deep_link` (abre em nova aba se necessário).
+  - Botão **"Usar essa pauta"** → preenche `final_agenda` (texto markdown gerado dos tópicos selecionados) e seta `agenda_used = true`.
+  - Botão **"Editar"** abre `<Textarea>` para o gerente personalizar (salva em `final_agenda` + `agenda_used = true`).
+  - Estado vazio: "Sem pauta sugerida hoje (Curiozinho ainda não rodou ou unidade sem sinais)".
+- **edit** `src/hooks/useDailyHuddle.ts`: adicionar campos `suggested_agenda`, `final_agenda`, `agenda_used` ao tipo `HuddleReport` + nova mutação `useSetHuddleAgenda(unitId, payload)`.
+- **edit** `src/pages/DailyHuddle.tsx`: renderizar `SuggestedAgendaCard` acima do `DailyHuddleForm` quando houver `suggested_agenda` ou `final_agenda`.
 
-### Hooks
-- `src/hooks/useDailyBriefing.ts` — fetch do briefing de hoje + mutations `markOpened`, `markHelpful`.
-- `src/hooks/useBriefingHistory.ts` — lista paginada por mês.
+### 3.2 Pós-reunião
 
-### Sidebar
-- `AppSidebar.tsx`: item "Carta do Curiozinho" (link `/curiozinho/historico`) só pra cargos elegíveis, dentro do grupo do Curiozinho/perfil.
+- Quando `agenda_used = true` E reunião finalizada (heurística: dia anterior ou flag manual), o `SuggestedAgendaCard` entra em modo readonly mostrando "Pauta usada" + lista dos tópicos.
+- Indicadores de cumprimento: para cada tópico de fonte `compromissos`/`pdi`, consulta o status atual e mostra ✓ concluído / ⏳ pendente. Implementação simples: comparar `deep_link` ID com tabelas-fonte.
 
-## 4) Ética / segurança
-- Disclaimer fixo no card e na página de histórico.
-- Snapshot só agregado da unidade — sem expor user_id de terceiros, exceto contagens anônimas (ex: "3 colaboradores com humor baixo"). Nomes só pra aniversariantes (já públicos no app).
-- Briefing imutável após gerado (só `opened_at`/`helpful` editáveis pelo dono, garantido por trigger).
-- Cron + service role só na edge function; client nunca insere.
+## 4) Push
 
-## 5) Arquivos previstos
+- Disparado pela própria edge function após gerar pauta (`notification_events.type = 'huddle_agenda_ready'`).
+- Conteúdo: "📋 Pauta da reunião 9:30 tá pronta no app", deep link `/daily-huddle`.
+- Reaproveita pipeline de notificações existente (mesmo padrão do `daily-huddle-reminders`). Sem novo código de push.
 
-**Criados**
-- `supabase/migrations/<ts>_curiozinho_briefings.sql` (tabela, RLS, trigger de proteção, índice)
-- `supabase/functions/generate-daily-briefing/index.ts`
-- `src/components/curiozinho/CartaCuriozinhoCard.tsx`
-- `src/components/curiozinho/CartaCuriozinhoSkeleton.tsx`
-- `src/hooks/useDailyBriefing.ts`
-- `src/hooks/useBriefingHistory.ts`
-- `src/pages/CuriozinhoHistorico.tsx`
+## Cron
 
-**Editados**
-- `src/App.tsx` (rota `/curiozinho/historico`)
-- `src/components/AppSidebar.tsx` (item)
-- `src/pages/Dashboard.tsx` (montar card no topo, gated por role)
-- `.lovable/plan.md`
-- (auto) `src/integrations/supabase/types.ts`
+Via `supabase--insert` (não migration — contém URL/anon key específicos):
+```sql
+select cron.schedule(
+  'generate-meeting-agenda-daily',
+  '25 12 * * 1-5',  -- 09:25 BRT, seg-sex
+  $$ select net.http_post(
+       url := '<func-url>',
+       headers := '{"Content-Type":"application/json","apikey":"<anon>"}'::jsonb,
+       body := '{}'::jsonb
+     ); $$
+);
+```
 
-**Pós-migration (separado, via insert)**: cron `pg_cron` invocando a edge function 06:00 BRT diário.
+## Arquivos tocados (resumo)
 
-Aprova pra eu executar?
+Criados:
+- `supabase/migrations/<ts>_huddle_pre_pauta.sql`
+- `supabase/functions/generate-meeting-agenda/index.ts`
+- `src/components/daily-huddle/SuggestedAgendaCard.tsx`
+
+Editados:
+- `src/hooks/useDailyHuddle.ts` (tipo + mutação)
+- `src/pages/DailyHuddle.tsx` (renderiza card)
+- `supabase/config.toml` (registra função)
+- `src/integrations/supabase/types.ts` (auto)
+
+Cron schedule via `supabase--insert` (separado).
+
+## Garantias
+
+- Commit único reversível: 1 migration + 1 função + 3 arquivos front.
+- Não toca RLS de outras tabelas.
+- Cada coletor de sinal isolado em try/catch — se feature X não existir, ignora e segue.
+- Função idempotente (upsert por `unit_id + report_date`, preserva campos do gerente).
+
+Aprova?
