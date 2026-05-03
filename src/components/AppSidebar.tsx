@@ -338,6 +338,11 @@ export function AppSidebar() {
     ...(isRhAdmin ? [{ title: "Admin · Onboarding", url: "/admin/onboarding", icon: GraduationCap }] : []),
   ];
 
+  const waAllowed = ["master", "admin", "supervisor", "gerente_loja", "gerente_adm", "gerente", "encarregado"].includes(cargo);
+  const whatsappItems: MenuItem[] = waAllowed
+    ? [{ title: "Resumo WhatsApp", url: "/whatsapp-resumo", icon: MessageSquare }]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -369,6 +374,7 @@ export function AppSidebar() {
         <MenuSection label="Onboarding" items={onboardingItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="WhatsApp" items={whatsappItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
       </SidebarContent>
 

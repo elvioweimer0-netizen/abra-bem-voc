@@ -93,6 +93,8 @@ import AdminScoreDimensions from "@/pages/AdminScoreDimensions";
 import TvDisplay from "@/pages/TvDisplay";
 import AdminTvDisplays from "@/pages/AdminTvDisplays";
 import CuriozinhoHistorico from "@/pages/CuriozinhoHistorico";
+import WhatsappResumo from "@/pages/WhatsappResumo";
+import WhatsappResumoHistorico from "@/pages/WhatsappResumoHistorico";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
@@ -286,6 +288,8 @@ function ProtectedRoutes() {
         <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
         <Route path="/admin/tv-displays" element={<SupervisorOnly><AdminTvDisplays /></SupervisorOnly>} />
         <Route path="/curiozinho/historico" element={<CuriozinhoHistorico />} />
+        <Route path="/whatsapp-resumo" element={<WhatsappResumo />} />
+        <Route path="/whatsapp-resumo/historico" element={<WhatsappResumoHistorico />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
