@@ -3446,6 +3446,20 @@ export type Database = {
         }
         Relationships: []
       }
+      v_heatmap_indicators: {
+        Row: {
+          avisos_pendentes: number | null
+          mood_baixo_count: number | null
+          total_advertencias: number | null
+          total_checklist_atrasados: number | null
+          total_faltas_setor: number | null
+          total_ocorrencias: number | null
+          total_suspensoes: number | null
+          total_vagas_abertas: number | null
+          unit_id: string | null
+        }
+        Relationships: []
+      }
       v_mood_aggregate: {
         Row: {
           avg_score: number | null
@@ -3543,6 +3557,20 @@ export type Database = {
       can_view_user_achievements: {
         Args: { _target: string; _viewer: string }
         Returns: boolean
+      }
+      fn_heatmap_indicators: {
+        Args: { _period?: string }
+        Returns: {
+          avisos_pendentes: number
+          mood_baixo_count: number
+          total_advertencias: number
+          total_checklist_atrasados: number
+          total_faltas_setor: number
+          total_ocorrencias: number
+          total_suspensoes: number
+          total_vagas_abertas: number
+          unit_id: string
+        }[]
       }
       get_user_departamento: {
         Args: { _user_id: string }
