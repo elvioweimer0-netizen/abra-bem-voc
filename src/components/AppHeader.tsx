@@ -122,6 +122,19 @@ export function AppHeader() {
             </>
           )}
 
+          {cmdkAllowed && (
+            <button
+              type="button"
+              onClick={() => setCmdkOpen(true)}
+              aria-label="Abrir busca rápida (Ctrl+K)"
+              className="hidden md:inline-flex items-center gap-2 h-9 px-3 rounded-md border border-border bg-muted/40 text-xs text-muted-foreground hover:bg-muted transition-colors"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span>Buscar...</span>
+              <kbd className="ml-2 inline-flex items-center rounded bg-background px-1.5 py-0.5 text-[10px] font-mono border border-border">⌘K</kbd>
+            </button>
+          )}
+
           {profile && (
             <div className="flex items-center gap-1 sm:gap-2">
               <Badge
