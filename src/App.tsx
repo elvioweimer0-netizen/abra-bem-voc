@@ -148,6 +148,20 @@ function AuditoriaAccess({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function MyScoreAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["gerente_loja", "gerente_adm", "encarregado", "master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function ScoresRankingAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
