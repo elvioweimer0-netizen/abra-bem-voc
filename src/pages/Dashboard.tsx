@@ -28,6 +28,7 @@ import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggesti
 import { NovosNoTimeWidget } from "@/components/onboarding/NovosNoTimeWidget";
 import { CartaCuriozinhoCard } from "@/components/curiozinho/CartaCuriozinhoCard";
 import { IniciarMeuDiaCard } from "@/components/day-start/IniciarMeuDiaCard";
+import { ChurnAtencaoWidget } from "@/components/churn/ChurnAtencaoWidget";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
@@ -138,6 +139,7 @@ export default function Dashboard() {
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
       {cargo === "gerente_loja" && <NovosNoTimeWidget />}
+      {cargo === "gerente_loja" && <ChurnAtencaoWidget />}
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 
