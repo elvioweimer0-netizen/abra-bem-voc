@@ -1,99 +1,115 @@
-# Plano — Daily Huddle Digital
+# Plano — Compromissos Públicos da Semana
 
-Feature isolada de `leadership_meetings`. Registro diário rápido (≤2min) feito pelo gerente da unidade às 9:30, com painel agregado pra direção/supervisão.
+Cada líder declara até **3 compromissos** na segunda e avalia o resultado na sexta. Visível só pra liderança (transparência horizontal); colaboradores não veem.
 
 ## 1. Banco de dados (migration única)
 
-**Tabela `daily_huddle_reports`**
+**Tabela `weekly_commitments`**
 - `id uuid pk default gen_random_uuid()`
-- `report_date date not null`
-- `unit_id uuid not null references units(id) on delete cascade`
-- `author_user_id uuid references profiles(user_id) on delete set null`
-- `bo_dia text default ''` — boletim do dia (ocorrências, faltas, eventos)
-- `informativos text default ''` — recados, campanhas, treinamentos
-- `venda_dia_anterior numeric(12,2)` — nullable
-- `meta_dia numeric(12,2)` — nullable
-- `meta_status text check (in 'no_caminho','em_risco','atingida','nao_atingida') default 'no_caminho'`
-- `observacao text default ''`
-- `submitted_at timestamptz default now()`
-- `updated_at timestamptz default now()` (trigger `update_updated_at_column`)
-- `UNIQUE (report_date, unit_id)`
-- `INDEX (report_date DESC, unit_id)`
+- `user_id uuid not null references profiles(user_id) on delete cascade`
+- `unit_id uuid references units(id) on delete set null` (snapshot da unidade do autor)
+- `week_start_date date not null` (sempre segunda-feira da semana)
+- `commitment_text text not null check (char_length(commitment_text) between 10 and 200)`
+- `ordem smallint not null check (ordem between 1 and 3)`
+- `status text not null default 'em_andamento' check (status in ('em_andamento','cumprido','parcial','nao_cumprido','cancelado'))`
+- `evidencia text default ''`
+- `evaluated_at timestamptz`
+- `created_at`, `updated_at` (trigger `update_updated_at_column`)
+- `UNIQUE (user_id, week_start_date, ordem)` — limita 3/semana
+- `INDEX (week_start_date desc, unit_id)`, `INDEX (user_id, week_start_date desc)`
+
+**Função helper `is_commitment_viewer(_user_id)`** (SECURITY DEFINER)
+Retorna `true` para: admin, master, supervisor, gerente_loja, gerente, gerente_adm, encarregado, fiscal, lider_setor (todos exceto colaborador).
 
 **RLS**
-- `SELECT`: master/admin/supervisor (tudo) **OU** `user_can_access_unit(auth.uid(), unit_id)` (gerente_loja/encarregado/líder da unidade veem só a sua).
-- `INSERT`: `is_leadership(auth.uid())` AND `user_can_access_unit(auth.uid(), unit_id)` AND `author_user_id = auth.uid()`.
-- `UPDATE`: `author_user_id = auth.uid()` AND `report_date = current_date` (mesmo dia, só autor). Master/admin podem editar a qualquer momento.
-- `DELETE`: nenhuma policy (bloqueado).
+- `SELECT`: `is_commitment_viewer(auth.uid())`.
+- `INSERT`: `user_id = auth.uid()` AND `is_commitment_viewer(auth.uid())` (mesma lista). Evidência precisa estar vazia, status `em_andamento`.
+- `UPDATE`: `user_id = auth.uid()` AND (
+    - **edição do texto** permitida até quarta-feira (`current_date <= week_start_date + 2`), OU
+    - **avaliação** permitida até domingo (`current_date <= week_start_date + 6`)
+  ). Admin/master sempre podem.
+- `DELETE`: nenhuma policy.
 
 ## 2. Frontend
 
-**Hook** `src/hooks/useDailyHuddle.ts`
-- `useTodayReport(unitId)` — busca registro de hoje
-- `useHuddleHistory(unitId, days=7)` — últimos 7
-- `useHuddlePanel(date)` — todos os relatórios de uma data + lista de unidades visíveis (junta com `useAccessibleUnits`)
-- `useUpsertHuddle()` — mutation insert/update
+**Hook** `src/hooks/useWeeklyCommitments.ts`
+- Helper local `getMonday(date)` → segunda da semana ISO.
+- `useMyCommitments(weekStart)` — meus compromissos da semana.
+- `useCommitmentHistory(userId, limit=8)` — semanas passadas do autor.
+- `useCommitmentsBoard(weekStart)` — todos os líderes acessíveis com seus compromissos da semana.
+- `useDeclareCommitments()` — cria 3 registros (transação client-side com upsert por `(user_id, week_start, ordem)`).
+- `useEvaluateCommitment()` — atualiza status + evidencia + evaluated_at.
 
-**Componente** `src/components/daily-huddle/DailyHuddleForm.tsx`
-- 4 campos principais: `bo_dia` (textarea), `informativos` (textarea), bloco numérico (`venda_dia_anterior`, `meta_dia`, `meta_status` select com 4 opções), `observacao` (textarea).
-- Botão "Salvar Daily" — usa `useUpsertHuddle`. Se já existe hoje, vira "Atualizar".
+**Componentes** em `src/components/commitments/`
+- `CommitmentStatusBadge.tsx` — chip colorido por status (token semântico).
+- `DeclararCompromissosModal.tsx` — Dialog com 3 textareas (10–200 chars, contador). Botão "Publicar".
+- `AvaliarCompromissosModal.tsx` — Dialog que lista os 3 compromissos da semana atual com select status + textarea evidencia + "Salvar avaliação".
+- `CommitmentCard.tsx` — card de pessoa: avatar, nome, unidade, lista dos 3 compromissos com status.
+- `CommitmentsWidget.tsx` — para o Dashboard/Painel: mostra status do usuário (declarar/avaliar/ok) + CTA.
 
-**Página** `src/pages/DailyHuddle.tsx` (`/daily-huddle`) — perfis líderes
-- Header: data atual + dia da semana em PT-BR
-- Se hoje é dia útil (seg-sex) e não há registro → form em destaque
-- Histórico: lista colapsável dos últimos 7 dias da unidade do usuário (gerente_loja/encarregado/líder veem própria unidade; admin/master/supervisor veem dropdown de unidade)
-- Card de cada dia mostra: status meta com chip colorido + preview do `bo_dia`
+**Páginas**
+- `src/pages/Compromissos.tsx` (`/compromissos`, líderes)
+  - Header: "Semana de DD/MM a DD/MM".
+  - Caixa de ação:
+    - se hoje ∈ [seg..qua] e sem declaração → CTA "Declarar compromissos".
+    - se hoje ∈ [sex..dom] e há declaração sem avaliação → CTA "Avaliar".
+  - Lista atual (3 cards horizontais).
+  - Accordion "Semanas anteriores" usando `useCommitmentHistory`.
+- `src/pages/CompromissosBoard.tsx` (`/compromissos/board`, master/admin/supervisor)
+  - Filtro de semana.
+  - Kanban com 4 colunas (Em andamento, Parcial, Cumprido, Não cumprido) + coluna lateral "Sem declaração". Cards `CommitmentCard` agrupados por status (cada compromisso individual vira card pra granularidade).
 
-**Página** `src/pages/DailyHuddlePainel.tsx` (`/daily-huddle/painel`) — master/admin/supervisor
-- Filtro de data (default: hoje)
-- Grid responsivo de cards (1 por unidade visível)
-- Cada card: nome unidade, badge **preenchido** (verde) ou **pendente** (âmbar piscante se hoje), venda dia anterior, status meta com cor (`no_caminho`=azul, `em_risco`=âmbar, `atingida`=verde, `nao_atingida`=vermelho)
-- Click → Sheet/Dialog com conteúdo completo
+**Widget no Painel**: incluir `<CommitmentsWidget />` no `Dashboard.tsx` apenas se `isLider`.
 
-**Cores via tokens semânticos** (`bg-primary`, `bg-warning`, `bg-success`, `bg-destructive`) — sem cor hardcoded.
+## 3. Notificações push (edge function + cron)
 
-## 3. Notificações push
+**Edge function** `supabase/functions/commitments-reminders/index.ts`
+- modes: `declare` (segunda 8:30), `evaluate` (sexta 16:00), `late` (terça 9:00).
+- `declare`: avisa todos viewers que ainda não declararam essa semana.
+- `late`: viewers sem declaração até terça → reminder.
+- `evaluate`: viewers com declaração e sem `evaluated_at` para algum item.
+- Insere em `notification_events` (mesmo padrão do daily-huddle).
 
-Reaproveita `notification_events` existente (mesma estrutura que `enqueue_high_occurrence_notification`).
+**Crons via `supabase--insert`** (timezone BRT → UTC = +3):
+- `commitments-declare`: `30 11 * * 1` (08:30 BRT seg)
+- `commitments-late`:    `0 12 * * 2` (09:00 BRT ter)
+- `commitments-evaluate`:`0 19 * * 5` (16:00 BRT sex)
 
-**Edge Function** `supabase/functions/daily-huddle-reminders/index.ts`
-- Endpoint único, decide ação por horário atual em `America/Fortaleza`.
-- **9:25 seg-sex (exceto terça)**: enfileira notificação pra todos com `is_leadership` em unidades de loja: "Daily 9:30 chegando — registre o BO do dia".
-- **10:00 seg-sex**: pega unidades sem `daily_huddle_reports` de hoje → notifica usuários cujo `nome ILIKE '%roberto%' OR '%guga%'` OR `has_role('admin'/'master')` com lista de unidades pendentes.
-
-**Cron** via `supabase--insert` (pg_cron + pg_net), 2 jobs:
-- `daily-huddle-9-25`: `25 12 * * 1,3,4,5` (UTC; 9:25 BRT = 12:25 UTC; seg, qua, qui, sex — pula terça)
-- `daily-huddle-10-00`: `0 13 * * 1-5` (10:00 BRT = 13:00 UTC, seg-sex)
-
-`config.toml`: `verify_jwt = false` pra função (chamada por cron).
+`supabase/config.toml`: bloco `[functions.commitments-reminders]` com `verify_jwt = false`.
 
 ## 4. Navegação
 
-- `src/App.tsx`: rotas `/daily-huddle` e `/daily-huddle/painel` dentro do `AppLayout`.
-- `src/components/AppSidebar.tsx`: novo item **"Daily Huddle"** visível pra `is_leadership` (gerente, gerente_loja, encarregado, lider_setor, supervisor, admin, master). "Painel Daily" só pra admin/master/supervisor.
+`src/components/AppSidebar.tsx`: nova seção "Compromissos" com:
+- "Compromissos" (`/compromissos`) — `isLider`.
+- "Quadro" (`/compromissos/board`) — `isAdmin || isSupervisor`.
+
+`src/App.tsx`: 2 rotas dentro de `AppLayout` com guards `LeaderOnly` e `SupervisorOnly`.
 
 ## Arquivos tocados
 
 **Novos**
-- `supabase/migrations/<ts>_daily_huddle.sql`
-- `supabase/functions/daily-huddle-reminders/index.ts`
-- `src/hooks/useDailyHuddle.ts`
-- `src/components/daily-huddle/DailyHuddleForm.tsx`
-- `src/components/daily-huddle/HuddleStatusBadge.tsx`
-- `src/components/daily-huddle/HuddlePanelCard.tsx`
-- `src/pages/DailyHuddle.tsx`
-- `src/pages/DailyHuddlePainel.tsx`
+- `supabase/migrations/<ts>_weekly_commitments.sql`
+- `supabase/functions/commitments-reminders/index.ts`
+- `src/hooks/useWeeklyCommitments.ts`
+- `src/components/commitments/CommitmentStatusBadge.tsx`
+- `src/components/commitments/DeclararCompromissosModal.tsx`
+- `src/components/commitments/AvaliarCompromissosModal.tsx`
+- `src/components/commitments/CommitmentCard.tsx`
+- `src/components/commitments/CommitmentsWidget.tsx`
+- `src/pages/Compromissos.tsx`
+- `src/pages/CompromissosBoard.tsx`
 
 **Editados**
-- `src/App.tsx` (2 rotas)
-- `src/components/AppSidebar.tsx` (item nav)
+- `src/App.tsx` (2 rotas + imports)
+- `src/components/AppSidebar.tsx` (seção)
+- `src/pages/Dashboard.tsx` (widget no topo, atrás de `isLider`)
 - `supabase/config.toml` (bloco da função)
-- `src/integrations/supabase/types.ts` (auto, pós-migration)
+- `src/integrations/supabase/types.ts` (auto pós-migration)
 
 ## Regras respeitadas
-- Não toca em `leadership_meetings` nem RLS de outras tabelas.
-- Tudo reversível: migration única + arquivos novos + 3 edits pontuais.
-- Cron via `supabase--insert` (segredos do projeto, não em migration).
-- Anonimato N/A; somente gestão e líderes acessam.
+- Não toca em RLS de outras tabelas.
+- Função helper isolada (`is_commitment_viewer`) — não altera funções existentes.
+- Cron via `supabase--insert` (segredos), não em migration.
+- Tudo reversível via revert do commit.
 
 Aprova pra eu executar?
