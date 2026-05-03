@@ -446,6 +446,73 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_huddle_reports: {
+        Row: {
+          author_user_id: string | null
+          bo_dia: string
+          id: string
+          informativos: string
+          meta_dia: number | null
+          meta_status: string
+          observacao: string
+          report_date: string
+          submitted_at: string
+          unit_id: string
+          updated_at: string
+          venda_dia_anterior: number | null
+        }
+        Insert: {
+          author_user_id?: string | null
+          bo_dia?: string
+          id?: string
+          informativos?: string
+          meta_dia?: number | null
+          meta_status?: string
+          observacao?: string
+          report_date: string
+          submitted_at?: string
+          unit_id: string
+          updated_at?: string
+          venda_dia_anterior?: number | null
+        }
+        Update: {
+          author_user_id?: string | null
+          bo_dia?: string
+          id?: string
+          informativos?: string
+          meta_dia?: number | null
+          meta_status?: string
+          observacao?: string
+          report_date?: string
+          submitted_at?: string
+          unit_id?: string
+          updated_at?: string
+          venda_dia_anterior?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_huddle_reports_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "daily_huddle_reports_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_huddle_reports_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       daily_mood: {
         Row: {
           id: string

@@ -30,6 +30,7 @@ import {
   History,
   GraduationCap,
   HeartPulse,
+  Sunrise,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
@@ -142,7 +143,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const menuCollapsed = isMobile ? false : collapsed;
   const { signOut, profile } = useAuth();
-  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser } = useRole();
+  const { isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
   const { canViewClima, canManageClima } = useClimateAccess();
@@ -259,6 +260,11 @@ export function AppSidebar() {
     ? [{ title: "Clima", url: "/clima", icon: HeartPulse }]
     : [];
 
+  const dailyItems: MenuItem[] = [
+    ...(isLider ? [{ title: "Daily Huddle", url: "/daily-huddle", icon: Sunrise }] : []),
+    ...(isAdmin || isSupervisor ? [{ title: "Painel Daily", url: "/daily-huddle/painel", icon: Gauge }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -279,6 +285,7 @@ export function AppSidebar() {
         <MenuSection label="Visitas" items={visitas} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Clima" items={climaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Daily" items={dailyItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
