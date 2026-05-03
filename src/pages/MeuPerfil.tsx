@@ -128,6 +128,8 @@ export default function MeuPerfil() {
 
     <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2><div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
 
+    <Card><CardContent className="p-4"><Link to="/perfil/sincronizacao" className="flex items-center justify-between"><span className="font-semibold text-foreground">Sincronização offline</span><span className="text-xs text-primary">Ver fila →</span></Link></CardContent></Card>
+
     <AppearanceSettings />
     <NotificationSettings />
   </div>;
