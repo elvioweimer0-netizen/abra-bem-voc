@@ -149,6 +149,7 @@ export function AppSidebar() {
   const { cargo, isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
   const isCentralAdm = !isAdmin && isGerenteAdm;
   const isRhAdmin = useIsRhAdmin();
+  const hasActiveOnboarding = useHasActiveJourney();
   const { canViewClima, canManageClima } = useClimateAccess();
   const canEditCulture = useCanEditCulture();
 
