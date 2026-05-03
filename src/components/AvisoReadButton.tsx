@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { enqueue } from "@/lib/offlineQueue";
 
 const db = supabase as any;
 
@@ -36,9 +37,23 @@ export function AvisoReadButton({ avisoId, size = "sm", className }: Props) {
     if (!user) return;
     setSubmitting(true);
     const now = new Date().toISOString();
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      await enqueue("aviso_read", { aviso_id: avisoId, user_id: user.id });
+      setSubmitting(false);
+      setReadAt(now);
+      toast.success("Salvo offline. Sincronizamos quando voltar a conexão.");
+      return;
+    }
     const { error } = await db.from("aviso_reads").insert({ aviso_id: avisoId, user_id: user.id });
     setSubmitting(false);
     if (error && !error.message.toLowerCase().includes("duplicate")) {
+      // fallback: enfileira mesmo erro de rede
+      if (error.message?.toLowerCase().includes("network") || error.message?.toLowerCase().includes("fetch")) {
+        await enqueue("aviso_read", { aviso_id: avisoId, user_id: user.id });
+        setReadAt(now);
+        toast.success("Salvo offline. Sincronizamos quando voltar a conexão.");
+        return;
+      }
       toast.error(error.message);
       return;
     }
