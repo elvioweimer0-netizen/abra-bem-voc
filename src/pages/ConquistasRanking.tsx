@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function ConquistasRanking() {
   const [unitId, setUnitId] = useState<string | undefined>();
   const { data, isLoading } = useAchievementsRanking(unitId);
-  const { data: units } = useUnits?.() ?? { data: [] as any[] };
+  const { data: units } = useAccessibleUnits();
 
   return (
     <div className="p-4 md:p-6 space-y-6">
