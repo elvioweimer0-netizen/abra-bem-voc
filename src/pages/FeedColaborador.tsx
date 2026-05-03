@@ -11,6 +11,7 @@ import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
 import { HistoriaSemanaWidget } from "@/components/historias/HistoriaSemanaWidget";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
+import { MilestonesWeekWidget } from "@/components/milestones/MilestonesWeekWidget";
 import { StoriesBar } from "@/components/stories/StoriesBar";
 import type { Noticia } from "@/types/database";
 
@@ -63,6 +64,8 @@ export default function FeedColaborador() {
       <AvisosBanner />
 
       <AniversariantesWidget />
+
+      <MilestonesWeekWidget />
 
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
 
