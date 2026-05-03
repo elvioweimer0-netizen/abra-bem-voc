@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Building, Eye, LogOut, Menu, Search, Settings, User, UserCircle } from "lucide-react";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
@@ -144,24 +145,7 @@ export function AppHeader() {
               >
                 {unitShort}
               </Badge>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
-                    aria-label="Abrir notificações"
-                  >
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
-                  <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <div className="px-3 py-4 text-sm text-muted-foreground">
-                    Nenhuma notificação nova no momento.
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
