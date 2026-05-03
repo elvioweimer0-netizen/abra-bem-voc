@@ -303,7 +303,10 @@ export function AppSidebar() {
   ];
 
   const analiseItems: MenuItem[] = (isAdmin || isSupervisor || isGerenteAdm)
-    ? [{ title: "Heatmap", url: "/heatmap", icon: Gauge }]
+    ? [
+        { title: "Heatmap", url: "/heatmap", icon: Gauge },
+        { title: "Auditoria Visual", url: "/auditoria-visual", icon: Camera },
+      ]
     : [];
 
   const pdiItems: MenuItem[] = [
