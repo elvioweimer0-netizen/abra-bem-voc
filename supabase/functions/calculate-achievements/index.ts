@@ -110,6 +110,10 @@ async function metricValue(metric: string, profile: Profile): Promise<number | n
       const r = await safe(() => supabase.from("praises").select("id", { count: "exact", head: true }).eq("destinatario_id", uid));
       return r?.count ?? null;
     }
+    case "received_peer_external_kudos_count": {
+      const r = await safe(() => supabase.from("praises").select("id", { count: "exact", head: true }).eq("destinatario_id", uid).in("praise_type", ["peer", "equipe_externa"]));
+      return r?.count ?? null;
+    }
     case "training_completions_count": {
       const r = await safe(() => supabase.from("training_completions").select("id", { count: "exact", head: true }).eq("user_id", uid));
       return r?.count ?? null;

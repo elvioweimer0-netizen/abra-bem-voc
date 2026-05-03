@@ -3367,6 +3367,7 @@ export type Database = {
           id: string
           is_demo: boolean
           motivo: string
+          praise_type: string
           publico: boolean
           unit_id: string
           updated_at: string
@@ -3380,6 +3381,7 @@ export type Database = {
           id?: string
           is_demo?: boolean
           motivo: string
+          praise_type?: string
           publico?: boolean
           unit_id: string
           updated_at?: string
@@ -3393,6 +3395,7 @@ export type Database = {
           id?: string
           is_demo?: boolean
           motivo?: string
+          praise_type?: string
           publico?: boolean
           unit_id?: string
           updated_at?: string
@@ -4951,6 +4954,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_create_praise: {
+        Args: { _autor: string; _destinatario_member: string; _type: string }
+        Returns: boolean
+      }
       can_review_document_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean

@@ -16,7 +16,7 @@ import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadg
 type Unit = { id: string; code: string; name: string };
 type TeamMember = { id: string; unit_id: string; sector: string; role: string; cargo: string; nome?: string | null; telefone?: string | null; data_admissao?: string | null; foto_url?: string | null };
 type Evaluation = { nota_geral: number; observacoes: string | null; mes: string; criado_em: string };
-type Praise = { id: string; motivo: string; categoria: string; criado_em: string };
+type Praise = { id: string; motivo: string; categoria: string; criado_em: string; praise_type?: string | null };
 
 const sectorLabels: Record<string, string> = { acougue: "Açougue", padaria: "Padaria", hortifruti: "Hortifruti", mercearia: "Mercearia", frente_caixa: "Frente de Caixa", deposito: "Depósito", geral: "Geral" };
 const cargoLabels: Record<string, string> = { admin: "Admin", master: "Master", supervisor: "Supervisor", gerente: "Gerente", gerente_loja: "Gerente Loja", gerente_adm: "Gerente Adm.", encarregado: "Encarregado", fiscal: "Fiscal", lider_setor: "Líder de Setor", colaborador: "Colaborador" };
@@ -70,7 +70,7 @@ export default function MeuPerfil() {
       db.from("team_members").select("id,unit_id,sector,role,cargo,nome,telefone,data_admissao,foto_url").eq("user_id", profile.user_id).maybeSingle(),
       profile.unit_id ? db.from("team_members").select("id", { count: "exact", head: true }).eq("unit_id", profile.unit_id) : Promise.resolve({ count: 0 }),
       db.from("encarregado_evaluations").select("nota_geral,observacoes,mes,criado_em").order("criado_em", { ascending: false }).limit(8),
-      db.from("praises").select("id,motivo,categoria,criado_em").order("criado_em", { ascending: false }).limit(8),
+      db.from("praises").select("id,motivo,categoria,criado_em,praise_type").order("criado_em", { ascending: false }).limit(20),
       db.from("praises").select("id", { count: "exact", head: true }).eq("autor_id", profile.user_id),
     ]);
     setUnits(unitData || []); setMember(memberData || null); setTeamCount(count || 0); setEvaluations(evalData || []); setReceivedPraises(praisesData || []); setGivenPraises(givenCount || 0);
@@ -126,7 +126,13 @@ export default function MeuPerfil() {
 
     <Card><CardContent className="p-4"><div className="flex items-center justify-between mb-3"><h2 className="flex items-center gap-2 font-bold text-foreground"><Medal className="h-5 w-5 text-[hsl(var(--gold))]" /> Conquistas</h2><Link to="/perfil/conquistas" className="text-xs text-primary font-semibold">Ver todas →</Link></div><AchievementsBadgeRow /></CardContent></Card>
 
-    <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2><div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
+    <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2>
+      <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg bg-primary/10 p-2"><p className="text-lg font-bold text-primary">{receivedPraises.filter((p) => (p.praise_type || "liderado") === "liderado").length}</p><p className="text-[11px] text-muted-foreground">👑 Liderado</p></div>
+        <div className="rounded-lg bg-[hsl(var(--gold)/0.15)] p-2"><p className="text-lg font-bold text-[hsl(var(--gold))]">{receivedPraises.filter((p) => p.praise_type === "peer").length}</p><p className="text-[11px] text-muted-foreground">🤝 Peer</p></div>
+        <div className="rounded-lg bg-blue-500/10 p-2"><p className="text-lg font-bold text-blue-600 dark:text-blue-400">{receivedPraises.filter((p) => p.praise_type === "equipe_externa").length}</p><p className="text-[11px] text-muted-foreground">🌐 Externa</p></div>
+      </div>
+      <div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
 
     <Card><CardContent className="p-4"><Link to="/perfil/sincronizacao" className="flex items-center justify-between"><span className="font-semibold text-foreground">Sincronização offline</span><span className="text-xs text-primary">Ver fila →</span></Link></CardContent></Card>
 

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { availablePraiseTypes, PRAISE_TYPE_BADGE_CLASS, PRAISE_TYPE_ICON, PRAISE_TYPE_LABEL, type PraiseType } from "@/lib/praises";
 
 const categoryLabels: Record<string, string> = {
   todos: "Todos",
@@ -49,10 +50,11 @@ type Praise = {
   criado_em: string;
   destinatario_id: string;
   unit_id: string;
-  team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null; units?: { name: string; code: string } | null } | null;
+  praise_type: PraiseType;
+  team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null; unit_id?: string | null; units?: { name: string; code: string } | null } | null;
 };
 
-type Member = { id: string; nome?: string | null; cargo: string; unit_id: string; sector?: string | null; foto_url?: string | null };
+type Member = { id: string; nome?: string | null; cargo: string; unit_id: string; sector?: string | null; foto_url?: string | null; user_id?: string | null };
 type Eom = { id: string; mes: string; total_praises: number; checklist_compliance_pct: number; score_final: number; team_member_id: string; team_members?: { nome?: string | null; cargo: string; sector?: string | null; foto_url?: string | null } | null; units?: { name: string; code: string } | null };
 type Unit = { id: string; code: string; name: string };
 
@@ -79,7 +81,7 @@ function monthLabel(value?: string) {
 
 export default function Reconhecimentos() {
   const { user, profile } = useAuth();
-  const { isAdmin, isSupervisor } = useRole();
+  const { isAdmin, isSupervisor, cargo } = useRole();
   const { toast } = useToast();
   const [praises, setPraises] = useState<Praise[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -90,15 +92,17 @@ export default function Reconhecimentos() {
   const [category, setCategory] = useState("todos");
   const [period, setPeriod] = useState<Period>("30");
   const [unitFilter, setUnitFilter] = useState("todas");
-  const [form, setForm] = useState({ destinatario: "", categoria: "atendimento", motivo: "", publico: true });
+  const [typeFilter, setTypeFilter] = useState<"todos" | PraiseType>("todos");
+  const allowedTypes = availablePraiseTypes(cargo);
+  const [form, setForm] = useState<{ destinatario: string; categoria: string; motivo: string; publico: boolean; praise_type: PraiseType }>({ destinatario: "", categoria: "atendimento", motivo: "", publico: true, praise_type: allowedTypes[0] });
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     const db = supabase as any;
     const [{ data: p }, { data: m }, { data: e }, { data: u }, { data: a }] = await Promise.all([
-      db.from("praises").select("id,autor_id,motivo,categoria,criado_em,destinatario_id,unit_id,team_members(nome,cargo,sector,foto_url,units(name,code))").eq("publico", true).order("criado_em", { ascending: false }).limit(80),
-      db.from("team_members").select("id,nome,cargo,unit_id,sector,foto_url").eq("status", "ativo").order("nome").order("cargo"),
+      db.from("praises").select("id,autor_id,motivo,categoria,criado_em,destinatario_id,unit_id,praise_type,team_members(nome,cargo,sector,foto_url,unit_id,user_id,units(name,code))").eq("publico", true).order("criado_em", { ascending: false }).limit(80),
+      db.from("team_members").select("id,nome,cargo,unit_id,sector,foto_url,user_id").eq("status", "ativo").order("nome").order("cargo"),
       db.from("employee_of_month").select("id,mes,total_praises,checklist_compliance_pct,score_final,team_member_id,team_members(nome,cargo,sector,foto_url),units(name,code)").order("mes", { ascending: false }).limit(6),
       db.from("units").select("id,code,name").order("code"),
       db.from("praise_applause").select("praise_id"),
@@ -120,9 +124,10 @@ export default function Reconhecimentos() {
       const matchesCategory = category === "todos" || p.categoria === category;
       const matchesPeriod = new Date(p.criado_em).getTime() >= minDate;
       const matchesUnit = unitFilter === "todas" || p.unit_id === unitFilter;
-      return matchesCategory && matchesPeriod && matchesUnit;
+      const matchesType = typeFilter === "todos" || (p.praise_type || "liderado") === typeFilter;
+      return matchesCategory && matchesPeriod && matchesUnit && matchesType;
     });
-  }, [praises, category, period, unitFilter]);
+  }, [praises, category, period, unitFilter, typeFilter]);
 
   const stats = useMemo(() => {
     const thisMonth = praises.filter((p) => {
@@ -139,9 +144,9 @@ export default function Reconhecimentos() {
     const dest = members.find((m) => m.id === form.destinatario);
     if (!dest || form.motivo.trim().length < 20) { toast({ title: "Informe destinatário e motivo com 20 caracteres", variant: "destructive" }); return; }
     const db = supabase as any;
-    const { error } = await db.from("praises").insert({ autor_id: user?.id, destinatario_id: dest.id, unit_id: dest.unit_id || profile?.unit_id, categoria: form.categoria, motivo: form.motivo, publico: form.publico });
+    const { error } = await db.from("praises").insert({ autor_id: user?.id, destinatario_id: dest.id, unit_id: dest.unit_id || profile?.unit_id, categoria: form.categoria, motivo: form.motivo, publico: form.publico, praise_type: form.praise_type });
     if (error) toast({ title: "Erro ao publicar", description: error.message, variant: "destructive" });
-    else { toast({ title: "Reconhecimento publicado" }); setOpen(false); setForm({ destinatario: "", categoria: "atendimento", motivo: "", publico: true }); load(); }
+    else { toast({ title: "Reconhecimento publicado" }); setOpen(false); setForm({ destinatario: "", categoria: "atendimento", motivo: "", publico: true, praise_type: allowedTypes[0] }); load(); }
   }
 
   async function applaud(id: string) {
@@ -166,7 +171,33 @@ export default function Reconhecimentos() {
           <DialogContent>
             <DialogHeader><DialogTitle>Publicar elogio</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div><Label>Destinatário</Label><Select value={form.destinatario} onValueChange={(destinatario) => setForm({ ...form, destinatario })}><SelectTrigger><SelectValue placeholder="Selecionar pessoa" /></SelectTrigger><SelectContent>{members.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome || m.cargo}</SelectItem>)}</SelectContent></Select></div>
+              {allowedTypes.length > 1 && (
+                <div>
+                  <Label>Tipo de elogio</Label>
+                  <Select value={form.praise_type} onValueChange={(v) => setForm({ ...form, praise_type: v as PraiseType, destinatario: "" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {allowedTypes.map((t) => (
+                        <SelectItem key={t} value={t}>{PRAISE_TYPE_ICON[t]} {PRAISE_TYPE_LABEL[t]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {form.praise_type === "liderado" && "Reconheça alguém que você lidera."}
+                    {form.praise_type === "peer" && "Reconheça um colega de mesmo cargo na sua unidade."}
+                    {form.praise_type === "equipe_externa" && "Reconheça alguém de outra equipe que você apoia."}
+                  </p>
+                </div>
+              )}
+              <div><Label>Destinatário</Label><Select value={form.destinatario} onValueChange={(destinatario) => setForm({ ...form, destinatario })}><SelectTrigger><SelectValue placeholder="Selecionar pessoa" /></SelectTrigger><SelectContent>{members.filter((m) => {
+                if (m.user_id && m.user_id === user?.id) return false;
+                if (form.praise_type === "peer") return m.unit_id === profile?.unit_id && !!m.user_id;
+                if (form.praise_type === "equipe_externa") {
+                  const perm = (profile as any)?.permission_units || [];
+                  return perm.includes(m.unit_id) || isAdmin || isSupervisor;
+                }
+                return true;
+              }).map((m) => <SelectItem key={m.id} value={m.id}>{m.nome || m.cargo}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Categoria</Label><Select value={form.categoria} onValueChange={(categoria) => setForm({ ...form, categoria })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(categoryLabels).filter(([v]) => v !== "todos").map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Motivo</Label><Textarea value={form.motivo} onChange={(e) => setForm({ ...form, motivo: e.target.value })} placeholder="Mínimo 20 caracteres" /></div>
               <div className="flex items-center justify-between"><Label>Tornar público</Label><Switch checked={form.publico} onCheckedChange={(publico) => setForm({ ...form, publico })} /></div>
@@ -200,7 +231,8 @@ export default function Reconhecimentos() {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {Object.entries(categoryLabels).map(([value, label]) => <Button key={value} variant={category === value ? "default" : "outline"} size="sm" className="shrink-0" onClick={() => setCategory(value)}>{label}</Button>)}
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos os tipos</SelectItem><SelectItem value="liderado">{PRAISE_TYPE_ICON.liderado} {PRAISE_TYPE_LABEL.liderado}</SelectItem><SelectItem value="peer">{PRAISE_TYPE_ICON.peer} {PRAISE_TYPE_LABEL.peer}</SelectItem><SelectItem value="equipe_externa">{PRAISE_TYPE_ICON.equipe_externa} {PRAISE_TYPE_LABEL.equipe_externa}</SelectItem></SelectContent></Select>
         <Select value={period} onValueChange={(value) => setPeriod(value as Period)}><SelectTrigger><CalendarDays className="mr-2 h-4 w-4" /><SelectValue /></SelectTrigger><SelectContent><SelectItem value="7">Últimos 7 dias</SelectItem><SelectItem value="30">30 dias</SelectItem><SelectItem value="month">Este mês</SelectItem><SelectItem value="all">Todos</SelectItem></SelectContent></Select>
         {(isAdmin || isSupervisor) && <Select value={unitFilter} onValueChange={setUnitFilter}><SelectTrigger><ChevronDown className="mr-2 h-4 w-4" /><SelectValue placeholder="Todas" /></SelectTrigger><SelectContent><SelectItem value="todas">Todas</SelectItem>{units.map((u) => <SelectItem key={u.id} value={u.id}>{u.code}</SelectItem>)}</SelectContent></Select>}
       </div>
@@ -210,14 +242,18 @@ export default function Reconhecimentos() {
       {filteredPraises.map((p) => {
         const recipient = p.team_members;
         const recipientName = recipient?.nome || recipient?.cargo || "colaborador";
+        const ptype: PraiseType = (p.praise_type || "liderado") as PraiseType;
         return <Card key={p.id} className="shadow-sm"><CardContent className="p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Avatar className="h-8 w-8"><AvatarFallback className="bg-secondary/10 text-xs text-secondary">LC</AvatarFallback></Avatar>
-            <span>Liderança elogiou</span>
+            <Avatar className="h-8 w-8"><AvatarFallback className="bg-secondary/10 text-xs text-secondary">{PRAISE_TYPE_ICON[ptype]}</AvatarFallback></Avatar>
+            <span>{ptype === "peer" ? "Peer reconheceu" : ptype === "equipe_externa" ? "Equipe externa reconheceu" : "Liderança elogiou"}</span>
             <Avatar className="h-8 w-8"><AvatarImage src={recipient?.foto_url || undefined} alt={recipientName} /><AvatarFallback className="bg-primary/10 text-xs text-primary">{initials(recipientName)}</AvatarFallback></Avatar>
             <span className="font-semibold text-foreground">{recipientName}</span>
           </div>
-          <Badge variant="outline" className="mt-3 gap-1 border-primary/20 bg-primary/10 text-primary">{categoryIcons[p.categoria]} {categoryLabels[p.categoria]}</Badge>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge variant="outline" className={`gap-1 ${PRAISE_TYPE_BADGE_CLASS[ptype]}`}>{PRAISE_TYPE_ICON[ptype]} {PRAISE_TYPE_LABEL[ptype]}</Badge>
+            <Badge variant="outline" className="gap-1 border-primary/20 bg-primary/10 text-primary">{categoryIcons[p.categoria]} {categoryLabels[p.categoria]}</Badge>
+          </div>
           <p className="mt-3 text-sm leading-relaxed text-foreground">{p.motivo}</p>
           <div className="mt-4 flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>{relativeDate(p.criado_em)} • {recipient?.units?.code || recipient?.units?.name || "Unidade"}</span>

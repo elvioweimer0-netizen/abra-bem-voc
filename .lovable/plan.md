@@ -1,121 +1,79 @@
-# Plano: Modo Offline Básico
+# Plano: Curió de Ouro Peer-to-Peer
 
-Adiciona suporte offline com cache de leitura, fila de escrita persistente e sincronização automática ao voltar online. Tudo em commit único reversível.
+Estende a tabela `praises` para suportar três tipos de reconhecimento, com regras de visibilidade/criação por nível hierárquico.
 
-## 1. Service Worker (PWA leve, sem vite-plugin-pwa)
+## 1. Schema (migração única)
 
-**Arquivo**: `public/sw.js` (substituir o kill-switch atual por SW funcional)
+```sql
+ALTER TABLE public.praises
+  ADD COLUMN praise_type text NOT NULL DEFAULT 'liderado'
+  CHECK (praise_type IN ('liderado','peer','equipe_externa'));
 
-- Estratégia por tipo:
-  - **Assets estáticos** (`/assets/`, fontes, imagens build): `CacheFirst`, cache `static-v1`.
-  - **HTML/navegação**: `NetworkFirst` com fallback ao cache (timeout 3s) — evita shell travado.
-  - **Supabase REST GET** (`/rest/v1/avisos?...`, `/rest/v1/profiles?id=eq.<self>`, `/rest/v1/checklist_*` do dia): `StaleWhileRevalidate`, cache `data-v1`, TTL 24h.
-  - **Tudo mais**: passa direto (network only).
-- Guard: SW só registra em produção e fora de iframe/preview Lovable (já temos esse padrão).
-- Cleanup: `activate` deleta caches antigos.
-- Não cachear: respostas com `Authorization` de outros users — usamos chave de cache que inclui `user_id` da query string quando aplicável; em dúvida, não cacheia.
-
-**Registro**: `src/main.tsx` — guard contra iframe/preview, registra `/sw.js` apenas em produção.
-
-## 2. IndexedDB — Fila de ações offline
-
-**Lib**: `idb-keyval` (já instalada para o chat).
-
-**Store**: `pending_actions` (array em chave única ou store dedicado via `idb`):
-```ts
-type PendingAction = {
-  id: string;          // uuid local
-  type: 'aviso_read' | 'checklist_response' | 'praise_create';
-  payload: Record<string, any>;
-  created_at: number;
-  retries: number;
-  last_error?: string;
-};
+CREATE INDEX idx_praises_praise_type ON public.praises(praise_type);
 ```
 
-Também store `cached_blobs` para fotos de checklist (Blob comprimido).
+## 2. RLS — atualizar policy de INSERT em `praises`
 
-## 3. Hooks e contexto
+Substituir a policy atual de INSERT por uma que considere `praise_type`:
 
-**`src/hooks/useOnlineStatus.ts`**
-- Estado: `'online' | 'offline' | 'sync'`.
-- Listeners: `online`/`offline` events.
-- Ping periódico (60s) a `supabase.from('profiles').select('id').limit(1)` com timeout 5s.
-- Expõe: `status`, `isOnline`, `forceSync()`.
+- **`liderado`** (default): mantém regra atual (autor é líder do destinatário — autor é gerente/encarregado/supervisor/admin/master da unit/setor do destinatário).
+- **`peer`**: permitido quando autor.cargo == destinatario.cargo E autor.user_id != destinatario.user_id E mesma unit_id.
+- **`equipe_externa`**: permitido quando o destinatário está em uma `unit_id` presente em `autor.permission_units` (ou autor é admin/master/supervisor) E autor != destinatario.
 
-**`src/lib/offlineQueue.ts`**
-- `enqueue(action)`, `getQueue()`, `removeAction(id)`, `processQueue()`.
-- `processQueue()`: itera FIFO, executa por tipo via Supabase client, exponential backoff (1s, 2s, 4s, max 30s, 5 retries). Conflitos (409/duplicata) → descarta. Erros de rede → mantém na fila.
+Helper SQL: `public.can_create_praise(_autor uuid, _destinatario uuid, _type text) RETURNS boolean` (SECURITY DEFINER, STABLE) — encapsula as 3 regras lendo `profiles`. RLS chama esse helper.
 
-**`src/contexts/OfflineProvider.tsx`** (ou hook global)
-- Dispara `processQueue` ao transitar `offline → online`.
-- Atualiza status para `'sync'` durante processamento.
+Trigger existente `validate_daily_praise_limit` permanece (1 elogio/dia/par autor-destinatário).
 
-## 4. UI
+## 3. Frontend
 
-**`src/components/OfflineBanner.tsx`**
-- Renderiza no topo de `AppLayout` quando `status === 'offline'`.
-- Texto: "Modo offline — suas ações serão salvas e sincronizadas."
-- Cor: `bg-warning/destructive` (token existente).
+**`src/components/praise/NovoPraiseModal.tsx`** (existente — verificar nome real e estender)
+- Adicionar `<Select>` "Tipo de elogio" no topo do form.
+- Opções dinâmicas pelo `cargo` do autor (via `useRole`):
+  - `colaborador`, `fiscal`: oculto, força `liderado` (na verdade `peer` se mesmo cargo? — segue spec: só `liderado`).
+  - `encarregado`, `lider_setor`: `liderado` + `peer`.
+  - `gerente_loja`, `gerente_adm`, `gerente`: `liderado` + `peer` + `equipe_externa`.
+  - `supervisor`, `admin`, `master`: todos os 3.
+- Quando `peer` ou `equipe_externa`, lista de destinatários filtra de acordo:
+  - peer → mesma unit + mesmo cargo.
+  - equipe_externa → units em `permission_units`.
+- Insere com `praise_type` selecionado.
 
-**`src/components/OnlineStatusDot.tsx`**
-- Bolinha no `AppHeader` ao lado do tema:
-  - verde (`bg-emerald-500`): online
-  - amarelo (`bg-amber-500`): sync
-  - vermelho (`bg-destructive`): offline
-- Tooltip mostra estado + nº de ações pendentes.
+**`src/pages/Reconhecimentos.tsx`**
+- Filtro "Tipo" (Tabs ou Select): `Todos | Liderado | Peer | Externa`.
+- Badge visual em cada card:
+  - liderado → `bg-primary/15 text-primary` (vermelho atual)
+  - peer → `bg-[hsl(var(--gold))]/20 text-[hsl(var(--gold))]` (dourado)
+  - equipe_externa → `bg-blue-500/15 text-blue-600 dark:text-blue-400`
+- Helper `praiseTypeLabel(type)` e `praiseTypeBadgeClass(type)` em `src/lib/praises.ts`.
 
-**`src/pages/SincronizacaoPerfil.tsx`** (rota `/perfil/sincronizacao`)
-- Lista ações pendentes (tipo, criado em, retries, último erro).
-- Botão "Sincronizar agora" → `forceSync()`.
-- Botão "Limpar fila" (com confirmação) para casos travados.
-- Link adicionado em `MeuPerfil.tsx`.
+**`src/pages/MeuPerfil.tsx`**
+- Card "Elogios recebidos": adicionar 3 contadores agrupados por tipo (Liderado / Peer / Externa) usando os dados de `receivedPraises` (incluir `praise_type` na query).
 
-## 5. Operações offline suportadas
+## 4. Conquista "Diplomata"
 
-Wrappers nas chamadas existentes que detectam `!isOnline` e enfileiram:
+- Insert na tabela `achievements` (ou equivalente — checar nome real, é `achievements` ou `achievement_definitions`):
+  - `code: 'diplomata'`, `title: 'Diplomata'`, `description: 'Recebeu 5 reconhecimentos de pares ou de outras equipes'`, `icon: '🤝'`, `tier: 'gold'`.
+- Lógica de unlock em `src/lib/achievements.ts` (ou hook existente que processa achievements) — adicionar regra:
+  - count em `praises` onde `destinatario_id = uid AND praise_type IN ('peer','equipe_externa')` >= 5.
+- Inserir via tool `insert` (não migration, é dado).
 
-- **Marcar aviso lido**: substitui call direto em `useAvisos`/handler equivalente. Idempotente (upsert por `(user_id, aviso_id)`).
-- **Checklist response** (marcar item): payload `{ checklist_id, item_id, value, photo_blob_id? }`. Foto: `canvas.toBlob` com `image/jpeg` quality 0.7, salva em `cached_blobs`. Sync faz upload depois.
-- **Praise create**: payload completo do elogio. Idempotente via uuid client-side (PK).
+## 5. Arquivos a tocar
 
-Outras operações (criar comunicação, editar perfil, chat, etc.) → toast "Disponível somente online" quando offline.
+**Edição:**
+- `src/components/praise/NovoPraiseModal.tsx` (ou nome equivalente no projeto — vou localizar)
+- `src/pages/Reconhecimentos.tsx`
+- `src/pages/MeuPerfil.tsx`
+- `src/lib/achievements.ts` (regra Diplomata) ou hook equivalente
+- `src/integrations/supabase/types.ts` (auto-regenerado após migração)
 
-## 6. Cache de leitura (complementar ao SW)
+**Criação:**
+- `src/lib/praises.ts` (helpers de label/badge/options-por-cargo)
+- Migração SQL única
+- Insert: definição da conquista "Diplomata"
 
-- React Query já cacheia em memória; configurar `gcTime` maior (24h) e persistir cache de queries-chave (avisos recentes, checklists do dia, profile próprio) via `@tanstack/query-sync-storage-persister` apontando a IndexedDB.
-- Filtro de persistência: só queries cuja chave começa com `['avisos-recent']`, `['checklists-today']`, `['profile-self']`.
-
-## 7. Regras éticas/segurança
-
-- SW NUNCA cacheia respostas com `select=*` de tabelas sensíveis (HR, churn, RH). Lista allowlist explícita de paths cacheáveis.
-- Cache local limpo no logout (`signOut` → `caches.delete()` + `clear()` IndexedDB stores `cached_blobs` e `pending_actions` quando vazia).
-- Disclaimer no banner: dados podem estar desatualizados.
-
-## 8. Arquivos tocados
-
-Criados:
-- `src/hooks/useOnlineStatus.ts`
-- `src/lib/offlineQueue.ts`
-- `src/contexts/OfflineProvider.tsx`
-- `src/components/OfflineBanner.tsx`
-- `src/components/OnlineStatusDot.tsx`
-- `src/pages/SincronizacaoPerfil.tsx`
-
-Editados:
-- `public/sw.js` (substituir kill-switch por SW funcional com allowlist)
-- `src/main.tsx` (registro SW guardado)
-- `src/App.tsx` (OfflineProvider + rota `/perfil/sincronizacao`)
-- `src/components/AppLayout.tsx` (OfflineBanner)
-- `src/components/AppHeader.tsx` (OnlineStatusDot)
-- `src/pages/MeuPerfil.tsx` (link sincronização)
-- Hooks/handlers existentes de avisos, checklists e praise (wrap com queue).
-- `index.html` (manter script anti-flash; sem mudanças de manifest).
-
-## 9. Não escopo
-
-- Sem push notifications offline.
-- Sem edição de mensagens de chat offline.
-- Sem sync bidirecional de dados de leitura — apenas fila de escrita + cache SWR.
+## 6. Não escopo
+- Não toca RLS de outras tabelas.
+- Não muda fluxo de moderação/limite diário.
+- Não retroage `praise_type` de praises existentes (ficam todos `liderado` por default).
 
 Aprova pra executar?
