@@ -66,6 +66,8 @@ export default function FeedColaborador() {
 
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
 
+      <HistoriaSemanaWidget />
+
       <TopCuriosMes />
 
       <div>
