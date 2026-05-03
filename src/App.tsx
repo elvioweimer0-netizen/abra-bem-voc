@@ -325,6 +325,7 @@ const App = () => (
             <Route path="/tv/:token" element={<TvDisplay />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
+          </CommandPaletteProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
