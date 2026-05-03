@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { AvisoEngagementSummary } from "@/components/avisos/AvisoEngagementSummary";
 import { toast } from "sonner";
 import type { Aviso } from "@/types/database";
 import { Constants } from "@/integrations/supabase/types";
