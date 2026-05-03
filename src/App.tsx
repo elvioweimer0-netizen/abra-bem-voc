@@ -53,6 +53,8 @@ import Treinamento from "@/pages/Treinamento";
 import TreinamentoDetalhe from "@/pages/TreinamentoDetalhe";
 import PerfilTreinamentos from "@/pages/PerfilTreinamentos";
 import AdminTreinamento from "@/pages/AdminTreinamento";
+import UnidadePage from "@/pages/UnidadePage";
+import UnidadesIndex from "@/pages/UnidadesIndex";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
@@ -148,6 +150,8 @@ function ProtectedRoutes() {
         <Route path="/treinamento/:id" element={<TreinamentoDetalhe />} />
         <Route path="/perfil/treinamentos" element={<PerfilTreinamentos />} />
         <Route path="/admin/treinamento" element={<AdminTreinamento />} />
+        <Route path="/unidades" element={<UnidadesIndex />} />
+        <Route path="/unidade/:id" element={<UnidadePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
