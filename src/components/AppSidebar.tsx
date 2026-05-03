@@ -170,6 +170,7 @@ export function AppSidebar() {
       { title: "Avisos", url: "/avisos", icon: Bell },
       { title: "Notícias", url: "/noticias", icon: Megaphone },
       { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
+      { title: "Histórias do Curió", url: "/historias", icon: ScrollText },
       { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
       { title: "Galeria do Curió", url: "/galeria", icon: Camera },
       { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
@@ -212,6 +213,7 @@ export function AppSidebar() {
     { title: "Avisos", url: "/avisos", icon: Bell },
     { title: "Notícias", url: "/noticias", icon: Megaphone },
     { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
+    { title: "Histórias do Curió", url: "/historias", icon: ScrollText },
     { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
     { title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy },
     { title: "Galeria do Curió", url: "/galeria", icon: Camera },
@@ -262,6 +264,7 @@ export function AppSidebar() {
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
     ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
+    ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima

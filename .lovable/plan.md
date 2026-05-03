@@ -1,118 +1,117 @@
-# Auditoria Visual Lado a Lado — Plano
+# Plano — HISTÓRIAS DO CURIÓ
 
-Painel para liderança comparar fotos de itens de checklist entre lojas, com filtros, lightbox, modo timeline e ação "cobrar gerente".
+Feature de storytelling cultural: colaboradores submetem histórias reais ligadas aos valores da empresa, RH modera, feed público destaca aprovadas, com curtidas, hall do mês e widget no Feed.
 
----
+## 1. Schema (migration única)
 
-## 1. Banco — view `v_auditoria_visual` (SECURITY INVOKER)
+**Tabela `curio_stories`**
+- `id uuid PK default gen_random_uuid()`
+- `author_user_id uuid` → `profiles(user_id) ON DELETE CASCADE`
+- `value_id uuid NULL` → `culture_values(id) ON DELETE SET NULL` (graceful: tabela já existe)
+- `title text NOT NULL CHECK (char_length(title) BETWEEN 5 AND 100)`
+- `content text NOT NULL CHECK (char_length(content) BETWEEN 30 AND 1500)`
+- `image_url text NULL`
+- `status text NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente','aprovada','rejeitada','arquivada'))`
+- `moderated_by uuid NULL` → `profiles(user_id)`
+- `moderated_at timestamptz NULL`
+- `moderation_note text NULL`
+- `published_at timestamptz NULL`
+- `created_at`, `updated_at` (trigger `tg_set_updated_at`)
+- Índice: `(status, published_at DESC)` e `(author_user_id)`
 
-Sem tabelas novas. Apenas uma view que agrega `checklist_item_responses` + `checklist_items` + `checklist_completions` + `checklist_templates` + `units` + `profiles`.
+**Tabela `curio_story_likes`**
+- `id uuid PK`, `story_id`, `user_id`, `liked_at`
+- Unique `(story_id, user_id)`
 
-Colunas:
-```
-response_id, foto_url, observacao, item_id, item_text, template_id, template_name,
-unit_id, unit_name, unit_code, completion_id, completion_data,
-gestor_user_id, gestor_nome, gestor_cargo, completed_at
-```
+## 2. RLS
 
-`SECURITY INVOKER` (default em PG 15+ via `WITH (security_invoker=true)`) → herda RLS de `checklist_item_responses` e demais.
+**curio_stories** (4 policies):
+- INSERT: `author_user_id = auth.uid()` (status forçado 'pendente' via trigger BEFORE INSERT)
+- SELECT: `status='aprovada'` OU `author_user_id=auth.uid()` OU `is_rh_or_admin(auth.uid())`
+- UPDATE: autor pode editar conteúdo se `status='pendente'`; moderador (`is_rh_or_admin`) pode mudar `status`/`moderation_note`/`moderated_*`/`published_at`
+- DELETE: nenhuma policy (bloqueado — usar status='arquivada')
 
-Filtro inicial na view: `WHERE foto_url IS NOT NULL`.
+**curio_story_likes** (3 policies):
+- INSERT: `user_id = auth.uid()` AND story está `aprovada`
+- SELECT: autenticado (agregado)
+- DELETE: `user_id = auth.uid()`
 
-**Inferência de setor**: como não existe coluna `setor`, derivado no front via match em `item_text`/`template_name` (regex pelas palavras-chave: Açougue, Padaria, Hortifruti, Mercearia, Frente de Caixa/Caixa, Depósito, Geral). Fallback "Geral".
+## 3. Triggers/Functions
 
-**Graceful degradation**: a view usa LEFT JOINs em profiles/units, e checa `to_regclass` no wrapper para retornar vazio se a view for inválida. Se algum SELECT explodir, o hook captura e retorna `[]`.
+- `tg_curio_story_force_pending` BEFORE INSERT: força `status='pendente'`, `moderated_*`/`published_at` NULL
+- `tg_curio_story_on_status_change` AFTER UPDATE: ao virar `aprovada` → push pro autor + set `published_at`; ao virar `rejeitada` → push com `moderation_note`
+- `tg_curio_story_notify_moderators` AFTER INSERT: enfileira notification_events pra cada moderador RH
+- Reaproveita `update_updated_at_column`
 
----
+## 4. Storage
 
-## 2. Hook `useAuditoriaVisual`
+Bucket `curio-stories` privado, 5MB max:
+- Upload: autor (`auth.uid()::text = (storage.foldername(name))[1]`)
+- Leitura: qualquer autenticado
+- Update/Delete: só autor
 
-`src/hooks/useAuditoriaVisual.ts`:
-- `useAuditoriaResults({ periodo, unitIds, itemId, setor })` → consulta a view, filtra por período (today/yesterday/week/month) e unidades; agrupa por `unit_id` quando `itemId` definido (para grid lado a lado).
-- `useAuditoriaItems(setor?)` → lista itens distintos `(item_id, item_text)` que têm `requires_photo=true`.
-- `useSignedPhotoUrl(path)` → signed URL do bucket `checklist-photos` (TTL 1h, cache em React Query).
+## 5. Frontend
 
-Lazy: usa `Intersection Observer` no card pra só pedir signed URL quando entra no viewport (componente `LazyPhoto`).
+**Hook `useCurioStories.ts`**: listagem (filtro status/value/search/paginação), criação, like/unlike (toggle), moderação, widget semana, hall do mês.
 
----
+**Páginas**:
+- `/historias` — feed paginado aprovadas, chips por valor, busca, FAB "+ Contar uma história"
+- `/historias/hall-do-mes` — top 5 curtidas no mês corrente
+- `/admin/historias` — tabs Pendentes/Aprovadas/Rejeitadas/Arquivadas, ações Aprovar/Rejeitar/Arquivar com `moderation_note`
 
-## 3. Página `/auditoria-visual`
+**Componentes** (`src/components/historias/`):
+- `HistoriaCard.tsx` — título, autor (nome+avatar), badge valor, content, foto, contador curtidas, botão curtir
+- `NovaHistoriaModal.tsx` — form com zod (title 5-100, content 30-1500, valor select, upload imagem opcional)
+- `ModeracaoHistoriaItem.tsx` — visualização inline + ações
+- `HistoriaSemanaWidget.tsx` — embutido no FeedColaborador
+- `HistoriaFiltrosChips.tsx`
 
-`src/pages/AuditoriaVisual.tsx`:
+**Validação client-side**: zod schemas espelham check constraints.
 
-### Filtros (topo)
-- **Setor** (chips): Todos · Açougue · Padaria · Hortifruti · Mercearia · Frente de Caixa · Depósito · Geral
-- **Item específico** (Select): filtrado por setor; opção "Todos os itens"
-- **Período** (chips): Hoje · Ontem · Semana · Mês
-- **Unidades** (chips multi-select de `useAccessibleUnits`); todas selecionadas por padrão; botão "Todas"/"Limpar"
+## 6. Push notifications
 
-### Modos de visualização (toggle)
-- **Comparativo** (default quando item selecionado): grid lado a lado, 4 col desktop / 2x2 mobile, 1 card por loja. Loja sem foto no período → card cinza tracejado "Sem foto registrada".
-- **Galeria**: grid livre com todas as fotos no período (cards menores).
-- **Timeline** (apenas quando item selecionado): por loja, mostra os últimos 7 dias em linha (mini-cards horizontais com data).
+Via `notification_events` (já existe):
+- `story_submitted` → moderadores RH
+- `story_approved` → autor ("Sua história foi publicada!")
+- `story_rejected` → autor com `moderation_note`
 
-### Card
-`src/components/auditoria/AuditoriaPhotoCard.tsx`
-- `<LazyPhoto>` com signed URL on-demand
-- Badge unidade (canto sup. esq.)
-- Hora rodapé + autor
-- Click → lightbox
+## 7. Navegação (`AppSidebar.tsx`)
 
-### Lightbox
-`src/components/auditoria/AuditoriaLightbox.tsx`
-- Foto grande, observação, autor + cargo, data/hora completa
-- Link "Abrir checklist" → `/checklist/diario?completion=ID`
-- Botão **"Cobrar gerente"** → abre `CobrarGerenteModal`
+- "Histórias" — todos os perfis (seção Cultura, abaixo de Pílulas de Cultura)
+- "Admin / Histórias" — `master`, `admin`, `gerente_adm` (com `is_rh_or_admin` no guard de rota)
 
-### Cobrar gerente
-`src/components/auditoria/CobrarGerenteModal.tsx`
-- Cria registro em `leadership_occurrences` (já existente) com `unit_id` + `motivos: ["operacional"]` + `urgencia: "media"` + título e descrição pré-preenchidos com nome do item, loja e data.
-- Após criação, toast e fecha.
+`App.tsx`: adicionar rotas `/historias`, `/historias/hall-do-mes`, `/admin/historias` (esta última com guard).
 
-### Empty / Skeleton
-- Skeleton grid; empty state amigável.
+## 8. Integração FeedColaborador
 
----
+Inserir `<HistoriaSemanaWidget />` em seção própria (após avisos urgentes, antes de pílulas).
 
-## 4. Guard + rota
-- `App.tsx`: rota `/auditoria-visual` envolta em `AuditoriaAccess` (master/admin/supervisor/gerente_adm). Outros → `<NotFound/>`.
+## Arquivos tocados (previsão)
 
-## 5. Sidebar
-- `AppSidebar.tsx`: adiciona item **"Auditoria Visual"** (ícone `Camera` ou `ImageIcon`) na seção **Análise**, mesma condição do Heatmap + gerente_adm.
+**Criados**:
+- `supabase/migrations/<ts>_curio_stories.sql`
+- `src/hooks/useCurioStories.ts`
+- `src/pages/Historias.tsx`
+- `src/pages/HistoriasHallDoMes.tsx`
+- `src/pages/AdminHistorias.tsx`
+- `src/components/historias/HistoriaCard.tsx`
+- `src/components/historias/NovaHistoriaModal.tsx`
+- `src/components/historias/ModeracaoHistoriaItem.tsx`
+- `src/components/historias/HistoriaSemanaWidget.tsx`
+- `src/components/historias/HistoriaFiltrosChips.tsx`
 
----
-
-## 6. Setores (constante client-side)
-```ts
-const SETORES = [
-  { key: "acougue",  label: "Açougue",        match: /(açougue|carnes?)/i },
-  { key: "padaria",  label: "Padaria",        match: /(padaria|panifica)/i },
-  { key: "hortifruti", label: "Hortifruti",   match: /(hortifruti|FLV|frutas?|legumes?|verduras?)/i },
-  { key: "mercearia", label: "Mercearia",     match: /(mercearia|gôndola|gondola)/i },
-  { key: "caixa",     label: "Frente de Caixa", match: /(caixa|frente de loja|FDL)/i },
-  { key: "deposito",  label: "Depósito",      match: /(depósito|deposito|estoque)/i },
-  { key: "geral",     label: "Geral",         match: /.*/ },
-];
-```
-
----
-
-## Arquivos tocados
-
-**Criados**
-- `supabase/migrations/<ts>_v_auditoria_visual.sql`
-- `src/hooks/useAuditoriaVisual.ts`
-- `src/components/auditoria/AuditoriaPhotoCard.tsx`
-- `src/components/auditoria/AuditoriaLightbox.tsx`
-- `src/components/auditoria/CobrarGerenteModal.tsx`
-- `src/components/auditoria/LazyPhoto.tsx`
-- `src/pages/AuditoriaVisual.tsx`
-- `src/lib/auditoriaSetores.ts`
-
-**Editados**
-- `src/App.tsx` (rota + guard `AuditoriaAccess`)
-- `src/components/AppSidebar.tsx` (item "Auditoria Visual" em Análise)
+**Editados**:
+- `src/App.tsx` (rotas + guard)
+- `src/components/AppSidebar.tsx` (itens menu)
+- `src/pages/FeedColaborador.tsx` (widget)
 - `src/integrations/supabase/types.ts` (auto)
 - `.lovable/plan.md`
+
+## Regras respeitadas
+- Migration única reversível
+- Sem alterar RLS de outras tabelas
+- Validação client + server (check constraints + trigger)
+- Graceful: `culture_values` referenciada como nullable
+- DELETE bloqueado (status='arquivada')
 
 Aprova pra eu executar?
