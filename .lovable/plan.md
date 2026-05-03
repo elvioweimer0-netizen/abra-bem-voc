@@ -1,119 +1,90 @@
-# Mapa de Visitação + Checklist de Visita do Supervisor
+# Humorômetro + Pulso Semanal
 
-Feature nova, isolada, reversível. Não mexe em RLS de tabelas existentes nem nas 4 features recentes (read receipts, foto checklist, semáforo, Curió de Ouro).
+Dois sinais de clima organizacional: mood diário (1-5) e pergunta livre semanal (sexta). Líderes só veem agregados — nunca user_id.
 
----
+## 1. Schema (migration única)
 
-## 1. Banco de dados (1 migration)
+**`daily_mood`**
+- `id uuid pk`, `user_id uuid → profiles(user_id) ON DELETE CASCADE`, `unit_id uuid → units ON DELETE CASCADE`
+- `score smallint CHECK (score BETWEEN 1 AND 5)` (nullable quando `skipped=true`)
+- `skipped boolean DEFAULT false`, `note text`, `recorded_at timestamptz DEFAULT now()`
+- Unique index parcial em `(user_id, (recorded_at::date))`.
 
-### 1.1 `units`: coordenadas
-- Adicionar colunas `latitude numeric`, `longitude numeric` (nullable).
-- **Não preencher agora** — você vai me passar os endereços/coords numa mensagem seguinte. Sem coordenadas, o marcador da unidade simplesmente não aparece no mapa (com aviso "unidade sem localização cadastrada").
+**`pulse_questions`**
+- `id`, `week_start_date date UNIQUE` (segunda-feira), `question_text text`, `active boolean DEFAULT true`, `created_at`.
 
-### 1.2 Enum `checklist_period`: novo valor
-- `ALTER TYPE checklist_period ADD VALUE 'visita_supervisor'` (idempotente via `IF NOT EXISTS`).
+**`pulse_answers`**
+- `id`, `question_id → pulse_questions ON DELETE CASCADE`, `user_id → profiles(user_id) ON DELETE CASCADE`
+- `unit_id → units`, `answer_text text` (≤500 chars validado client + check), `answered_at timestamptz DEFAULT now()`
+- Unique `(question_id, user_id)`.
 
-### 1.3 Template + 6 items
-- Inserir 1 `checklist_templates` (`name='Visita do Supervisor'`, `period='visita_supervisor'`, `role_target='supervisor'`, `unit_type='loja'`, `active=true`).
-- 6 `checklist_items` na ordem:
-  1. FLV organizado — `tipo_resposta=sim_nao`, `requires_photo=true`
-  2. Padaria com produto — `sim_nao`, foto
-  3. Açougue limpo — `sim_nao`, foto
-  4. Atendimento dos colaboradores — `escala` (Alto/Médio/Baixo, reusa o tipo criado pra Cartazeamento), sem foto
-  5. Frente de caixa organizada — `sim_nao`, sem foto
-  6. Estoque depósito — `texto`, sem foto (campo de observação livre)
+## 2. RLS + helper
 
-> Observação: o pedido cita "com observação" em alguns. Hoje todos os items já permitem `observacao` (campo na resposta). Marquei o tipo de resposta principal de cada um.
+Função `public.can_view_climate(_user_id uuid, _unit_id uuid)` retorna true se master/admin/supervisor/gerente_adm OU `is_unit_manager(_user_id, _unit_id)`. Reutilizada nas views.
 
-### 1.4 Tabela `visit_check_ins`
-```text
-id              uuid pk default gen_random_uuid()
-user_id         uuid not null         (supervisor que visitou — perfil real, sem FK rígida pra auth.users)
-unit_id         uuid not null fk units(id) on delete cascade
-completion_id   uuid nullable fk checklist_completions(id) on delete set null
-check_in_at     timestamptz not null default now()
-check_out_at    timestamptz nullable
-latitude        numeric nullable
-longitude       numeric nullable
-observacao      text nullable
-created_at / updated_at
-```
-- Index `(unit_id, check_in_at desc)`.
-- Index `(user_id, check_in_at desc)`.
-- Trigger `update_updated_at_column`.
+**daily_mood**
+- INSERT/DELETE: `user_id = auth.uid()`.
+- SELECT: apenas `user_id = auth.uid()`. Agregado para líderes vai pelas views.
 
-### 1.5 RLS `visit_check_ins`
-- **INSERT**: `user_id = auth.uid()` AND (`has_role admin/master/supervisor`).
-- **SELECT**: `user_id = auth.uid()` OR `has_role admin/master/supervisor` OR (`is_unit_manager(auth.uid(), unit_id)`).
-- **UPDATE**: só o próprio supervisor (`user_id = auth.uid()`), e somente para encerrar — trigger `BEFORE UPDATE` que rejeita se `check_out_at` já estava preenchido (encerrar uma vez só) ou se qualquer coluna além de `check_out_at`/`observacao`/`updated_at` mudou.
-- **DELETE**: bloqueado.
+**pulse_questions**
+- SELECT: todo autenticado (precisa ler a pergunta da semana).
+- INSERT/UPDATE/DELETE: master/admin.
 
-### 1.6 Relatório de policies criadas
-Listo no final do PR: 4 policies em `visit_check_ins` (INSERT/SELECT/UPDATE; DELETE não criada). Nada em outras tabelas.
+**pulse_answers**
+- INSERT: `user_id = auth.uid()`.
+- SELECT: apenas `user_id = auth.uid()`. Líderes leem só via view (sem user_id).
+- Sem UPDATE/DELETE.
 
----
+## 3. Views agregadas (security_invoker = off, owner postgres)
 
-## 2. Frontend
+**`v_mood_aggregate`** — `unit_id, setor, day, avg_score, count`
+- Filtra `daily_mood` ignorando skipped, agrupa por unit/setor/dia.
+- WHERE `public.can_view_climate(auth.uid(), unit_id)` na própria view.
 
-### 2.1 Dependências
-- `leaflet` + `react-leaflet` + `@types/leaflet` (OpenStreetMap, sem API key).
-- CSS do Leaflet importado uma vez no entry do mapa.
+**`v_pulse_aggregate`** — `question_id, week_start_date, question_text, unit_id, answer_text, answered_at`
+- Sem `user_id`. WHERE `public.can_view_climate(auth.uid(), unit_id)`.
+- Adiciono ORDER BY `answered_at` (não revela ordem de chegada por pessoa pois sem id de user).
 
-### 2.2 Arquivos novos
-- `src/pages/MapaVisitas.tsx` — rota `/mapa-visitas`, gated master/admin/supervisor.
-- `src/pages/HistoricoVisitas.tsx` — rota `/historico-visitas`, mesmo gate; filtros unidade/supervisor/período; modal com detalhe (respostas + fotos).
-- `src/components/visitas/UnitMarker.tsx` — ícone colorido (verde/amarelo/vermelho/cinza) por dias desde última visita.
-- `src/components/visitas/UnitVisitsPanel.tsx` — drawer/sheet lateral: últimas 5 visitas da unidade + botão **Iniciar visita aqui**.
-- `src/components/visitas/IniciarVisitaButton.tsx` — captura GPS via `navigator.geolocation.getCurrentPosition`, cria `visit_check_in` + `checklist_completion` (template visita_supervisor), redireciona pra `/checklist-diario?completion=<id>&visita=<visit_id>`.
-- `src/components/visitas/EncerrarVisitaBanner.tsx` — banner fixo que aparece em qualquer página enquanto há visita aberta (`check_out_at IS NULL`); botão "Encerrar visita".
-- `src/hooks/useVisitaAtiva.ts` — query da visita aberta do supervisor logado.
+Conferi `is_unit_manager` já cobre gerente/gerente_loja/gerente_adm/admin/master/supervisor — bate com o pedido.
 
-### 2.3 Arquivos editados
-- `src/App.tsx` — registrar 2 rotas novas dentro de `LeaderOnly` + gate adicional por cargo (admin/master/supervisor).
-- `src/components/AppSidebar.tsx` — novo grupo **Visitas** com sub-itens **Mapa** e **Histórico**, visível só para admin/master/supervisor.
-- `src/pages/ChecklistDiario.tsx` — aceitar query params `?completion=<id>&visita=<id>`: se presentes, carrega esse completion específico (do template visita_supervisor) em vez do checklist diário padrão; ao finalizar, mostra link "Encerrar visita".
-- `src/components/AppLayout.tsx` — montar `<EncerrarVisitaBanner/>` (só renderiza se houver visita aberta).
+## 4. Frontend
 
-### 2.4 Lógica do mapa
-- Carrega `units` com `latitude/longitude not null`.
-- Para cada unit: query agregada da última `visit_check_ins.check_in_at`.
-- Cor: `≤3d verde`, `4-7d amarelo`, `≥8d vermelho`, `nunca cinza`.
-- Click no marcador → abre `UnitVisitsPanel` (Sheet lateral).
+**Hooks globais** (montados no `AppLayout`):
+- `useDailyMoodPrompt`: ao logar/abrir, checa se `daily_mood` do dia existe pro user; se não, dispara `<MoodPrompt>`. localStorage `mood_prompt_dismissed_<yyyy-mm-dd>` evita reabrir após "Pular".
+- `usePulseWeekly`: se hoje é sexta E existe `pulse_questions` ativa da semana E user ainda não respondeu, abre `<PulsePrompt>`. Mesmo padrão de dismiss.
 
-### 2.5 PWA / Geo
-- Geolocalização pedida só ao clicar **Iniciar visita** (não bloqueia o app).
-- Tratamento: `PERMISSION_DENIED` → toast "Permita acesso à localização para registrar visita"; `POSITION_UNAVAILABLE`/`TIMEOUT` → permite registrar visita sem GPS (latitude/longitude null) com toast "Visita registrada sem localização".
-- Sem mudanças no `sw.js` ou `manifest.json`.
+**Componentes**:
+- `MoodPrompt.tsx` — Dialog com 5 botões (😞😕😐🙂😄 / Péssimo–Ótimo), textarea opcional, botão "Pular hoje".
+- `PulsePrompt.tsx` — Dialog com a pergunta + textarea (máx 500), enviar/dispensar.
 
----
+**Páginas**:
+- `/clima` (líderes elegíveis) — `Clima.tsx`
+  - Filtro por unidade (escopo `useAccessibleUnits`).
+  - Recharts LineChart `avg_score × dia` (últimos 30d).
+  - Tabela "Pulso da semana" com filtro semana/unidade, lista answer_text anônima.
+  - Alerta visual: badge vermelho quando `avg_score < 3` em 2+ dias consecutivos por unidade.
+- `/admin/clima` (master/admin apenas) — `AdminClima.tsx`
+  - Form criar/editar pergunta semanal (date picker da segunda-feira), tabela histórico.
 
-## 3. Arquivos tocados (resumo)
+**Sidebar**: novo item "Clima" para master/admin/supervisor/gerente_loja/gerente_adm. Item "Admin · Clima" só master/admin.
 
-**Migration:** `supabase/migrations/<timestamp>_visit_checkins.sql`
+## 5. Arquivos a tocar
 
-**Novos:**
-- `src/pages/MapaVisitas.tsx`
-- `src/pages/HistoricoVisitas.tsx`
-- `src/components/visitas/UnitMarker.tsx`
-- `src/components/visitas/UnitVisitsPanel.tsx`
-- `src/components/visitas/IniciarVisitaButton.tsx`
-- `src/components/visitas/EncerrarVisitaBanner.tsx`
-- `src/hooks/useVisitaAtiva.ts`
+**Migration**: `supabase/migrations/<ts>_climate.sql`
 
-**Editados:**
-- `src/App.tsx`
-- `src/components/AppSidebar.tsx`
-- `src/components/AppLayout.tsx`
-- `src/pages/ChecklistDiario.tsx`
-- `package.json` (deps leaflet)
+**Criar**:
+- `src/hooks/useDailyMoodPrompt.ts`, `src/hooks/usePulseWeekly.ts`, `src/hooks/useClimateAccess.ts`
+- `src/components/clima/MoodPrompt.tsx`, `PulsePrompt.tsx`, `MoodChart.tsx`, `PulseTable.tsx`
+- `src/pages/Clima.tsx`, `src/pages/AdminClima.tsx`
 
-**Não tocados:** RLS de outras tabelas, hooks de role, features recentes, ViewAsContext, AuthContext.
+**Editar**:
+- `src/App.tsx` (rotas `/clima`, `/admin/clima`)
+- `src/components/AppLayout.tsx` (montar prompts globais)
+- `src/components/AppSidebar.tsx` (item Clima)
 
----
+## 6. Garantias
+- Views são o único caminho pra líderes — `user_id` nunca sai do banco.
+- Migration única e reversível; nenhuma RLS de outra tabela alterada.
+- Sem dependência de Treinamento/Organograma; coexiste com features atuais.
 
-## Confirmações antes de executar
-
-1. **Coordenadas das unidades**: deixo nullable agora, você me passa lat/lng numa próxima mensagem (ou aprova eu rodar geocoding via Nominatim com os endereços que você fornecer)?
-2. **Item "Estoque depósito"**: tipo `texto` (campo livre) ou `sim_nao` + observação? Você disse "com observação" — assumi `texto` puro. OK?
-3. **Atendimento dos colaboradores**: usar o tipo `escala` (Alto/Médio/Baixo) que já existe? OK?
-4. **Visita aberta simultânea**: bloquear iniciar nova visita se já há uma sem `check_out_at`? (recomendo sim, para não duplicar).
+Aprova pra eu rodar a migration e implementar?
