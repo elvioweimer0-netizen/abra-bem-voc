@@ -39,7 +39,7 @@ export function UnitKPIs({ data }: { data: UnitOrgData }) {
           .gte("created_at", since),
         supabase
           .from("visit_check_ins")
-          .select("check_in_at, user_id, profiles:profiles!visit_check_ins_user_id_fkey(nome)")
+          .select("check_in_at, user_id")
           .eq("unit_id", unit!.id)
           .order("check_in_at", { ascending: false })
           .limit(1)
@@ -51,13 +51,22 @@ export function UnitKPIs({ data }: { data: UnitOrgData }) {
         ? checklistRows.reduce((acc, r) => acc + Number(r.pct ?? 0), 0) / checklistRows.length
         : null;
 
+      let lastVisit: { date: string; name: string } | null = null;
+      if (visit.data) {
+        const v = visit.data as any;
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("nome")
+          .eq("user_id", v.user_id)
+          .maybeSingle();
+        lastVisit = { date: v.check_in_at, name: (prof as any)?.nome ?? "—" };
+      }
+
       return {
         checklistAvg,
         advs: advs.count ?? 0,
         susps: susps.count ?? 0,
-        lastVisit: visit.data
-          ? { date: (visit.data as any).check_in_at, name: (visit.data as any).profiles?.nome ?? "—" }
-          : null,
+        lastVisit,
       };
     },
   });
