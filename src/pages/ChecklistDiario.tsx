@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { ChecklistVoiceButton } from "@/components/checklist/ChecklistVoiceButton";
+import { VoiceConfirmModal, type VoiceMatch } from "@/components/checklist/VoiceConfirmModal";
 
 const db = supabase as any;
 
@@ -57,6 +59,10 @@ export default function ChecklistDiario() {
   const [activePeriod, setActivePeriod] = useState("abertura");
   const [saving, setSaving] = useState(false);
   const [donePulse, setDonePulse] = useState(false);
+  const [voiceProcessing, setVoiceProcessing] = useState(false);
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+  const [voiceMatches, setVoiceMatches] = useState<VoiceMatch[]>([]);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
 
   const profileAny = profile as any;
 
@@ -269,6 +275,58 @@ export default function ChecklistDiario() {
     toast({ title: status === "completo" ? "Checklist completo" : "Checklist salvo", description: `${completedCount}/${activeItems.length} itens registrados.` });
   };
 
+  const handleVoiceTranscript = async (transcript: string) => {
+    if (!transcript.trim() || !activeItems.length) return;
+    setVoiceTranscript(transcript);
+    setVoiceProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("process-voice-checklist", {
+        body: {
+          transcript,
+          items: activeItems.map((i) => ({
+            id: i.id,
+            descricao: i.descricao,
+            tipo_resposta: i.tipo_resposta,
+            requires_photo: i.requires_photo,
+          })),
+        },
+      });
+      if (error) throw error;
+      const matches = (data?.matches || []) as VoiceMatch[];
+      setVoiceMatches(matches);
+      setVoiceModalOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({
+        title: "Não foi possível processar a voz",
+        description: `Marque manualmente. Texto capturado: "${transcript}"`,
+        variant: "destructive",
+      });
+    } finally {
+      setVoiceProcessing(false);
+    }
+  };
+
+  const handleVoiceConfirm = (itemIds: string[]) => {
+    let applied = 0;
+    for (const id of itemIds) {
+      const item = activeItems.find((i) => i.id === id);
+      if (!item) continue;
+      if (item.requires_photo && !responses[item.id]?.foto_url) continue;
+      setResponses((current) => ({
+        ...current,
+        [item.id]: {
+          ...current[item.id],
+          item_id: item.id,
+          resposta: "true",
+          completed_at: new Date().toISOString(),
+        },
+      }));
+      applied++;
+    }
+    toast({ title: "Marcação por voz aplicada", description: `${applied} item(s) marcados. Clique em Salvar para registrar.` });
+  };
+
   if (!profile) return null;
 
   return (
@@ -278,6 +336,27 @@ export default function ChecklistDiario() {
         <h1 className="mt-1 text-2xl font-bold">{visitId ? "Checklist da Visita" : "Meu Checklist do Dia"}</h1>
         <p className="mt-1 text-sm opacity-90">{profile.nome} • {unit?.name || profile.unidade}</p>
       </section>
+
+      {!visitId && activeItems.length > 0 && (
+        <ChecklistVoiceButton
+          processing={voiceProcessing}
+          onTranscript={handleVoiceTranscript}
+        />
+      )}
+
+      <VoiceConfirmModal
+        open={voiceModalOpen}
+        onOpenChange={setVoiceModalOpen}
+        transcript={voiceTranscript}
+        items={activeItems.map((i) => ({
+          id: i.id,
+          descricao: i.descricao,
+          requires_photo: i.requires_photo,
+          has_photo: !!responses[i.id]?.foto_url,
+        }))}
+        matches={voiceMatches}
+        onConfirm={handleVoiceConfirm}
+      />
 
       <Tabs value={activePeriod} onValueChange={setActivePeriod} className="space-y-4">
         <TabsList className="grid h-auto w-full grid-cols-3 rounded-xl bg-muted p-1">
