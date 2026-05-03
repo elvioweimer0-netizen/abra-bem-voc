@@ -327,6 +327,8 @@ export default function ChecklistDiario() {
     toast({ title: "Marcação por voz aplicada", description: `${applied} item(s) marcados. Clique em Salvar para registrar.` });
   };
 
+  if (!profile) return null;
+
   return (
     <div className="space-y-5">
       <section className="rounded-xl bg-primary p-4 text-primary-foreground shadow-sm">
