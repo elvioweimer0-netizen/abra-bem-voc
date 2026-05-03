@@ -425,11 +425,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "checklist_completions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["template_id"]
+          },
+          {
             foreignKeyName: "checklist_completions_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "checklist_completions_unit_id_fkey"
@@ -489,6 +503,13 @@ export type Database = {
             referencedRelation: "checklist_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "checklist_item_responses_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["item_id"]
+          },
         ]
       }
       checklist_items: {
@@ -529,6 +550,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "checklist_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["template_id"]
           },
         ]
       }
@@ -795,6 +823,13 @@ export type Database = {
             foreignKeyName: "daily_huddle_reports_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "daily_huddle_reports_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -838,6 +873,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_mood_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "daily_mood_unit_id_fkey"
@@ -1039,6 +1081,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_of_month_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "employee_of_month_unit_id_fkey"
@@ -1290,6 +1339,13 @@ export type Database = {
             foreignKeyName: "leadership_inspections_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "leadership_inspections_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -1354,6 +1410,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_meetings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "leadership_meetings_unit_id_fkey"
@@ -1449,6 +1512,13 @@ export type Database = {
             foreignKeyName: "leadership_occurrences_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "leadership_occurrences_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -1532,6 +1602,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_substitutions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "manager_substitutions_unit_id_fkey"
@@ -1638,6 +1715,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_agenda_items_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "meeting_agenda_items_unit_id_fkey"
@@ -1822,6 +1906,13 @@ export type Database = {
             foreignKeyName: "meeting_pauta_suggestions_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "meeting_pauta_suggestions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -1895,6 +1986,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "notification_events_unit_id_fkey"
@@ -2130,6 +2228,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdi_goals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "pdi_goals_unit_id_fkey"
@@ -2452,6 +2557,13 @@ export type Database = {
             foreignKeyName: "praises_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "praises_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -2564,6 +2676,13 @@ export type Database = {
             foreignKeyName: "profiles_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "profiles_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -2615,6 +2734,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_answers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "pulse_answers_unit_id_fkey"
@@ -2948,6 +3074,13 @@ export type Database = {
             foreignKeyName: "stories_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "stories_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -3120,6 +3253,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "team_members_unit_id_fkey"
@@ -3411,6 +3551,13 @@ export type Database = {
             foreignKeyName: "visit_check_ins_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "visit_check_ins_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -3463,6 +3610,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_commitments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "weekly_commitments_unit_id_fkey"
@@ -3529,6 +3683,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_schedules_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "work_schedules_unit_id_fkey"
@@ -3616,6 +3777,36 @@ export type Database = {
         }
         Relationships: []
       }
+      v_auditoria_visual: {
+        Row: {
+          completed_at: string | null
+          completion_data: string | null
+          completion_id: string | null
+          foto_url: string | null
+          gestor_cargo: string | null
+          gestor_nome: string | null
+          gestor_user_id: string | null
+          item_id: string | null
+          item_text: string | null
+          observacao: string | null
+          requires_photo: boolean | null
+          response_id: string | null
+          template_id: string | null
+          template_name: string | null
+          unit_code: string | null
+          unit_id: string | null
+          unit_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_item_responses_completion_id_fkey"
+            columns: ["completion_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_completions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_heatmap_indicators: {
         Row: {
           avisos_pendentes: number | null
@@ -3651,6 +3842,13 @@ export type Database = {
             foreignKeyName: "daily_mood_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "daily_mood_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
             referencedRelation: "v_unit_checklist_progress"
             referencedColumns: ["unit_id"]
           },
@@ -3672,6 +3870,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_answers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
           },
           {
             foreignKeyName: "pulse_answers_unit_id_fkey"

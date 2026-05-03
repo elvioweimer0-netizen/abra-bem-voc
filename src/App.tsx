@@ -81,6 +81,7 @@ import Heatmap from "@/pages/Heatmap";
 import Pdi from "@/pages/Pdi";
 import PdiEquipe from "@/pages/PdiEquipe";
 import PdiAdmin from "@/pages/PdiAdmin";
+import AuditoriaVisual from "@/pages/AuditoriaVisual";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
@@ -128,6 +129,13 @@ function PdiTeamAccess({ children }: { children: ReactNode }) {
 function PdiAdminAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const allowed = ["master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function AuditoriaAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor", "gerente_adm"].includes(cargo);
   if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
@@ -240,6 +248,7 @@ function ProtectedRoutes() {
         <Route path="/pdi" element={<Pdi />} />
         <Route path="/pdi/equipe" element={<PdiTeamAccess><PdiEquipe /></PdiTeamAccess>} />
         <Route path="/pdi/admin" element={<PdiAdminAccess><PdiAdmin /></PdiAdminAccess>} />
+        <Route path="/auditoria-visual" element={<AuditoriaAccess><AuditoriaVisual /></AuditoriaAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

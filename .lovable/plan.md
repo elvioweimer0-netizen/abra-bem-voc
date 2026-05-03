@@ -1,122 +1,118 @@
-# PDI dos Encarregados — Plano de Implementação
+# Auditoria Visual Lado a Lado — Plano
 
-Feature de Plano de Desenvolvimento Individual (PDI) por trimestre, com metas atribuídas pelo gerente ao encarregado, atualizações de progresso e visão consolidada para liderança.
+Painel para liderança comparar fotos de itens de checklist entre lojas, com filtros, lightbox, modo timeline e ação "cobrar gerente".
 
 ---
 
-## 1. Schema SQL (migration única)
+## 1. Banco — view `v_auditoria_visual` (SECURITY INVOKER)
 
-### Tabela `pdi_goals`
+Sem tabelas novas. Apenas uma view que agrega `checklist_item_responses` + `checklist_items` + `checklist_completions` + `checklist_templates` + `units` + `profiles`.
+
+Colunas:
 ```
-id uuid PK default gen_random_uuid()
-encarregado_user_id uuid NOT NULL  -- FK profiles(user_id) ON DELETE CASCADE
-gerente_user_id     uuid           -- FK profiles(user_id) ON DELETE SET NULL
-unit_id             uuid           -- FK units(id)
-trimestre smallint NOT NULL CHECK (trimestre BETWEEN 1 AND 4)
-ano       smallint NOT NULL CHECK (ano >= 2025)
-titulo    text NOT NULL CHECK (length(titulo) BETWEEN 5 AND 100)
-descricao text NOT NULL
-meta_valor    numeric
-meta_unidade  text
-valor_atual   numeric
-status text NOT NULL DEFAULT 'em_andamento'
-       CHECK (status IN ('em_andamento','atingida','parcialmente_atingida','nao_atingida','cancelada'))
-prazo date
-created_at timestamptz default now()
-updated_at timestamptz default now()
-closed_at  timestamptz
+response_id, foto_url, observacao, item_id, item_text, template_id, template_name,
+unit_id, unit_name, unit_code, completion_id, completion_data,
+gestor_user_id, gestor_nome, gestor_cargo, completed_at
 ```
-Index: `(encarregado_user_id, trimestre, ano)`. Trigger `update_updated_at_column` no UPDATE.
 
-### Tabela `pdi_progress_updates`
+`SECURITY INVOKER` (default em PG 15+ via `WITH (security_invoker=true)`) → herda RLS de `checklist_item_responses` e demais.
+
+Filtro inicial na view: `WHERE foto_url IS NOT NULL`.
+
+**Inferência de setor**: como não existe coluna `setor`, derivado no front via match em `item_text`/`template_name` (regex pelas palavras-chave: Açougue, Padaria, Hortifruti, Mercearia, Frente de Caixa/Caixa, Depósito, Geral). Fallback "Geral".
+
+**Graceful degradation**: a view usa LEFT JOINs em profiles/units, e checa `to_regclass` no wrapper para retornar vazio se a view for inválida. Se algum SELECT explodir, o hook captura e retorna `[]`.
+
+---
+
+## 2. Hook `useAuditoriaVisual`
+
+`src/hooks/useAuditoriaVisual.ts`:
+- `useAuditoriaResults({ periodo, unitIds, itemId, setor })` → consulta a view, filtra por período (today/yesterday/week/month) e unidades; agrupa por `unit_id` quando `itemId` definido (para grid lado a lado).
+- `useAuditoriaItems(setor?)` → lista itens distintos `(item_id, item_text)` que têm `requires_photo=true`.
+- `useSignedPhotoUrl(path)` → signed URL do bucket `checklist-photos` (TTL 1h, cache em React Query).
+
+Lazy: usa `Intersection Observer` no card pra só pedir signed URL quando entra no viewport (componente `LazyPhoto`).
+
+---
+
+## 3. Página `/auditoria-visual`
+
+`src/pages/AuditoriaVisual.tsx`:
+
+### Filtros (topo)
+- **Setor** (chips): Todos · Açougue · Padaria · Hortifruti · Mercearia · Frente de Caixa · Depósito · Geral
+- **Item específico** (Select): filtrado por setor; opção "Todos os itens"
+- **Período** (chips): Hoje · Ontem · Semana · Mês
+- **Unidades** (chips multi-select de `useAccessibleUnits`); todas selecionadas por padrão; botão "Todas"/"Limpar"
+
+### Modos de visualização (toggle)
+- **Comparativo** (default quando item selecionado): grid lado a lado, 4 col desktop / 2x2 mobile, 1 card por loja. Loja sem foto no período → card cinza tracejado "Sem foto registrada".
+- **Galeria**: grid livre com todas as fotos no período (cards menores).
+- **Timeline** (apenas quando item selecionado): por loja, mostra os últimos 7 dias em linha (mini-cards horizontais com data).
+
+### Card
+`src/components/auditoria/AuditoriaPhotoCard.tsx`
+- `<LazyPhoto>` com signed URL on-demand
+- Badge unidade (canto sup. esq.)
+- Hora rodapé + autor
+- Click → lightbox
+
+### Lightbox
+`src/components/auditoria/AuditoriaLightbox.tsx`
+- Foto grande, observação, autor + cargo, data/hora completa
+- Link "Abrir checklist" → `/checklist/diario?completion=ID`
+- Botão **"Cobrar gerente"** → abre `CobrarGerenteModal`
+
+### Cobrar gerente
+`src/components/auditoria/CobrarGerenteModal.tsx`
+- Cria registro em `leadership_occurrences` (já existente) com `unit_id` + `motivos: ["operacional"]` + `urgencia: "media"` + título e descrição pré-preenchidos com nome do item, loja e data.
+- Após criação, toast e fecha.
+
+### Empty / Skeleton
+- Skeleton grid; empty state amigável.
+
+---
+
+## 4. Guard + rota
+- `App.tsx`: rota `/auditoria-visual` envolta em `AuditoriaAccess` (master/admin/supervisor/gerente_adm). Outros → `<NotFound/>`.
+
+## 5. Sidebar
+- `AppSidebar.tsx`: adiciona item **"Auditoria Visual"** (ícone `Camera` ou `ImageIcon`) na seção **Análise**, mesma condição do Heatmap + gerente_adm.
+
+---
+
+## 6. Setores (constante client-side)
+```ts
+const SETORES = [
+  { key: "acougue",  label: "Açougue",        match: /(açougue|carnes?)/i },
+  { key: "padaria",  label: "Padaria",        match: /(padaria|panifica)/i },
+  { key: "hortifruti", label: "Hortifruti",   match: /(hortifruti|FLV|frutas?|legumes?|verduras?)/i },
+  { key: "mercearia", label: "Mercearia",     match: /(mercearia|gôndola|gondola)/i },
+  { key: "caixa",     label: "Frente de Caixa", match: /(caixa|frente de loja|FDL)/i },
+  { key: "deposito",  label: "Depósito",      match: /(depósito|deposito|estoque)/i },
+  { key: "geral",     label: "Geral",         match: /.*/ },
+];
 ```
-id uuid PK
-goal_id uuid NOT NULL  -- FK pdi_goals ON DELETE CASCADE
-autor_user_id uuid NOT NULL  -- FK profiles(user_id)
-valor_atual numeric
-observacao text NOT NULL
-created_at timestamptz default now()
-```
-Index: `(goal_id, created_at desc)`. Trigger ao inserir: atualiza `pdi_goals.valor_atual` e `updated_at`.
-
----
-
-## 2. RLS
-
-### `pdi_goals`
-- **INSERT**: `gerente_user_id = auth.uid()` AND líder (`gerente_loja|master|admin|supervisor`) AND `user_can_access_unit(auth.uid(), unit_id)`
-- **SELECT**: dono (encarregado), autor (gerente), `master|admin|supervisor`, ou `gerente_loja` com `user_can_access_unit`
-- **UPDATE**: mesmo critério SELECT restrito a autor original ou líder
-- **DELETE**: só `master|admin`
-
-### `pdi_progress_updates`
-- **INSERT**: `autor_user_id = auth.uid()` AND tem acesso ao goal (encarregado dono ou líder elegível via SELECT do goal)
-- **SELECT**: mesmo critério SELECT do goal pai
-- **UPDATE/DELETE**: bloqueado (sem policy permissiva)
-
-Helper SQL: `can_view_pdi_goal(_uid uuid, _goal uuid)` security definer pra reutilizar nas policies de updates.
-
----
-
-## 3. Frontend
-
-### Páginas
-- `src/pages/Pdi.tsx` → `/pdi` (encarregado/lider_setor/colaborador): cards das próprias metas do trimestre atual, filtro de trimestre/ano, click abre drawer detalhe + timeline + botão "Adicionar atualização".
-- `src/pages/PdiEquipe.tsx` → `/pdi/equipe` (gerente_loja, encarregado): lista equipe com até 3 metas resumo + status; botão "Nova meta pra X".
-- `src/pages/PdiAdmin.tsx` → `/pdi/admin` (master/admin/supervisor): tabela consolidada com filtros loja/trimestre/ano/status, expansão por linha.
-
-### Componentes (`src/components/pdi/`)
-- `PdiGoalCard.tsx` — barra de progresso (`valor_atual / meta_valor`), badge de status, badge "atrasada" (vermelho) se `prazo < today` e status `em_andamento`.
-- `PdiGoalForm.tsx` — modal: encarregado select (filtrado por unit acessível), trimestre/ano default = atual, título (5–100), descrição, meta_valor, meta_unidade, prazo.
-- `PdiProgressForm.tsx` — modal: textarea + valor opcional.
-- `PdiProgressTimeline.tsx` — lista cronológica dos updates.
-- `PdiGoalDetailDrawer.tsx` — junta tudo.
-
-### Hook
-- `src/hooks/usePdi.ts`: `useMyGoals`, `useTeamGoals`, `useAdminGoals(filters)`, `useGoalUpdates(goalId)`, `useCreateGoal`, `useAddProgress`, `useUpdateGoalStatus`.
-
----
-
-## 4. Navegação (`AppSidebar.tsx`)
-- "PDI" → `/pdi` (encarregado, lider_setor, colaborador)
-- "PDI da Equipe" → `/pdi/equipe` (gerente_loja, encarregado)
-- "PDI · Visão Geral" → `/pdi/admin` (master, admin, supervisor) — na seção "Análise" existente.
-
----
-
-## 5. Push / Notificações
-- Trigger `tg_pdi_notify_new_goal` AFTER INSERT em `pdi_goals` → insere em `notification_events` (`type='pdi_new_goal'`) pro encarregado.
-- Edge function agendada `pdi-trimestre-cleanup` (cron diário): no 1º dia de cada trimestre, encontra metas do trimestre anterior com status `em_andamento` e dispara push pro `gerente_user_id` (`type='pdi_overdue_goal'`).
-
----
-
-## 6. Routing & Guards
-- `App.tsx`: 3 rotas novas com guards via `useUserRole`/profile. Componente `PdiAdminAccess` análogo ao `HeatmapAccess`.
 
 ---
 
 ## Arquivos tocados
+
 **Criados**
-- `supabase/migrations/<ts>_pdi.sql`
-- `supabase/functions/pdi-trimestre-cleanup/index.ts`
-- `src/hooks/usePdi.ts`
-- `src/components/pdi/PdiGoalCard.tsx`
-- `src/components/pdi/PdiGoalForm.tsx`
-- `src/components/pdi/PdiProgressForm.tsx`
-- `src/components/pdi/PdiProgressTimeline.tsx`
-- `src/components/pdi/PdiGoalDetailDrawer.tsx`
-- `src/pages/Pdi.tsx`
-- `src/pages/PdiEquipe.tsx`
-- `src/pages/PdiAdmin.tsx`
+- `supabase/migrations/<ts>_v_auditoria_visual.sql`
+- `src/hooks/useAuditoriaVisual.ts`
+- `src/components/auditoria/AuditoriaPhotoCard.tsx`
+- `src/components/auditoria/AuditoriaLightbox.tsx`
+- `src/components/auditoria/CobrarGerenteModal.tsx`
+- `src/components/auditoria/LazyPhoto.tsx`
+- `src/pages/AuditoriaVisual.tsx`
+- `src/lib/auditoriaSetores.ts`
 
 **Editados**
-- `src/App.tsx` (rotas + guard)
-- `src/components/AppSidebar.tsx` (3 itens)
+- `src/App.tsx` (rota + guard `AuditoriaAccess`)
+- `src/components/AppSidebar.tsx` (item "Auditoria Visual" em Análise)
 - `src/integrations/supabase/types.ts` (auto)
 - `.lovable/plan.md`
-
-**Cron job**: `pdi-trimestre-cleanup-daily` agendado via `pg_cron` (insert tool, não migration).
-
----
 
 Aprova pra eu executar?
