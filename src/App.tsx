@@ -92,6 +92,7 @@ import ScoresRanking from "@/pages/ScoresRanking";
 import AdminScoreDimensions from "@/pages/AdminScoreDimensions";
 import TvDisplay from "@/pages/TvDisplay";
 import AdminTvDisplays from "@/pages/AdminTvDisplays";
+import CuriozinhoHistorico from "@/pages/CuriozinhoHistorico";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
@@ -282,6 +283,7 @@ function ProtectedRoutes() {
         <Route path="/scores/ranking" element={<ScoresRankingAccess><ScoresRanking /></ScoresRankingAccess>} />
         <Route path="/admin/score-dimensions" element={<AdminOnly><AdminScoreDimensions /></AdminOnly>} />
         <Route path="/admin/tv-displays" element={<SupervisorOnly><AdminTvDisplays /></SupervisorOnly>} />
+        <Route path="/curiozinho/historico" element={<CuriozinhoHistorico />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

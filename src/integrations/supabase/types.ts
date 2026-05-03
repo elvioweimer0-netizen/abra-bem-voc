@@ -895,6 +895,70 @@ export type Database = {
           },
         ]
       }
+      curiozinho_briefings: {
+        Row: {
+          alerts: Json
+          briefing_date: string
+          content_markdown: string
+          created_at: string
+          data_snapshot: Json | null
+          helpful: boolean | null
+          id: string
+          opened_at: string | null
+          suggestions: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts?: Json
+          briefing_date: string
+          content_markdown: string
+          created_at?: string
+          data_snapshot?: Json | null
+          helpful?: boolean | null
+          id?: string
+          opened_at?: string | null
+          suggestions?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts?: Json
+          briefing_date?: string
+          content_markdown?: string
+          created_at?: string
+          data_snapshot?: Json | null
+          helpful?: boolean | null
+          id?: string
+          opened_at?: string | null
+          suggestions?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curiozinho_briefings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curiozinho_briefings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curiozinho_briefings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       daily_huddle_reports: {
         Row: {
           author_user_id: string | null

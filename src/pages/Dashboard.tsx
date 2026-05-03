@@ -26,6 +26,7 @@ import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWid
 import { StoriesBar } from "@/components/stories/StoriesBar";
 import { PlaybookSuggestionWidget } from "@/components/playbook/PlaybookSuggestionWidget";
 import { NovosNoTimeWidget } from "@/components/onboarding/NovosNoTimeWidget";
+import { CartaCuriozinhoCard } from "@/components/curiozinho/CartaCuriozinhoCard";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
@@ -104,6 +105,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 md:space-y-8">
       <HeaderHome />
+      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || cargo === "gerente_loja") && <CartaCuriozinhoCard />}
       <Card className="border-border card-shadow">
         <CardContent className="p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
