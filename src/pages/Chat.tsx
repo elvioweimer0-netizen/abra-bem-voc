@@ -49,7 +49,7 @@ export default function Chat() {
   const showConv = !isMobile || !!activeId;
   const isGroup = active && active.type !== "direct";
   const headerTitle = active ? (active.type === "direct" ? active.other_name : active.name) : "";
-  const headerIcon = active?.type === "channel" ? Hash : (active?.type !== "direct" ? Users : null);
+  const HeaderIcon = active?.type === "channel" ? Hash : (active?.type !== "direct" ? Users : null);
   const typingNames = Object.values(typing);
   const otherOnline = active?.type === "direct" && active.other_user_id ? !!online[active.other_user_id] : false;
 
@@ -95,7 +95,7 @@ export default function Chat() {
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-sm font-semibold text-primary">
                   {(active.type === "direct" ? active.other_foto : active.image_url)
                     ? <img src={(active.type === "direct" ? active.other_foto : active.image_url) ?? ""} alt="" className="h-full w-full object-cover" />
-                    : (headerIcon ? <headerIcon className="h-5 w-5" /> : (headerTitle?.[0] ?? "?"))}
+                    : (HeaderIcon ? <HeaderIcon className="h-5 w-5" /> : (headerTitle?.[0] ?? "?"))}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold truncate">{headerTitle}</p>
