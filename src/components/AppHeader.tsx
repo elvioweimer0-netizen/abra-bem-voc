@@ -15,6 +15,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { OnlineStatusDot } from "@/components/OnlineStatusDot";
 import { useChatUnreadBadge } from "@/hooks/useConversations";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Constants } from "@/integrations/supabase/types";
@@ -187,6 +188,7 @@ export function AppHeader() {
                 <TooltipContent>Tema: {themeLabel}</TooltipContent>
               </Tooltip>
               <ChatHeaderButton />
+              <OnlineStatusDot />
               <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
