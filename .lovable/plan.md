@@ -1,137 +1,107 @@
-# Aniversariantes + Reconhecimento — Plano
+# Caderno do Gerente / Playbook — Plano de Execução
 
-Detecta aniversariantes do dia, mostra widget no Painel/Feed, banner pro próprio aniversariante, e permite "Parabenizar" com mensagem (registrada em `birthday_messages` + post automático em `praises` quando aplicável).
+Feature de base de conhecimento prática para líderes: artigos curtos com categoria, script, "o que NÃO fazer", exemplo real e vídeo. Inclui visualizações, feedback útil/não útil, versionamento e widget de sugestão.
 
-## Constatações importantes (afetam o desenho)
+---
 
-1. `profiles` ainda não tem `data_nascimento` — adiciono nullable.
-2. `praises.destinatario_id` → **`team_members(id)`**, não `profiles`. `motivo` exige ≥20 chars e `unit_id NOT NULL`. Logo:
-   - Só vou criar praise automático **se o aniversariante tiver `team_members` ativo**; caso contrário, registro só em `birthday_messages` (silencioso). Isso evita falhas em colaboradores admin/central sem team_members.
-   - Categoria nova `aniversario` adicionada ao enum `praise_category`.
-   - Texto padrão garante ≥20 chars: `"Parabéns pelo seu aniversário! 🎂 — {mensagem opcional}"`.
-3. Privacidade `data_nascimento`:
-   - Coluna na `profiles`. Não vou criar policy nova (já existem policies em `profiles` que separam o que cada role enxerga). Em vez disso, exponho **views agregadas** (`v_aniversariantes_*`) que retornam apenas `user_id, nome, foto_url/avatar_url, cargo, setor, unidade, day, month` — **nunca o ano** — pra widget público. A coluna `data_nascimento` em `profiles` permanece visível conforme RLS atual; gerentes/admin/RH veem ano completo na tela do colaborador.
+## 1) Banco de dados (migration única)
 
-## 1. Schema (migration única)
+### Tabelas
 
-```sql
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS data_nascimento date;
-ALTER TYPE public.praise_category ADD VALUE IF NOT EXISTS 'aniversario';
+**`playbook_categories`**
+- `code` (slug único), `name`, `icon`, `description`, `ordem`, `active`
+- SEED imediato das 6 categorias: `como_conduzir`, `como_abordar`, `como_cobrar`, `como_ensinar`, `como_reconhecer`, `como_resolver`
 
-CREATE TABLE public.birthday_messages (
-  id uuid PK,
-  from_user_id uuid NOT NULL,
-  to_user_id uuid NOT NULL,
-  message_text text NOT NULL DEFAULT 'Parabéns! 🎉' CHECK (length(message_text) BETWEEN 1 AND 500),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX birthday_msg_daily_uidx ON public.birthday_messages
-  (from_user_id, to_user_id, (created_at AT TIME ZONE 'America/Sao_Paulo')::date);
-CREATE INDEX birthday_msg_to_idx ON public.birthday_messages (to_user_id, created_at DESC);
+**`playbook_articles`**
+- `category_id` FK restrict, `title` (5–150), `context` (markdown), `script`, `what_not_to_do`, `real_example`, `video_url`, `tags text[]`, `visible_to text[]` default com 8 cargos, `created_by`, `version int default 1`, `active`, `featured_until timestamptz` (para o "Destaque por 1 semana")
+- Trigger `BEFORE UPDATE`: incrementa `version` e atualiza `updated_at` quando `context/script/what_not_to_do/real_example/video_url/title` mudam
+- Índice GIN em `tags` e `visible_to`
 
--- Views (SECURITY INVOKER por padrão)
-CREATE VIEW public.v_aniversariantes_hoje AS
-SELECT p.user_id, p.nome, p.avatar_url, p.cargo, p.setor, p.unidade,
-       extract(day FROM p.data_nascimento)::int   AS dia,
-       extract(month FROM p.data_nascimento)::int AS mes
-FROM public.profiles p
-WHERE p.ativo = true AND p.data_nascimento IS NOT NULL
-  AND extract(day FROM p.data_nascimento)   = extract(day FROM (now() AT TIME ZONE 'America/Sao_Paulo'))
-  AND extract(month FROM p.data_nascimento) = extract(month FROM (now() AT TIME ZONE 'America/Sao_Paulo'));
+**`playbook_article_views`**
+- `article_id`, `user_id`, `viewed_at`
+- Índice `(article_id, user_id)` e `(user_id, viewed_at desc)` para o widget de sugestão
 
-CREATE VIEW public.v_aniversariantes_proximos_7d AS
-SELECT p.user_id, p.nome, p.avatar_url, p.cargo, p.setor, p.unidade,
-       extract(day FROM p.data_nascimento)::int   AS dia,
-       extract(month FROM p.data_nascimento)::int AS mes,
-       /* dias até próximo aniversário, ignorando ano */
-       ((make_date(extract(year FROM (now() AT TIME ZONE 'America/Sao_Paulo'))::int,
-                   extract(month FROM p.data_nascimento)::int,
-                   extract(day FROM p.data_nascimento)::int)
-        - (now() AT TIME ZONE 'America/Sao_Paulo')::date) + 365) % 365 AS days_ahead
-FROM public.profiles p
-WHERE p.ativo = true AND p.data_nascimento IS NOT NULL
-ORDER BY days_ahead;
-```
-> Filtro 1..7 aplicado no front (`days_ahead BETWEEN 1 AND 7`) — view permanece reusável.
+**`playbook_article_feedback`**
+- `article_id`, `user_id`, `useful boolean`, `comment`, `created_at`, `updated_at`
+- Unique `(article_id, user_id)` → upsert pelo cliente
 
-## 2. RLS `birthday_messages`
+### Função helper
+- `is_rh_or_admin(uid)`: retorna true se master/admin OU (`gerente_adm` AND setor = 'RH')
 
-- SELECT authenticated: `true` (público entre autenticados — mensagens de parabéns são públicas).
-- INSERT authenticated: `from_user_id = auth.uid()`.
-- DELETE authenticated: `from_user_id = auth.uid()`.
-- (sem UPDATE)
+### RLS
 
-**Não toco RLS de `profiles`, `praises` nem `team_members`.**
+| Tabela | SELECT | INSERT/UPDATE | DELETE |
+|---|---|---|---|
+| categories | autenticados | `is_rh_or_admin` | `is_rh_or_admin` |
+| articles | `active=true AND cargo ∈ visible_to` OU master/admin | `is_rh_or_admin` | bloqueado (soft via active) |
+| views | próprio OU admin/RH | `user_id=auth.uid()` | — |
+| feedback | próprio OU admin/RH | `user_id=auth.uid()` | próprio |
 
-## 3. Frontend
+---
 
-### Hook `src/hooks/useBirthdays.ts`
-- `useAniversariantesHoje()` → `from('v_aniversariantes_hoje')`
-- `useAniversariantesProximos7d()` → filtra `days_ahead ∈ [1,7]`
-- `useBirthdayMessages(toUserId, dateISO)` → quem já parabenizou hoje (com perfil)
-- `useSendBirthdayMessage()` → mutation: insert em `birthday_messages` + tenta criar praise automático.
+## 2) Frontend
 
-### Componentes (`src/components/birthdays/`)
-- `AniversariantesWidget.tsx` — card destacado se há hoje (avatar, nome, cargo, botão Parabenizar). Accordion "Próximos 7 dias" abaixo.
-- `ParabenizarModal.tsx` — textarea opcional (max 200), submit chama hook.
-- `BirthdayBanner.tsx` — sticky topo se hoje é meu aniversário; mostra avatares de quem parabenizou; X fecha (localStorage `birthday_banner_dismissed_{YYYY-MM-DD}`).
-- `BirthdayWishesList.tsx` — lista de mensagens recebidas (usado em `MeuPerfil`/`ColaboradorPerfil`).
+### Hooks (`src/hooks/usePlaybook.ts`)
+- `usePlaybookCategories()` — lista com contagem de artigos visíveis
+- `usePlaybookArticles({ categoryId, search })` — filtro + flag `viewed`
+- `usePlaybookArticle(id)` — detalhe + auto-mark view + feedback do usuário
+- `useSubmitFeedback()` — upsert
+- `usePlaybookSuggestion()` — sugere 1 artigo baseado em última categoria visitada / categoria menos vista
 
-### Lógica de auto-praise (no hook)
-```ts
-1. insert birthday_messages (from=me, to=aniversariante, message_text=mensagem||default)
-2. lookup team_members onde user_id=aniversariante AND ativo
-3. se encontrar 1+: pega primeiro (ou da unidade do autor se houver match), insert em praises:
-   { autor_id: me, destinatario_id: tm.id, unit_id: tm.unit_id,
-     categoria: 'aniversario', publico: true,
-     motivo: `Parabéns pelo seu aniversário! 🎂 ${mensagem ?? ''}`.padEnd(20) }
-4. se RLS rejeitar praise → silencioso (toast.success igual; birthday_message já registrada).
-```
+### Páginas
+- **`/caderno`** (`src/pages/Caderno.tsx`) — layout 2 colunas desktop / 1 mobile, busca topo, sidebar categorias com contadores, grid de cards (título, categoria, snippet, badge "Visto")
+- **`/caderno/:articleId`** (`src/pages/CadernoArtigo.tsx`) — sections renderizadas em markdown, vídeo embed, footer feedback 👍/👎 + comentário, botão "Editar" para RH/admin
+- **`/admin/caderno`** (`src/pages/AdminCaderno.tsx`) — tabs: Artigos / Categorias / Estatísticas. CRUD com modal/form, editor markdown (textarea + preview), toggle Destaque (seta `featured_until = now()+7d`), métricas (mais vistos, mais úteis, sem feedback)
 
-### Integrações
-- `src/pages/FeedColaborador.tsx`: `<AniversariantesWidget />` abaixo do `AvisosBanner`.
-- `src/pages/Dashboard.tsx`: idem (ou em coluna lateral, conforme estrutura).
-- `src/components/AppLayout.tsx`: `<BirthdayBanner />` montado dentro do layout autenticado (acima do conteúdo).
-- `src/pages/MeuPerfil.tsx`: seção "Mensagens de aniversário" via `BirthdayWishesList`.
-- `src/pages/ColaboradorPerfil.tsx`: mostra `data_nascimento` formatada (DD/MM, ano só pra admin/master/gerente_adm RH) + `BirthdayWishesList` agregando histórico.
+### Componentes (`src/components/playbook/`)
+- `PlaybookCategoryList.tsx`
+- `PlaybookArticleCard.tsx`
+- `PlaybookArticleSection.tsx` (renderiza markdown via `react-markdown` já presente)
+- `PlaybookFeedbackBar.tsx`
+- `PlaybookArticleFormModal.tsx` (admin)
+- `PlaybookCategoryFormModal.tsx` (admin)
+- `PlaybookSuggestionWidget.tsx` (Dashboard)
 
-## 4. Admin (gestão de usuários)
-- `src/components/gestao-usuarios/UserEditDialog.tsx`: novo input `data_nascimento` (`<Input type="date" />`), validação client zod: idade 16–80; só visível/editável pra master/admin/gerente_adm RH. Outros roles veem o campo desabilitado/escondido.
+### Navegação (`src/components/AppSidebar.tsx`)
+- Adicionar item "Caderno" para todos os líderes (não-colaborador)
+- Sub-item "Admin / Caderno" só para `is_rh_or_admin`
 
-## 5. Notificações
-- Edge functions/cron existentes não tocam aqui. Trigger SQL `after insert on birthday_messages` enfileira `notification_events` pro `to_user_id`:
-  - type `birthday_wish`, body `"{from_nome} te parabenizou pelo aniversário 🎉"`, payload `{ from_user_id, message_id }`.
+### Integrações leves
+- Adicionar `<PlaybookSuggestionWidget />` no `Dashboard.tsx`
+- Rotas em `src/App.tsx`
 
-## 6. Validações (zod)
-- `birthdaySchema = z.object({ data_nascimento: z.coerce.date().refine(d => idade ∈ [16,80]) })`
-- `wishSchema = z.object({ message_text: z.string().trim().max(200).optional() })`
+---
 
-## 7. Regras
+## 3) Regras
 
-- Migration única: coluna + enum value + tabela + 2 views + trigger de notificação + RLS de `birthday_messages`.
-- Sem mexer em RLS de `profiles`, `praises`, `team_members`.
-- Auto-praise é "best-effort": falha não interrompe mensagem.
-- View `v_aniversariantes_*` esconde ano de nascimento.
-- Banner com `localStorage` por dia.
+- Commit único reversível (1 migration + arquivos novos)
+- Não tocar em RLS de outras tabelas
+- Soft delete via `active=false`
+- Versionamento via trigger
+- Conteúdo dos artigos vem depois — apenas seed das 6 categorias
 
-## 8. Arquivos tocados
+---
 
-**Novos:**
-- `supabase/migrations/<ts>_birthdays.sql`
-- `src/hooks/useBirthdays.ts`
-- `src/components/birthdays/AniversariantesWidget.tsx`
-- `src/components/birthdays/ParabenizarModal.tsx`
-- `src/components/birthdays/BirthdayBanner.tsx`
-- `src/components/birthdays/BirthdayWishesList.tsx`
+## 4) Arquivos previstos
 
-**Editados:**
-- `src/pages/FeedColaborador.tsx`
-- `src/pages/Dashboard.tsx`
-- `src/components/AppLayout.tsx` (montar `BirthdayBanner`)
-- `src/pages/MeuPerfil.tsx`
-- `src/pages/ColaboradorPerfil.tsx`
-- `src/components/gestao-usuarios/UserEditDialog.tsx`
-- `src/integrations/supabase/types.ts` (auto)
+**Criar:**
+- `supabase/migrations/<timestamp>_playbook.sql`
+- `src/hooks/usePlaybook.ts`
+- `src/pages/Caderno.tsx`
+- `src/pages/CadernoArtigo.tsx`
+- `src/pages/AdminCaderno.tsx`
+- `src/components/playbook/PlaybookCategoryList.tsx`
+- `src/components/playbook/PlaybookArticleCard.tsx`
+- `src/components/playbook/PlaybookArticleSection.tsx`
+- `src/components/playbook/PlaybookFeedbackBar.tsx`
+- `src/components/playbook/PlaybookArticleFormModal.tsx`
+- `src/components/playbook/PlaybookCategoryFormModal.tsx`
+- `src/components/playbook/PlaybookSuggestionWidget.tsx`
+
+**Editar:**
+- `src/App.tsx` (3 rotas)
+- `src/components/AppSidebar.tsx` (item + sub-item)
+- `src/pages/Dashboard.tsx` (widget sugestão)
 - `.lovable/plan.md`
 
 Aprova pra eu executar?
