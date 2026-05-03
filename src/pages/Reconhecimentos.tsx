@@ -144,9 +144,9 @@ export default function Reconhecimentos() {
     const dest = members.find((m) => m.id === form.destinatario);
     if (!dest || form.motivo.trim().length < 20) { toast({ title: "Informe destinatário e motivo com 20 caracteres", variant: "destructive" }); return; }
     const db = supabase as any;
-    const { error } = await db.from("praises").insert({ autor_id: user?.id, destinatario_id: dest.id, unit_id: dest.unit_id || profile?.unit_id, categoria: form.categoria, motivo: form.motivo, publico: form.publico });
+    const { error } = await db.from("praises").insert({ autor_id: user?.id, destinatario_id: dest.id, unit_id: dest.unit_id || profile?.unit_id, categoria: form.categoria, motivo: form.motivo, publico: form.publico, praise_type: form.praise_type });
     if (error) toast({ title: "Erro ao publicar", description: error.message, variant: "destructive" });
-    else { toast({ title: "Reconhecimento publicado" }); setOpen(false); setForm({ destinatario: "", categoria: "atendimento", motivo: "", publico: true }); load(); }
+    else { toast({ title: "Reconhecimento publicado" }); setOpen(false); setForm({ destinatario: "", categoria: "atendimento", motivo: "", publico: true, praise_type: allowedTypes[0] }); load(); }
   }
 
   async function applaud(id: string) {
