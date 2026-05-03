@@ -231,7 +231,8 @@ export default function Reconhecimentos() {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {Object.entries(categoryLabels).map(([value, label]) => <Button key={value} variant={category === value ? "default" : "outline"} size="sm" className="shrink-0" onClick={() => setCategory(value)}>{label}</Button>)}
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos os tipos</SelectItem><SelectItem value="liderado">{PRAISE_TYPE_ICON.liderado} {PRAISE_TYPE_LABEL.liderado}</SelectItem><SelectItem value="peer">{PRAISE_TYPE_ICON.peer} {PRAISE_TYPE_LABEL.peer}</SelectItem><SelectItem value="equipe_externa">{PRAISE_TYPE_ICON.equipe_externa} {PRAISE_TYPE_LABEL.equipe_externa}</SelectItem></SelectContent></Select>
         <Select value={period} onValueChange={(value) => setPeriod(value as Period)}><SelectTrigger><CalendarDays className="mr-2 h-4 w-4" /><SelectValue /></SelectTrigger><SelectContent><SelectItem value="7">Últimos 7 dias</SelectItem><SelectItem value="30">30 dias</SelectItem><SelectItem value="month">Este mês</SelectItem><SelectItem value="all">Todos</SelectItem></SelectContent></Select>
         {(isAdmin || isSupervisor) && <Select value={unitFilter} onValueChange={setUnitFilter}><SelectTrigger><ChevronDown className="mr-2 h-4 w-4" /><SelectValue placeholder="Todas" /></SelectTrigger><SelectContent><SelectItem value="todas">Todas</SelectItem>{units.map((u) => <SelectItem key={u.id} value={u.id}>{u.code}</SelectItem>)}</SelectContent></Select>}
       </div>
@@ -241,14 +242,18 @@ export default function Reconhecimentos() {
       {filteredPraises.map((p) => {
         const recipient = p.team_members;
         const recipientName = recipient?.nome || recipient?.cargo || "colaborador";
+        const ptype: PraiseType = (p.praise_type || "liderado") as PraiseType;
         return <Card key={p.id} className="shadow-sm"><CardContent className="p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Avatar className="h-8 w-8"><AvatarFallback className="bg-secondary/10 text-xs text-secondary">LC</AvatarFallback></Avatar>
-            <span>Liderança elogiou</span>
+            <Avatar className="h-8 w-8"><AvatarFallback className="bg-secondary/10 text-xs text-secondary">{PRAISE_TYPE_ICON[ptype]}</AvatarFallback></Avatar>
+            <span>{ptype === "peer" ? "Peer reconheceu" : ptype === "equipe_externa" ? "Equipe externa reconheceu" : "Liderança elogiou"}</span>
             <Avatar className="h-8 w-8"><AvatarImage src={recipient?.foto_url || undefined} alt={recipientName} /><AvatarFallback className="bg-primary/10 text-xs text-primary">{initials(recipientName)}</AvatarFallback></Avatar>
             <span className="font-semibold text-foreground">{recipientName}</span>
           </div>
-          <Badge variant="outline" className="mt-3 gap-1 border-primary/20 bg-primary/10 text-primary">{categoryIcons[p.categoria]} {categoryLabels[p.categoria]}</Badge>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge variant="outline" className={`gap-1 ${PRAISE_TYPE_BADGE_CLASS[ptype]}`}>{PRAISE_TYPE_ICON[ptype]} {PRAISE_TYPE_LABEL[ptype]}</Badge>
+            <Badge variant="outline" className="gap-1 border-primary/20 bg-primary/10 text-primary">{categoryIcons[p.categoria]} {categoryLabels[p.categoria]}</Badge>
+          </div>
           <p className="mt-3 text-sm leading-relaxed text-foreground">{p.motivo}</p>
           <div className="mt-4 flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>{relativeDate(p.criado_em)} • {recipient?.units?.code || recipient?.units?.name || "Unidade"}</span>
