@@ -156,6 +156,7 @@ export function AppSidebar() {
       { title: "Início", url: "/", icon: Home },
       { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
       { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
+      { title: "Minha Unidade", url: unitHomeUrl, icon: Building },
     ];
     const feedComunicacao: MenuItem[] = [
       { title: "Avisos", url: "/avisos", icon: Bell },
