@@ -95,6 +95,8 @@ import AdminTvDisplays from "@/pages/AdminTvDisplays";
 import CuriozinhoHistorico from "@/pages/CuriozinhoHistorico";
 import WhatsappResumo from "@/pages/WhatsappResumo";
 import WhatsappResumoHistorico from "@/pages/WhatsappResumoHistorico";
+import AdminRiscoChurn from "@/pages/AdminRiscoChurn";
+import RiscoChurnDetalhe from "@/pages/RiscoChurnDetalhe";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
@@ -124,6 +126,14 @@ function SupervisorOnly({ children }: { children: ReactNode }) {
 function RhAdminOnly({ children }: { children: ReactNode }) {
   const isRh = useIsRhAdmin();
   if (!isRh) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function ChurnAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const isRh = useIsRhAdmin();
+  const allowed = isRh || ["master", "admin", "supervisor", "gerente_loja"].includes(cargo);
+  if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
 
@@ -290,6 +300,8 @@ function ProtectedRoutes() {
         <Route path="/curiozinho/historico" element={<CuriozinhoHistorico />} />
         <Route path="/whatsapp-resumo" element={<WhatsappResumo />} />
         <Route path="/whatsapp-resumo/historico" element={<WhatsappResumoHistorico />} />
+        <Route path="/admin/risco-churn" element={<ChurnAccess><AdminRiscoChurn /></ChurnAccess>} />
+        <Route path="/risco-churn/:userId" element={<ChurnAccess><RiscoChurnDetalhe /></ChurnAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

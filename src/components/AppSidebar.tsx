@@ -343,6 +343,11 @@ export function AppSidebar() {
     ? [{ title: "Resumo WhatsApp", url: "/whatsapp-resumo", icon: MessageSquare }]
     : [];
 
+  const churnAllowed = isRhAdmin || ["master", "admin", "supervisor", "gerente_loja"].includes(cargo);
+  const churnItems: MenuItem[] = churnAllowed
+    ? [{ title: "Risco de churn", url: "/admin/risco-churn", icon: HeartPulse }]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -375,6 +380,7 @@ export function AppSidebar() {
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="WhatsApp" items={whatsappItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Pessoas" items={churnItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
       </SidebarContent>
 
