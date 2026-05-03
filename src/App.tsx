@@ -90,6 +90,8 @@ import AdminOnboarding from "@/pages/AdminOnboarding";
 import MeuScore from "@/pages/MeuScore";
 import ScoresRanking from "@/pages/ScoresRanking";
 import AdminScoreDimensions from "@/pages/AdminScoreDimensions";
+import TvDisplay from "@/pages/TvDisplay";
+import AdminTvDisplays from "@/pages/AdminTvDisplays";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
