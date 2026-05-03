@@ -277,6 +277,11 @@ export function AppSidebar() {
     ...(isAdmin || isSupervisor ? [{ title: "Quadro", url: "/compromissos/board", icon: ClipboardCheck }] : []),
   ];
 
+  const conquistasItems: MenuItem[] = [
+    { title: "Minhas Conquistas", url: "/perfil/conquistas", icon: Trophy },
+    ...(isLider ? [{ title: "Ranking", url: "/conquistas/ranking", icon: Star }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
