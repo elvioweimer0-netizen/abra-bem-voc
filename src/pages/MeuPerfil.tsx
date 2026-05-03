@@ -126,7 +126,13 @@ export default function MeuPerfil() {
 
     <Card><CardContent className="p-4"><div className="flex items-center justify-between mb-3"><h2 className="flex items-center gap-2 font-bold text-foreground"><Medal className="h-5 w-5 text-[hsl(var(--gold))]" /> Conquistas</h2><Link to="/perfil/conquistas" className="text-xs text-primary font-semibold">Ver todas →</Link></div><AchievementsBadgeRow /></CardContent></Card>
 
-    <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2><div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
+    <Card><CardContent className="p-4"><h2 className="mb-3 flex items-center gap-2 font-bold text-foreground"><Heart className="h-5 w-5 text-primary" /> Elogios recebidos</h2>
+      <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg bg-primary/10 p-2"><p className="text-lg font-bold text-primary">{receivedPraises.filter((p) => (p.praise_type || "liderado") === "liderado").length}</p><p className="text-[11px] text-muted-foreground">👑 Liderado</p></div>
+        <div className="rounded-lg bg-[hsl(var(--gold)/0.15)] p-2"><p className="text-lg font-bold text-[hsl(var(--gold))]">{receivedPraises.filter((p) => p.praise_type === "peer").length}</p><p className="text-[11px] text-muted-foreground">🤝 Peer</p></div>
+        <div className="rounded-lg bg-blue-500/10 p-2"><p className="text-lg font-bold text-blue-600 dark:text-blue-400">{receivedPraises.filter((p) => p.praise_type === "equipe_externa").length}</p><p className="text-[11px] text-muted-foreground">🌐 Externa</p></div>
+      </div>
+      <div className="space-y-2">{receivedPraises.slice(0, 3).map((p) => <div key={p.id} className="rounded-lg bg-muted p-3"><Badge variant="outline" className="mb-2">{p.categoria}</Badge><p className="text-sm text-foreground">{p.motivo}</p></div>)}{receivedPraises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum elogio recebido ainda.</p>}</div></CardContent></Card>
 
     <Card><CardContent className="p-4"><Link to="/perfil/sincronizacao" className="flex items-center justify-between"><span className="font-semibold text-foreground">Sincronização offline</span><span className="text-xs text-primary">Ver fila →</span></Link></CardContent></Card>
 
