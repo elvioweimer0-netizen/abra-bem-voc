@@ -290,6 +290,13 @@ export function AppSidebar() {
       ]
     : [];
 
+  const perguntaSemanaItems: MenuItem[] = (isAdmin || isSupervisor || cargo === "gerente_loja" || cargo === "gerente_adm" || cargo === "master")
+    ? [
+        { title: "Pergunta da Semana", url: "/pergunta-semana", icon: MessageSquare },
+        ...(isAdmin || isSupervisor ? [{ title: "Admin · Perguntas", url: "/admin/pergunta-semana", icon: MessageSquare }] : []),
+      ]
+    : [];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
