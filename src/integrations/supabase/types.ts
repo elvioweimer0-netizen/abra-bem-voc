@@ -747,6 +747,154 @@ export type Database = {
         }
         Relationships: []
       }
+      curio_stories: {
+        Row: {
+          author_user_id: string
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_note: string | null
+          published_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          value_id: string | null
+        }
+        Insert: {
+          author_user_id: string
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_note?: string | null
+          published_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          value_id?: string | null
+        }
+        Update: {
+          author_user_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_note?: string | null
+          published_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          value_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curio_stories_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_stories_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_stories_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_stories_moderated_by_fkey"
+            columns: ["moderated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_stories_moderated_by_fkey"
+            columns: ["moderated_by"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_stories_moderated_by_fkey"
+            columns: ["moderated_by"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_stories_value_id_fkey"
+            columns: ["value_id"]
+            isOneToOne: false
+            referencedRelation: "culture_values"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curio_story_likes: {
+        Row: {
+          id: string
+          liked_at: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          liked_at?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          liked_at?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curio_story_likes_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "curio_stories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curio_story_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_story_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "curio_story_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       daily_huddle_reports: {
         Row: {
           author_user_id: string | null
