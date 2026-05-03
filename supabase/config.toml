@@ -16,3 +16,6 @@ verify_jwt = false
 
 [functions.tv-feed]
 verify_jwt = false
+
+[functions.generate-daily-briefing]
+verify_jwt = false
