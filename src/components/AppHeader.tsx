@@ -44,6 +44,12 @@ export function AppHeader() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { profile, signOut } = useAuth();
+  // ChatHeaderButton component defined inline below
+  const _ = useChatUnreadBadge; // ensure import used
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  const { profile, signOut } = useAuth();
   const { realCargo, isRealAdmin, isSupervisor } = useRole();
   const { role, setRole, unidade, setUnidade } = useViewAs();
   const { setOpen: setCmdkOpen } = useCommandPalette();
@@ -166,6 +172,7 @@ export function AppHeader() {
                 </TooltipTrigger>
                 <TooltipContent>Tema: {themeLabel}</TooltipContent>
               </Tooltip>
+              <ChatHeaderButton />
               <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
