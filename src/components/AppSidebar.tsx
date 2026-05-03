@@ -31,6 +31,7 @@ import {
   GraduationCap,
   HeartPulse,
   Sunrise,
+  Target,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
@@ -265,6 +266,11 @@ export function AppSidebar() {
     ...(isAdmin || isSupervisor ? [{ title: "Painel Daily", url: "/daily-huddle/painel", icon: Gauge }] : []),
   ];
 
+  const compromissoItems: MenuItem[] = [
+    ...(isLider ? [{ title: "Compromissos", url: "/compromissos", icon: Target }] : []),
+    ...(isAdmin || isSupervisor ? [{ title: "Quadro", url: "/compromissos/board", icon: ClipboardCheck }] : []),
+  ];
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
       <div className="flex items-center justify-center p-8">
@@ -286,6 +292,7 @@ export function AppSidebar() {
         <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Clima" items={climaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Daily" items={dailyItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <MenuSection label="Compromissos" items={compromissoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
         <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
