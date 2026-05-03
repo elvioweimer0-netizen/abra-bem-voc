@@ -50,11 +50,18 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("push", (event) => {
   const data = event.data?.json?.() || { title: "Conecta Curió", body: "Nova atualização disponível." };
+  // Smart Notifications: payload pode pedir push silencioso (apenas badge no app)
+  // ou barulhento (resumos). Default = barulhento.
+  const silent = data.silent === true;
+  const tag = data.tag || data.grouping_key || undefined;
   event.waitUntil(
     self.registration.showNotification(data.title || "Conecta Curió", {
       body: data.body || "Nova atualização disponível.",
       icon: "/logos/curio_app_icon_192.png",
       badge: "/logos/curio_app_icon_192.png",
+      silent,
+      tag,
+      renotify: !silent && !!tag,
       data: { url: data.url || "/" }
     })
   );
