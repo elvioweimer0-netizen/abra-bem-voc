@@ -237,6 +237,9 @@ function ProtectedRoutes() {
         <Route path="/perfil/stories" element={<MeusStories />} />
         <Route path="/admin/stories" element={<AdminOnly><AdminStories /></AdminOnly>} />
         <Route path="/heatmap" element={<HeatmapAccess><Heatmap /></HeatmapAccess>} />
+        <Route path="/pdi" element={<Pdi />} />
+        <Route path="/pdi/equipe" element={<PdiTeamAccess><PdiEquipe /></PdiTeamAccess>} />
+        <Route path="/pdi/admin" element={<PdiAdminAccess><PdiAdmin /></PdiAdminAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
