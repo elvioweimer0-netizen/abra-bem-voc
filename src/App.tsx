@@ -252,6 +252,9 @@ function ProtectedRoutes() {
         <Route path="/pdi/equipe" element={<PdiTeamAccess><PdiEquipe /></PdiTeamAccess>} />
         <Route path="/pdi/admin" element={<PdiAdminAccess><PdiAdmin /></PdiAdminAccess>} />
         <Route path="/auditoria-visual" element={<AuditoriaAccess><AuditoriaVisual /></AuditoriaAccess>} />
+        <Route path="/historias" element={<Historias />} />
+        <Route path="/historias/hall-do-mes" element={<HistoriasHallDoMes />} />
+        <Route path="/admin/historias" element={<RhAdminOnly><AdminHistorias /></RhAdminOnly>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
