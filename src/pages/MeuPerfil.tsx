@@ -141,6 +141,7 @@ export default function MeuPerfil() {
     <Card><CardContent className="p-4"><Link to="/perfil/sincronizacao" className="flex items-center justify-between"><span className="font-semibold text-foreground">Sincronização offline</span><span className="text-xs text-primary">Ver fila →</span></Link></CardContent></Card>
 
     <MentorshipOffersEditor />
+    <CoverageAvailabilityEditor />
 
     <AppearanceSettings />
     <NotificationSettings />
