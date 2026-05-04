@@ -3374,6 +3374,146 @@ export type Database = {
           },
         ]
       }
+      mystery_visit_criteria: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          name: string
+          ordem: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          ordem?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
+      mystery_visit_scores: {
+        Row: {
+          comment: string | null
+          created_at: string
+          criteria_id: string
+          id: string
+          score: number
+          visit_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          criteria_id: string
+          id?: string
+          score: number
+          visit_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          criteria_id?: string
+          id?: string
+          score?: number
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mystery_visit_scores_criteria_id_fkey"
+            columns: ["criteria_id"]
+            isOneToOne: false
+            referencedRelation: "mystery_visit_criteria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mystery_visit_scores_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "mystery_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mystery_visits: {
+        Row: {
+          anonymous_to_team: boolean
+          created_at: string
+          id: string
+          notes: string | null
+          overall_score: number | null
+          photos: Json
+          target_unit_id: string
+          updated_at: string
+          visit_date: string
+          visit_time: string | null
+          visitor_user_id: string
+        }
+        Insert: {
+          anonymous_to_team?: boolean
+          created_at?: string
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          photos?: Json
+          target_unit_id: string
+          updated_at?: string
+          visit_date: string
+          visit_time?: string | null
+          visitor_user_id: string
+        }
+        Update: {
+          anonymous_to_team?: boolean
+          created_at?: string
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          photos?: Json
+          target_unit_id?: string
+          updated_at?: string
+          visit_date?: string
+          visit_time?: string | null
+          visitor_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mystery_visits_target_unit_id_fkey"
+            columns: ["target_unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mystery_visits_target_unit_id_fkey"
+            columns: ["target_unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "mystery_visits_target_unit_id_fkey"
+            columns: ["target_unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "mystery_visits_visitor_user_id_fkey"
+            columns: ["visitor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       noticias: {
         Row: {
           conteudo: string
