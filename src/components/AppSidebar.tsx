@@ -33,6 +33,7 @@ import {
   Sunrise,
   Target,
   Tv,
+  HandHelping,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
@@ -185,6 +186,7 @@ export function AppSidebar() {
       { title: "Enquetes", url: "/polls", icon: CheckSquare },
       { title: "Feedback ao gerente", url: "/feedback-gerente", icon: MessageSquare },
       { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
+      { title: "Minhas coberturas", url: "/minhas-coberturas", icon: HandHelping },
     ];
     return (
       <Sidebar collapsible="offcanvas" className="border-r-0">
@@ -243,6 +245,8 @@ export function AppSidebar() {
         { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
         ...(isGerente || isAdmin ? [{ title: "Escala de turnos", url: "/escala", icon: CalendarClock }] : []),
         ...(isAdmin ? [{ title: "Escala (admin)", url: "/escala/admin", icon: CalendarClock }] : []),
+        ...(isGerente || isAdmin || isSupervisor ? [{ title: "Reposição entre lojas", url: "/reposicao", icon: HandHelping }] : []),
+        { title: "Minhas coberturas", url: "/minhas-coberturas", icon: HandHelping },
         ...(isColaborador ? [] : [{ title: "Ocorrências", url: "/ocorrencias", icon: FileQuestion }]),
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),

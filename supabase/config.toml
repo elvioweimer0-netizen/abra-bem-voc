@@ -46,3 +46,6 @@ verify_jwt = false
 
 [functions.shifts-tick]
 verify_jwt = false
+
+[functions.coverage-tick]
+verify_jwt = false
