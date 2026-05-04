@@ -52,3 +52,9 @@ verify_jwt = false
 
 [functions.missing-products-weekly]
 verify_jwt = false
+
+[functions.sales-thresholds-tick]
+verify_jwt = false
+
+[functions.pdv-webhook]
+verify_jwt = false
