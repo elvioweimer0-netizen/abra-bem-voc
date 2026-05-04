@@ -14,6 +14,7 @@ import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWid
 import { MilestonesWeekWidget } from "@/components/milestones/MilestonesWeekWidget";
 import { PollsFeedWidget } from "@/components/polls/PollsFeedWidget";
 import { StoriesBar } from "@/components/stories/StoriesBar";
+import { ComplaintTriggerButton } from "@/components/complaints/ComplaintTriggerButton";
 import type { Noticia } from "@/types/database";
 
 type TeamMate = { id: string; nome: string; cargo_titulo: string | null; cargo: string };
@@ -61,6 +62,8 @@ export default function FeedColaborador() {
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Olá, {firstName} 👋</h1>
       </div>
       <StoriesBar />
+
+      <ComplaintTriggerButton />
 
       <AvisosBanner />
 

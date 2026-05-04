@@ -12,6 +12,7 @@ const DEEP_LINKS: Record<string, (unitId: string, unitCode: string) => string> =
   vagas: (id) => `/colaboradores?unit=${id}&status=vaga`,
   mood_baixo: (id) => `/clima?unit=${id}`,
   avisos_pend: () => `/avisos?urgente=1`,
+  complaints: (id) => `/reclamacoes?unit=${id}`,
 };
 
 export function HeatmapDetailDrawer({

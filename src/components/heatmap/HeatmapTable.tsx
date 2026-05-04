@@ -19,6 +19,7 @@ const INDICATORS: IndicatorDef[] = [
   { key: "vagas", label: "Vagas abertas", field: "total_vagas_abertas", thresholds: [0, 0] },
   { key: "mood_baixo", label: "Humor baixo", field: "mood_baixo_count", thresholds: [0, 3] },
   { key: "avisos_pend", label: "Avisos pendentes", field: "avisos_pendentes", thresholds: [0, 0] },
+  { key: "complaints", label: "Reclamações de cliente", field: "total_complaints", thresholds: [0, 3] },
 ];
 
 export function HeatmapTable({ period }: { period: HeatmapPeriod }) {
