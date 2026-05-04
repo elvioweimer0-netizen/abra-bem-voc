@@ -49,6 +49,8 @@ import EscalaSemana from "@/pages/EscalaSemana";
 import EscalaPage from "@/pages/EscalaPage";
 import MinhaEscalaPage from "@/pages/MinhaEscalaPage";
 import EscalaAdminPage from "@/pages/EscalaAdminPage";
+import ReposicaoPage from "@/pages/ReposicaoPage";
+import MinhasCoberturasPage from "@/pages/MinhasCoberturasPage";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
