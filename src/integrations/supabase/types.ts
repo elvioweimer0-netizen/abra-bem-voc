@@ -4719,6 +4719,128 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_metrics: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          metric_date: string
+          metric_hour: number | null
+          revenue: number
+          source: string
+          ticket_avg: number | null
+          transactions: number
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metric_date: string
+          metric_hour?: number | null
+          revenue?: number
+          source: string
+          ticket_avg?: number | null
+          transactions?: number
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metric_date?: string
+          metric_hour?: number | null
+          revenue?: number
+          source?: string
+          ticket_avg?: number | null
+          transactions?: number
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_metrics_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_metrics_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "sales_metrics_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
+      sales_targets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          month: number
+          target_revenue: number
+          target_transactions: number
+          unit_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month: number
+          target_revenue?: number
+          target_transactions?: number
+          unit_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month?: number
+          target_revenue?: number
+          target_transactions?: number
+          unit_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_targets_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_targets_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "sales_targets_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       shift_assignments: {
         Row: {
           created_at: string
@@ -6169,6 +6291,25 @@ export type Database = {
         Args: { _payload: Json; _type: string }
         Returns: string
       }
+      fn_sales_compare_units: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          revenue: number
+          transactions: number
+          unit_id: string
+          unit_name: string
+        }[]
+      }
+      fn_sales_range: {
+        Args: { _from: string; _to: string; _unit_id: string }
+        Returns: {
+          metric_date: string
+          revenue: number
+          ticket_avg: number
+          transactions: number
+        }[]
+      }
+      fn_sales_today_summary: { Args: { _unit_id: string }; Returns: Json }
       fn_search_missing_products: {
         Args: { _limit?: number; _query: string }
         Returns: {
