@@ -34,6 +34,7 @@ import {
   Target,
   Tv,
   HandHelping,
+  MessageCircleWarning,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
