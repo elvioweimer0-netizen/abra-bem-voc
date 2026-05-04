@@ -159,6 +159,13 @@ function ChurnAccess({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function BuyerAccess({ children }: { children: ReactNode }) {
+  const { isAdmin, isSupervisor, isGerenteAdm, cargo } = useRole();
+  const allowed = isAdmin || isSupervisor || isGerenteAdm || cargo === "master";
+  if (!allowed) return <Navigate to="/produtos-faltando" replace />;
+  return <>{children}</>;
+}
+
 function HeatmapAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const allowed = ["master", "admin", "supervisor", "gerente_adm"].includes(cargo);
