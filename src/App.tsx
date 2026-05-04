@@ -287,6 +287,8 @@ function ProtectedRoutes() {
         <Route path="/minhas-coberturas" element={<MinhasCoberturasPage />} />
         <Route path="/reclamacoes" element={<LeaderOnly><ReclamacoesPage /></LeaderOnly>} />
         <Route path="/admin/reclamacoes" element={<AdminOnly><AdminReclamacoesPage /></AdminOnly>} />
+        <Route path="/produtos-faltando" element={<ProdutosFaltandoPage />} />
+        <Route path="/admin/produtos-faltando" element={<BuyerAccess><AdminProdutosFaltandoPage /></BuyerAccess>} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
