@@ -1,150 +1,153 @@
-# Plano: SUGESTÃO DE PRODUTO FALTANDO
+# Plano: CLIENTE MISTERIOSO DIGITAL
 
-Permite à equipe registrar produtos que clientes pediram mas a loja não tem; setor de compras prioriza pelo volume de votos + recência.
+Permite a gerentes, supervisores e admins visitarem outras unidades de forma anônima e avaliarem por critérios padronizados. Quando a visita é anônima, o gerente da unidade visitada NÃO descobre quem visitou.
 
 ---
 
 ## 1. Schema SQL (migration única)
 
-### Extensão
-- `CREATE EXTENSION IF NOT EXISTS pg_trgm` (no schema `extensions` se possível, fallback `public`) para busca fuzzy de duplicatas.
+### Tabelas
 
-### `missing_product_requests`
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid pk | gen_random_uuid() |
-| registered_by_user_id | uuid → profiles.id ON DELETE SET NULL | |
-| unit_id | uuid → units.id NOT NULL | |
-| product_name | text NOT NULL | |
-| brand | text NULL | |
-| category | text NULL | |
-| customer_count | int NOT NULL DEFAULT 1 | número de upvotes (mantido por trigger) |
-| priority_score | numeric NOT NULL DEFAULT 0 | recalculado por trigger: `customer_count + recency_boost` |
-| notes | text NULL | |
-| status | text CHECK in (`aberto`,`em_compras`,`adicionado`,`recusado`) DEFAULT `aberto` | |
-| status_changed_by | uuid → profiles.id NULL | |
-| status_changed_at | timestamptz NULL | |
-| created_at | timestamptz DEFAULT now() | |
-| updated_at | timestamptz DEFAULT now() | |
+**`mystery_visit_criteria`** (catálogo de critérios)
+- `id uuid pk`, `code text unique`, `name text`, `ordem smallint`, `active boolean default true`, `created_at`
+- SEED: `atendimento`, `limpeza_loja`, `organizacao_estoque`, `fila_caixa`, `qualidade_produto`, `sinalizacao_promo`, `vestimenta_equipe`, `postura_equipe`
 
-Índices: `(status, priority_score DESC)`, `(unit_id, created_at DESC)`, GIN trigram em `product_name` para fuzzy.
+**`mystery_visits`**
+- `id uuid pk`
+- `visitor_user_id uuid → profiles.id` (id do PERFIL, não auth.uid; mantém padrão das outras tabelas)
+- `target_unit_id uuid → units.id NOT NULL`
+- `visit_date date NOT NULL`
+- `visit_time time NULL`
+- `anonymous_to_team boolean NOT NULL DEFAULT true`
+- `overall_score numeric(3,1) CHECK (overall_score IS NULL OR (overall_score BETWEEN 0 AND 10))` (calculado por trigger a partir dos scores 1-5 → escala 0-10)
+- `notes text`, `photos jsonb DEFAULT '[]'::jsonb`
+- `created_at timestamptz default now()`, `updated_at`
+- Index: `(target_unit_id, visit_date DESC)`, `(visitor_user_id, visit_date DESC)`
 
-### `missing_product_upvotes`
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid pk | |
-| request_id | uuid → missing_product_requests ON DELETE CASCADE | |
-| user_id | uuid → profiles.id ON DELETE CASCADE | |
-| upvoted_at | timestamptz DEFAULT now() | |
-| UNIQUE (request_id, user_id) | | |
-
-### Função fuzzy
-- `fn_search_missing_products(_query text, _limit int default 5)` retorna top matches por `similarity(product_name, _query) > 0.3` (SECURITY DEFINER, STABLE) — usada pelo modal antes de criar.
+**`mystery_visit_scores`**
+- `id uuid pk`
+- `visit_id uuid → mystery_visits ON DELETE CASCADE`
+- `criteria_id uuid → mystery_visit_criteria`
+- `score smallint CHECK (score BETWEEN 1 AND 5)`
+- `comment text`
+- UNIQUE `(visit_id, criteria_id)`
 
 ### Triggers
-- `tg_missing_product_recount` (AFTER INSERT/DELETE em `missing_product_upvotes`): atualiza `customer_count` (count de upvotes + 1 do registrante) e `priority_score` = `customer_count * 10 + GREATEST(0, 30 - days_since_created)` (recência decai 30 dias).
-- `tg_missing_product_status_notify` (AFTER UPDATE em `missing_product_requests`): se `status` mudou para `adicionado`, push pro `registered_by_user_id` + todos que upvotaram.
-- `tg_missing_product_autoupvote` (AFTER INSERT em `missing_product_requests`): cria upvote do registrante (count inicial = 1).
+- `tg_mvs_recalc_overall` (AFTER INSERT/UPDATE/DELETE em `mystery_visit_scores`): recalcula `overall_score = avg(score) * 2` (para ficar em 0-10).
+- `tg_mystery_visit_notify` (AFTER INSERT em `mystery_visits` + reaproveita após recálculo via INSERT no scores): roda quando overall_score finaliza:
+  - Se `anonymous_to_team = false`: notifica gerentes da `target_unit_id` ("Você foi visitado, score X").
+  - Se `overall_score < 6`: notifica supervisores/admins/master + nomes específicos (Roberto, Guga) — usando padrão já existente no código (lower(nome) LIKE '%roberto%'/'%guga%').
 
-### Cron
-- Job semanal (segundas 9h) chamando edge function `missing-products-weekly` que envia push aos perfis de compras (admin/master/gerente_adm com gerencia FINANCEIRO/OPERACAO) com contagem de novos pedidos da semana. Insert via tool de insert (URL+anon key).
+### Bucket Storage
+- `INSERT INTO storage.buckets (id, name, public) VALUES ('mystery-photos','mystery-photos', false)` (privado).
+- Policies em `storage.objects`:
+  - SELECT: visitante dono OU master/admin/supervisor (excluindo gerente da unidade alvo se anônimo — verificado via lookup do path `{visit_id}/...`).
+  - INSERT: visitante autenticado (qualquer gerente/supervisor/admin) — primeiro segmento do path = visit_id válido pertencente ao usuário.
+  - DELETE: dono ou admin/master.
+  - Para evitar lookup recursivo complexo, usar regra simplificada: SELECT permitido para visitor + admin/master/supervisor; gerentes da unidade alvo NÃO conseguem ler (não têm role admin/master/supervisor). O sigilo do "quem" fica no row (visitor_user_id) que o gerente target nunca consegue SELECT.
 
 ---
 
 ## 2. RLS
 
-### missing_product_requests
-- **INSERT**: `registered_by_user_id = coverage_profile_id_for(auth.uid())` (perfil do próprio user).
-- **SELECT**: qualquer authenticated.
-- **UPDATE**: 
-  - status: somente admin/master/gerente_adm (campos limitados via WITH CHECK + trigger ignora outros campos).
-  - `customer_count`/`priority_score`: somente sistema (atualizados via trigger).
+### `mystery_visit_criteria`
+- SELECT: authenticated (todos).
+- INSERT/UPDATE/DELETE: admin/master.
+
+### `mystery_visits`
+- **INSERT**: `visitor_user_id = coverage_profile_id_for(auth.uid())` AND visitor cargo IN (`gerente_loja`,`gerente_adm`,`gerente`,`supervisor`,`admin`,`master`).
+- **SELECT**: 
+  - visitor (sempre vê suas próprias visitas), OU
+  - admin/master/supervisor (sempre veem tudo), OU
+  - gerentes da target_unit_id **somente quando** `anonymous_to_team = false` (e mesmo assim a coluna `visitor_user_id` é uma id de perfil — mas para cumprir o requisito de nunca expor quem, criaremos uma view `mystery_visits_for_targets` que omite `visitor_user_id` para esse caso, ou retornaremos via RPC. Solução escolhida: **não permitir SELECT direto pra gerentes target**; eles recebem apenas push notification quando `anonymous_to_team=false`. Assim o anonimato fica blindado a nível de RLS — gerentes target nunca acessam a row.)
+- **UPDATE**: visitor (próprio), admin/master.
 - **DELETE**: admin/master.
 
-### missing_product_upvotes
-- **INSERT**: `user_id = coverage_profile_id_for(auth.uid())` (1 voto por user via UNIQUE constraint).
-- **SELECT**: authenticated.
-- **DELETE**: próprio user (desfazer voto) ou admin/master.
+### `mystery_visit_scores`
+- **SELECT**: quem pode ver a visita (mesmo critério via subquery EXISTS).
+- **INSERT/UPDATE/DELETE**: visitor da visita pai OU admin/master.
+
+### Storage `mystery-photos`
+- SELECT/INSERT/DELETE: visitor + admin/master/supervisor.
 
 ---
 
 ## 3. Frontend
 
-### Hooks novos
-- `useMissingProducts({ status?, sort? })` — lista ranqueada.
-- `useCreateMissingProduct()` — INSERT.
-- `useSearchMissingProducts(query)` — chama RPC fuzzy (debounced).
-- `useUpvoteMissingProduct()` — toggle upvote.
-- `useUpdateMissingProductStatus()` — para compras.
-- `useMyMissingProductVotes()` — set de IDs upvotados.
+### Hooks
+- `useMysteryCriteria` — lista catálogo ativo.
+- `useMysteryVisits({ unitId?, visitorId?, from?, to? })` — lista filtrada.
+- `useMysteryVisit(id)` — detalhe + scores.
+- `useCreateMysteryVisit` — cria visita + scores + upload de fotos.
+- `useMysteryComparativeStats` — agrega por unidade (avg overall, avg por critério).
 
 ### Componentes
-- `MissingProductQuickModal.tsx` — form (nome, marca, categoria, notas). Conforme digita o nome (≥3 chars, debounce 300ms), chama search RPC. Se houver match >0.4: lista cards "Já existe — Reforçar este pedido?" com botão upvote inline. Se usuário ainda quer criar novo: confirma.
-- `MissingProductCard.tsx` — card com nome, marca, categoria, badge de votos, badge de status, botão "Eu também" (toggle).
-- `MissingProductsList.tsx` — lista virtualizada simples + filtro de status.
-- `AdminStatusSelect.tsx` — Select para mudar status (admin only).
+- `NovaMysteryVisitForm.tsx` — multi-step:
+  1. Dados gerais (unit, data, hora, toggle anônimo, observação).
+  2. Sliders 1-5 por critério (com label + comentário opcional).
+  3. Upload de até 5 fotos (bucket `mystery-photos`).
+  4. Resumo + submit.
+- `MysteryVisitCard.tsx` — card resumo (data, unit, score geral, badges).
+- `MysteryVisitDetail.tsx` — abre modal com scores detalhados + fotos.
+- `MysteryComparativeChart.tsx` — Recharts: bar chart unit vs avg overall + radar por critério.
 
 ### Páginas
-- `ProdutosFaltandoPage.tsx` (`/produtos-faltando`) — todos: lista + filtro status + criar.
-- `AdminProdutosFaltandoPage.tsx` (`/admin/produtos-faltando`) — admin/master/gerente_adm: gerenciar status + estatísticas (total aberto, em compras, adicionado mês).
+- `/cliente-misterioso` (`MysteryVisitPage.tsx`) — gerentes/supervisor/admin/master: botão "+ Nova visita" + lista de **minhas visitas**.
+- `/cliente-misterioso/historico` (`MysteryHistoricoPage.tsx`) — lista geral com filtros (unit/período/visitor — visitor filter só aparece pra admin/supervisor).
+- `/admin/cliente-misterioso` (`AdminMysteryPage.tsx`) — comparativo entre unidades, ranking, tendência por critério (12 semanas).
 
-### Painel/Feed
-- Botão `<MissingProductTriggerButton />` no `FeedColaborador.tsx` (abaixo do botão de reclamação).
+### Guards (App.tsx)
+- `MysteryAccess` — visitor: `gerente_loja|gerente_adm|gerente|supervisor|admin|master`.
+- `MysteryAdminAccess` — `admin|master|supervisor`.
 
-### Edge function
-- `supabase/functions/missing-products-weekly/index.ts` — conta requests da última semana, monta lista top 5, gera notification_events para admin/gerente_adm.
+### Sidebar
+- Item "Cliente Misterioso" (ícone `UserSearch`) em **operacao** para visitor roles.
+- Item "Cliente Misterioso (admin)" para admin/supervisor/master.
 
 ---
 
-## 4. Rotas + Sidebar
-- `App.tsx`: 
-  - `/produtos-faltando` → todos autenticados
-  - `/admin/produtos-faltando` → `<AdminOnly>` (estende para incluir gerente_adm)
-- `AppSidebar.tsx`: link "Produtos faltando" (ícone `PackageSearch`) em `operacao` para todos; "Compras (faltando)" para admin/master/gerente_adm.
+## 4. Push notifications
+
+- Trigger AFTER UPDATE em `mystery_visits` (quando `overall_score` muda de NULL para valor):
+  - Se `anonymous_to_team = false`: notifica gerentes da `target_unit_id` com título "Você foi visitado" + score.
+  - Se `overall_score < 6`: notifica admin/master/supervisor + perfis com `lower(nome) LIKE '%roberto%'` ou `'%guga%'` (padrão já usado no projeto).
 
 ---
 
 ## 5. Arquivos tocados (previsão)
 
-**Migration:** `supabase/migrations/<ts>_missing_products.sql`
+**Migration:** `supabase/migrations/<ts>_mystery_shopper.sql`
 
 **Hooks novos:**
-- `src/hooks/useMissingProducts.ts`
-- `src/hooks/useCreateMissingProduct.ts`
-- `src/hooks/useSearchMissingProducts.ts`
-- `src/hooks/useUpvoteMissingProduct.ts`
+- `src/hooks/useMysteryCriteria.ts`
+- `src/hooks/useMysteryVisits.ts`
+- `src/hooks/useCreateMysteryVisit.ts`
+- `src/hooks/useMysteryComparativeStats.ts`
 
 **Componentes novos:**
-- `src/components/missing-products/MissingProductQuickModal.tsx`
-- `src/components/missing-products/MissingProductTriggerButton.tsx`
-- `src/components/missing-products/MissingProductCard.tsx`
-- `src/components/missing-products/MissingProductsList.tsx`
-- `src/components/missing-products/AdminStatusSelect.tsx`
+- `src/components/mystery/NovaMysteryVisitForm.tsx`
+- `src/components/mystery/MysteryVisitCard.tsx`
+- `src/components/mystery/MysteryVisitDetail.tsx`
+- `src/components/mystery/MysteryComparativeChart.tsx`
+- `src/components/mystery/MysteryPhotoUploader.tsx`
 
 **Páginas novas:**
-- `src/pages/ProdutosFaltandoPage.tsx`
-- `src/pages/AdminProdutosFaltandoPage.tsx`
-
-**Edge function nova:** `supabase/functions/missing-products-weekly/index.ts`
-
-**Cron:** insert via tool (cron job semanal chamando a edge function)
+- `src/pages/MysteryVisitPage.tsx`
+- `src/pages/MysteryHistoricoPage.tsx`
+- `src/pages/AdminMysteryPage.tsx`
 
 **Editados:**
-- `src/App.tsx` (2 rotas)
-- `src/components/AppSidebar.tsx` (2 links + ícone PackageSearch)
-- `src/pages/FeedColaborador.tsx` (botão)
+- `src/App.tsx` (3 rotas + 2 guards)
+- `src/components/AppSidebar.tsx` (2 links + ícone `UserSearch`)
 - `src/integrations/supabase/types.ts` (auto)
-- `supabase/config.toml` (config edge function se necessário)
-- `.lovable/plan.md`
 
 ---
 
 ## 6. Decisões / detalhes
-- **Fuzzy threshold**: 0.4 sugere reforço; >0.7 mostra como "muito provável duplicata".
-- **priority_score**: simples e previsível (`votes*10 + recency_boost`), recalculado em qualquer mudança de upvote.
-- **Auto-upvote do registrante**: trigger garante `customer_count` começa em 1 sem precisar inserir manualmente.
-- **Compras**: usuários `cargo IN (admin, master, gerente_adm)` recebem push semanal e veem `/admin/produtos-faltando`. Não restrinjo por gerência específica para evitar perfis órfãos.
-- **Validação cliente**: zod — `product_name` 2-120 chars, `brand` ≤80, `category` ≤60, `notes` ≤500.
-- **Único commit reversível**: 1 migration + arquivos novos + edits localizados + 1 insert (cron schedule).
+- **Anonimato blindado**: gerente da target_unit NUNCA tem permissão SELECT na row, mesmo com `anonymous_to_team=false`. Nesse caso ele só recebe push notification (sem expor quem). Isso evita qualquer brecha (mesmo via SQL direto).
+- **Bucket privado** com path `{visit_id}/{filename}` — fotos servidas via signed URL.
+- **overall_score** calculado server-side (avg dos scores * 2 → escala 0-10) — não confiamos em valor enviado pelo cliente.
+- **Validação cliente**: zod — overall opcional (calculado), todos critérios obrigatórios (1-5), até 5 fotos × 5MB.
+- **Único commit reversível**: 1 migration + arquivos novos + edits localizados.
 
 Aprova pra executar?

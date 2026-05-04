@@ -55,6 +55,9 @@ import ReclamacoesPage from "@/pages/ReclamacoesPage";
 import AdminReclamacoesPage from "@/pages/AdminReclamacoesPage";
 import ProdutosFaltandoPage from "@/pages/ProdutosFaltandoPage";
 import AdminProdutosFaltandoPage from "@/pages/AdminProdutosFaltandoPage";
+import MysteryVisitPage from "@/pages/MysteryVisitPage";
+import MysteryHistoricoPage from "@/pages/MysteryHistoricoPage";
+import AdminMysteryPage from "@/pages/AdminMysteryPage";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
@@ -163,6 +166,20 @@ function BuyerAccess({ children }: { children: ReactNode }) {
   const { isAdmin, isSupervisor, isGerenteAdm, cargo } = useRole();
   const allowed = isAdmin || isSupervisor || isGerenteAdm || cargo === "master";
   if (!allowed) return <Navigate to="/produtos-faltando" replace />;
+  return <>{children}</>;
+}
+
+function MysteryAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["gerente_loja", "gerente_adm", "gerente", "supervisor", "admin", "master"].includes(cargo);
+  if (!allowed) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function MysteryAdminAccess({ children }: { children: ReactNode }) {
+  const { isAdmin, isSupervisor, cargo } = useRole();
+  const allowed = isAdmin || isSupervisor || cargo === "master";
+  if (!allowed) return <Navigate to="/cliente-misterioso" replace />;
   return <>{children}</>;
 }
 
@@ -289,6 +306,9 @@ function ProtectedRoutes() {
         <Route path="/admin/reclamacoes" element={<AdminOnly><AdminReclamacoesPage /></AdminOnly>} />
         <Route path="/produtos-faltando" element={<ProdutosFaltandoPage />} />
         <Route path="/admin/produtos-faltando" element={<BuyerAccess><AdminProdutosFaltandoPage /></BuyerAccess>} />
+        <Route path="/cliente-misterioso" element={<MysteryAccess><MysteryVisitPage /></MysteryAccess>} />
+        <Route path="/cliente-misterioso/historico" element={<MysteryAccess><MysteryHistoricoPage /></MysteryAccess>} />
+        <Route path="/admin/cliente-misterioso" element={<MysteryAdminAccess><AdminMysteryPage /></MysteryAdminAccess>} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
