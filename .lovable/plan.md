@@ -148,3 +148,5 @@ Atualizar `fn_heatmap_indicators` adicionando coluna `total_complaints integer` 
 - **Único commit reversível**: tudo em uma migration + arquivos novos + edits localizados.
 
 Aprova pra executar?
+
+## DONE: Customer Complaints feature implemented (table customer_complaints + RLS + triggers + heatmap integration + UI). Coverage components stubbed in same commit.
