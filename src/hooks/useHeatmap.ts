@@ -14,6 +14,7 @@ export type HeatmapRow = {
   total_vagas_abertas: number;
   mood_baixo_count: number;
   avisos_pendentes: number;
+  total_complaints: number;
 };
 
 export function useHeatmap(period: HeatmapPeriod) {
