@@ -1027,6 +1027,135 @@ export type Database = {
         }
         Relationships: []
       }
+      coverage_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_user_id: string
+          request_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_user_id: string
+          request_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_user_id?: string
+          request_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coverage_invites_invitee_user_id_fkey"
+            columns: ["invitee_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coverage_invites_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "coverage_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coverage_requests: {
+        Row: {
+          accepted_by_user_id: string | null
+          created_at: string
+          id: string
+          message: string | null
+          reminded_at: string | null
+          requester_gerente_id: string
+          requester_unit_id: string
+          setor: string | null
+          status: string
+          target_date: string
+          target_shift_end: string
+          target_shift_start: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          accepted_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          reminded_at?: string | null
+          requester_gerente_id: string
+          requester_unit_id: string
+          setor?: string | null
+          status?: string
+          target_date: string
+          target_shift_end: string
+          target_shift_start: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          accepted_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          reminded_at?: string | null
+          requester_gerente_id?: string
+          requester_unit_id?: string
+          setor?: string | null
+          status?: string
+          target_date?: string
+          target_shift_end?: string
+          target_shift_start?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coverage_requests_accepted_by_user_id_fkey"
+            columns: ["accepted_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coverage_requests_requester_gerente_id_fkey"
+            columns: ["requester_gerente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coverage_requests_requester_unit_id_fkey"
+            columns: ["requester_unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coverage_requests_requester_unit_id_fkey"
+            columns: ["requester_unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "coverage_requests_requester_unit_id_fkey"
+            columns: ["requester_unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       culture_pill_likes: {
         Row: {
           id: string
@@ -3906,8 +4035,10 @@ export type Database = {
       profiles: {
         Row: {
           ativo: boolean
+          available_for_coverage: boolean
           cargo: Database["public"]["Enums"]["cargo_tipo"]
           cargo_titulo: string | null
+          coverage_dates: unknown[] | null
           created_at: string
           data_admissao: string | null
           data_nascimento: string | null
@@ -3936,8 +4067,10 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          available_for_coverage?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           cargo_titulo?: string | null
+          coverage_dates?: unknown[] | null
           created_at?: string
           data_admissao?: string | null
           data_nascimento?: string | null
@@ -3966,8 +4099,10 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          available_for_coverage?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           cargo_titulo?: string | null
+          coverage_dates?: unknown[] | null
           created_at?: string
           data_admissao?: string | null
           data_nascimento?: string | null
@@ -5642,6 +5777,7 @@ export type Database = {
         Args: { _cycle_id: string; _user_id: string }
         Returns: string
       }
+      coverage_profile_id_for: { Args: { _uid: string }; Returns: string }
       create_or_get_direct_chat: { Args: { _other: string }; Returns: string }
       fn_heatmap_indicators: {
         Args: { _period?: string }
