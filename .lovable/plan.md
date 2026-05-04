@@ -1,94 +1,125 @@
-# Plano: FEEDBACK AO GERENTE (Espelho Trimestral)
 
-Sistema anônimo trimestral para colaboradores avaliarem seus gerentes de loja em 5 dimensões. Anonimato garantido via hash irreversível server-side e view agregada com mínimo de 3 respostas.
+# Plano: Escala de Turnos Visual
 
-## 1. Schema SQL (migração única)
+Conflito detectado: já existem `work_schedules` + `shift_assignments` + `shift_swap_requests` em uso por `EscalaSemana.tsx` e `attendance_records` (modelo `team_members` + `week_start`/`day_of_week`). Para evitar regressão, **crio tabelas novas com nomes diferentes** e deixo o sistema legado intocado.
 
-### Tabelas
-- **manager_feedback_cycles**: `year`, `quarter` (1-4), `closes_at`, `status` ('aberto','fechado','consolidado'). Unique `(year, quarter)`.
-- **manager_feedback_questions**: `code` unique, `question_text`, `ordem`, `scale_min`/`scale_max`, `active`. Seed das 5 perguntas (`feedback_util`, `justo`, `ouve`, `acolhe`, `ensina`).
-- **manager_feedback_responses**: `cycle_id`, `manager_user_id`, `respondent_hash` (text, gerado server-side), `question_id`, `score` (1-5), `comment`. Unique `(cycle_id, manager_user_id, respondent_hash, question_id)`.
+## 1. Schema (migração única)
 
-### Segredo + função de hash
-- Secret `MANAGER_FEEDBACK_SALT` (runtime) — usado pela função.
-- Função `public.compute_feedback_hash(_user_id uuid, _cycle_id uuid)` SECURITY DEFINER:
-  - `digest(salt || ':' || _user_id || ':' || _cycle_id, 'sha256')` em hex.
-  - Salt lido de tabela interna `app_secrets` populada via migration (acessível só por admin) OU via `current_setting('app.feedback_salt', true)`. **Decisão:** criar `app_secrets(key text pk, value text)` com RLS bloqueada (sem policies) — função SECURITY DEFINER lê direto.
-- Trigger BEFORE INSERT em `manager_feedback_responses` força `respondent_hash := compute_feedback_hash(auth.uid(), NEW.cycle_id)` (cliente NÃO controla).
+### Tabela `shifts` (novo nome para evitar colisão)
+- `id` uuid pk
+- `user_id` uuid → profiles.user_id ON DELETE CASCADE (NOT NULL)
+- `unit_id` uuid → units (NOT NULL)
+- `setor` text
+- `shift_date` date NOT NULL
+- `shift_start` time NOT NULL
+- `shift_end` time NOT NULL
+- `role_in_shift` text
+- `status` text CHECK ('agendado','realizado','falta','folga') DEFAULT 'agendado'
+- `notes` text
+- `created_by` uuid → profiles.user_id
+- `created_at`, `updated_at` timestamptz
+- Índices: `(unit_id, shift_date)`, `(user_id, shift_date DESC)`
 
-### View agregada
-- `v_manager_feedback_aggregated` com `security_invoker = true`:
-  - SELECT manager_user_id, cycle_id, question_id, avg(score), count(*), jsonb por bucket de score (1-5).
-  - Filtro `HAVING count(*) >= 3`.
+### Tabela `shift_swaps` (novo nome)
+- `id` uuid pk
+- `original_shift_id` uuid → shifts ON DELETE CASCADE
+- `requester_user_id` uuid → profiles.user_id
+- `swap_with_user_id` uuid → profiles.user_id (nullable)
+- `message` text
+- `status` text CHECK ('aberto','aceito','recusado','aprovado_gerente','cancelado') DEFAULT 'aberto'
+- `responded_at` timestamptz
+- `created_at` timestamptz
+- Índice: `(status)`
 
 ### RLS
-- **cycles**: SELECT autenticados; INSERT/UPDATE master/admin/supervisor.
-- **questions**: SELECT autenticados; INSERT/UPDATE master/admin.
-- **responses**:
-  - INSERT: cycle aberto AND `manager_user_id` é gerente (gerente_loja/gerente) da mesma unidade do `auth.uid()` AND respondente NÃO é o próprio manager.
-  - SELECT: bloqueado (sem policy) → ninguém lê linhas brutas. Apenas a view (que respeita RLS via security_invoker mas precisa de policy de SELECT na tabela). 
-  - **Ajuste:** policy SELECT só para master/admin (auditoria) + a view será `security_definer` para agregação anônima (alternativa). 
-  - **Decisão final:** view `security_invoker` + policy SELECT permitindo `master/admin/supervisor` e o próprio manager AGREGADO via função `get_manager_aggregated(...)` SECURITY DEFINER. Tabela continua bloqueada para todos exceto master.
-  - **Refinado:** policy SELECT apenas master/admin. Função SECURITY DEFINER `fn_manager_feedback_aggregated(_manager_id, _cycle_id)` retorna agregados (com `count >= 3`) e é chamada pelo gerente, supervisor e admin. View para admins.
 
-### Índices
-- `(cycle_id, manager_user_id)`, `(manager_user_id)`.
+**shifts**
+- SELECT: `user_id = auth.uid()` OR `is_unit_manager(auth.uid(), unit_id)` OR `has_role admin/master/supervisor`
+- INSERT/UPDATE/DELETE: `is_unit_manager(auth.uid(), unit_id)` OR admin
+
+**shift_swaps**
+- SELECT: requester OR swap_with OR gerente da unit do shift original
+- INSERT: `requester_user_id = auth.uid()` E é dono do `original_shift_id`
+- UPDATE: swap_with OR gerente da unit OR requester (pra cancelar)
+
+### Triggers (notificações via `notification_events`)
+- `tg_shift_swap_request_notify`: ao criar swap → notifica gerente da unit + colega proposto (`swap_with_user_id`).
+- `tg_shift_swap_status_notify`: ao mudar status → notifica requester.
+- `tg_set_updated_at` em shifts.
+
+### Lembrete 1h antes
+- Edge function `shifts-tick` (cron 5/5 min): seleciona shifts em `[now()+55min, now()+65min]` ainda sem flag `reminded_at`. Adiciono coluna `reminded_at timestamptz` em shifts. Insere notification_events tipo `shift_reminder`.
+- Cron via `pg_cron` + `pg_net` (insert tool, não migration).
 
 ## 2. Frontend
 
-### Hooks
-- `useActiveCycle()` — ciclo aberto atual.
-- `useFeedbackQuestions()` — perguntas ativas.
-- `useSubmitFeedback()` — batch insert de respostas.
-- `useMyManager()` — descobre gerente_loja da unidade do user.
-- `useManagerAggregated(managerId, cycleId)` — chama RPC.
-- `useFeedbackCycles()` / `useAdminCycles()` — admin.
+### Hooks novos
+- `useShifts(unitId, range)` — grid gerente
+- `useMyShifts(days=14)` — vista pessoal
+- `useShiftMutations()` — create/update/delete/move
+- `useShiftSwaps()` — listar/criar/responder
+- `useUnitTeam(unitId)` — colaboradores da unit (de profiles)
 
 ### Componentes
-- `FeedbackBanner` (global, no AppLayout) — banner durante ciclo aberto, esconde se já respondeu.
-- `FeedbackForm` — 5 perguntas com `RadioGroup` 1-5, comment opcional. Disclaimer de anonimato em destaque.
-- `ManagerScoreCard` — card por pergunta com média + barras de distribuição.
-- `TrendChart` — linha por pergunta ao longo dos ciclos (recharts).
-- `ManagerComparison` — tabela comparativa para admin.
+- `src/components/shifts/ShiftGrid.tsx` — grid colaboradores × dias com células coloridas por setor; drag-and-drop nativo HTML5; conflitos (overlap mesmo user) destacados em vermelho.
+- `src/components/shifts/CoverageChart.tsx` — barras por hora (recharts) embaixo do grid.
+- `src/components/shifts/NovoTurnoModal.tsx` — select user/data/horário/setor/role.
+- `src/components/shifts/SolicitarTrocaModal.tsx` — escolhe colega + msg.
+- `src/components/shifts/ShiftCell.tsx` — célula com cor por setor.
+- `src/components/shifts/MyShiftCard.tsx` — card de turno pessoal.
 
-### Páginas/Rotas
-- `/feedback-gerente` — formulário (colaborador/encarregado/lider_setor/fiscal).
-- `/meu-feedback` — dashboard pro gerente_loja (agregado próprio).
-- `/admin/feedback-gerentes` — comparativo (master/admin/supervisor).
-- `/admin/feedback-gerentes/ciclos` — CRUD ciclos+perguntas.
+### Páginas/rotas
+- `/escala` (gerente_loja, gerente_adm) — grid semanal/mensal por unidade, toggle semana/mês, seletor de unidade pra quem tem múltiplas, NovoTurnoModal, gráfico de cobertura.
+- `/minha-escala` (todos) — próximos 14 dias em lista + botão trocar.
+- `/escala/admin` (master/admin) — visão consolidada das 7 unidades (cards por unidade com mini-grid + KPIs: turnos/semana, cobertura média, swaps pendentes).
 
 ### Sidebar
-- "Feedback ao gerente" pra elegíveis.
-- "Meu feedback" pra gerentes_loja.
-- Item admin pra master/admin/supervisor.
+- "Escala de turnos" → `/escala` (gerentes)
+- "Minha escala" → `/minha-escala` (todos)
+- "Escala (admin)" → `/escala/admin` (master/admin)
 
-## 3. Ética & anonimato
-- Hash NUNCA exposto ao cliente; gerado em trigger.
-- Disclaimer no formulário: "Seu gerente nunca verá quem respondeu. Apenas médias agregadas com mínimo de 3 respostas são exibidas."
-- View/RPC esconde resultados se `count < 3` ("aguardando mais respostas").
-- Comentários exibidos sem qualquer metadado (apenas texto, embaralhados aleatoriamente).
+Mantém o item legado **Escala da Semana** (`/escala-semana`) intacto.
+
+## 3. Detalhes técnicos
+
+- **Drag-and-drop**: HTML5 nativo (sem libs novas). Drop em outra célula chama mutation `update shift_date/user_id`.
+- **Conflitos**: cliente detecta overlap (`shift_start < other.end && shift_end > other.start` mesmo user/data) → borda vermelha + tooltip.
+- **Cobertura**: agrupa por unit+date, conta usuários ativos hora a hora (0-23) → BarChart.
+- **Push**:
+  - Lembrete 1h antes: edge function `shifts-tick` + cron 5min.
+  - Swap pedido → trigger insere notification_events pra gerente + colega.
+  - Swap respondido → trigger insere pra requester.
+- **Edge function** `shifts-tick`:
+  - `verify_jwt = false` em config.toml
+  - service_role client, busca shifts em janela, marca `reminded_at`, insere notifications.
 
 ## 4. Arquivos tocados
 
 **Criados:**
-- `supabase/migrations/<ts>_manager_feedback.sql`
-- `src/hooks/useManagerFeedback.ts`
-- `src/components/feedback/FeedbackBanner.tsx`
-- `src/components/feedback/FeedbackForm.tsx`
-- `src/components/feedback/ManagerScoreCard.tsx`
-- `src/components/feedback/FeedbackTrendChart.tsx`
-- `src/pages/FeedbackGerentePage.tsx`
-- `src/pages/MeuFeedbackPage.tsx`
-- `src/pages/AdminFeedbackGerentesPage.tsx`
-- `src/pages/AdminFeedbackCiclosPage.tsx`
+- `supabase/migrations/<ts>_shifts_visual.sql`
+- `supabase/functions/shifts-tick/index.ts`
+- `src/hooks/useShifts.ts`
+- `src/hooks/useMyShifts.ts`
+- `src/hooks/useShiftSwaps.ts`
+- `src/hooks/useUnitTeam.ts`
+- `src/components/shifts/ShiftGrid.tsx`
+- `src/components/shifts/ShiftCell.tsx`
+- `src/components/shifts/CoverageChart.tsx`
+- `src/components/shifts/NovoTurnoModal.tsx`
+- `src/components/shifts/SolicitarTrocaModal.tsx`
+- `src/components/shifts/MyShiftCard.tsx`
+- `src/pages/EscalaPage.tsx`
+- `src/pages/MinhaEscalaPage.tsx`
+- `src/pages/EscalaAdminPage.tsx`
 
 **Editados:**
-- `src/App.tsx` (rotas)
-- `src/components/AppSidebar.tsx`
-- `src/components/AppLayout.tsx` (banner global)
+- `src/App.tsx` (3 rotas novas)
+- `src/components/AppSidebar.tsx` (3 itens)
+- `supabase/config.toml` (verify_jwt shifts-tick)
 - `src/integrations/supabase/types.ts` (auto)
 
-## 5. Secret necessário
-Vou pedir o secret **MANAGER_FEEDBACK_SALT** (string aleatória forte) **antes** de rodar a migration, pra inserir no `app_secrets`.
+## 5. Reversibilidade
+
+Migração única em transação. Rollback = `DROP TABLE shifts CASCADE; DROP TABLE shift_swaps CASCADE; DROP FUNCTION ...;` + remover cron job + reverter arquivos. Zero impacto em `work_schedules`/`shift_assignments`/`shift_swap_requests`/`attendance_records` legados.
 
 Aprova pra executar?

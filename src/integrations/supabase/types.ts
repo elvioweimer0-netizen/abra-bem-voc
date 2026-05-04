@@ -4362,6 +4362,120 @@ export type Database = {
           },
         ]
       }
+      shift_swaps: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          original_shift_id: string
+          requester_user_id: string
+          responded_at: string | null
+          status: string
+          swap_with_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          original_shift_id: string
+          requester_user_id: string
+          responded_at?: string | null
+          status?: string
+          swap_with_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          original_shift_id?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          status?: string
+          swap_with_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swaps_original_shift_id_fkey"
+            columns: ["original_shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shifts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          reminded_at: string | null
+          role_in_shift: string | null
+          setor: string | null
+          shift_date: string
+          shift_end: string
+          shift_start: string
+          status: string
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          reminded_at?: string | null
+          role_in_shift?: string | null
+          setor?: string | null
+          shift_date: string
+          shift_end: string
+          shift_start: string
+          status?: string
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          reminded_at?: string | null
+          role_in_shift?: string | null
+          setor?: string | null
+          shift_date?: string
+          shift_end?: string
+          shift_start?: string
+          status?: string
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shifts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "shifts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       stories: {
         Row: {
           author_user_id: string
