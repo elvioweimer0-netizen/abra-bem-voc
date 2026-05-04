@@ -1486,6 +1486,93 @@ export type Database = {
           },
         ]
       }
+      customer_complaints: {
+        Row: {
+          action_taken: string | null
+          category: string
+          created_at: string
+          customer_contact: string | null
+          description: string
+          id: string
+          registered_by_user_id: string | null
+          resolved_at: string | null
+          resolved_by_user_id: string | null
+          setor: string | null
+          severity: string
+          status: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_taken?: string | null
+          category: string
+          created_at?: string
+          customer_contact?: string | null
+          description: string
+          id?: string
+          registered_by_user_id?: string | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          setor?: string | null
+          severity: string
+          status?: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string | null
+          category?: string
+          created_at?: string
+          customer_contact?: string | null
+          description?: string
+          id?: string
+          registered_by_user_id?: string | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          setor?: string | null
+          severity?: string
+          status?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_complaints_registered_by_user_id_fkey"
+            columns: ["registered_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_complaints_resolved_by_user_id_fkey"
+            columns: ["resolved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_complaints_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_complaints_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "customer_complaints_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       daily_huddle_reports: {
         Row: {
           agenda_used: boolean
@@ -5643,6 +5730,7 @@ export type Database = {
           mood_baixo_count: number | null
           total_advertencias: number | null
           total_checklist_atrasados: number | null
+          total_complaints: number | null
           total_faltas_setor: number | null
           total_ocorrencias: number | null
           total_suspensoes: number | null
@@ -5786,6 +5874,7 @@ export type Database = {
           mood_baixo_count: number
           total_advertencias: number
           total_checklist_atrasados: number
+          total_complaints: number
           total_faltas_setor: number
           total_ocorrencias: number
           total_suspensoes: number
