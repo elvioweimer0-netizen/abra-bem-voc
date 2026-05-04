@@ -410,6 +410,10 @@ function ProtectedRoutes() {
         <Route path="/chat/:id" element={<Chat />} />
         <Route path="/vendas" element={<VendasAccess><VendasPage /></VendasAccess>} />
         <Route path="/admin/metas" element={<MetasAdminAccess><AdminMetasPage /></MetasAdminAccess>} />
+        <Route path="/bem-estar" element={<BemEstarPage />} />
+        <Route path="/bem-estar/recursos" element={<BemEstarRecursosPage />} />
+        <Route path="/admin/bem-estar" element={<WellbeingAdminAccess><AdminBemEstarPage /></WellbeingAdminAccess>} />
+        <Route path="/admin/bem-estar/criticos" element={<WellbeingCriticalAccess><AdminBemEstarCriticosPage /></WellbeingCriticalAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
