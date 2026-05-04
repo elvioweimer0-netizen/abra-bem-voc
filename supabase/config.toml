@@ -49,3 +49,6 @@ verify_jwt = false
 
 [functions.coverage-tick]
 verify_jwt = false
+
+[functions.missing-products-weekly]
+verify_jwt = false

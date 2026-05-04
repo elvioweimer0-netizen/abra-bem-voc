@@ -3251,6 +3251,129 @@ export type Database = {
           },
         ]
       }
+      missing_product_requests: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          customer_count: number
+          id: string
+          notes: string | null
+          priority_score: number
+          product_name: string
+          registered_by_user_id: string | null
+          status: string
+          status_changed_at: string | null
+          status_changed_by: string | null
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          customer_count?: number
+          id?: string
+          notes?: string | null
+          priority_score?: number
+          product_name: string
+          registered_by_user_id?: string | null
+          status?: string
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          customer_count?: number
+          id?: string
+          notes?: string | null
+          priority_score?: number
+          product_name?: string
+          registered_by_user_id?: string | null
+          status?: string
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missing_product_requests_registered_by_user_id_fkey"
+            columns: ["registered_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missing_product_requests_status_changed_by_fkey"
+            columns: ["status_changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missing_product_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missing_product_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "missing_product_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
+      missing_product_upvotes: {
+        Row: {
+          id: string
+          request_id: string
+          upvoted_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          request_id: string
+          upvoted_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          request_id?: string
+          upvoted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missing_product_upvotes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "missing_product_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missing_product_upvotes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       noticias: {
         Row: {
           conteudo: string
@@ -5906,6 +6029,18 @@ export type Database = {
         Args: { _payload: Json; _type: string }
         Returns: string
       }
+      fn_search_missing_products: {
+        Args: { _limit?: number; _query: string }
+        Returns: {
+          brand: string
+          category: string
+          customer_count: number
+          id: string
+          product_name: string
+          similarity: number
+          status: string
+        }[]
+      }
       fn_user_already_answered_cycle: {
         Args: { _cycle_id: string }
         Returns: boolean
@@ -5978,6 +6113,8 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       submit_quiz: {
         Args: { _answers: Json; _module_id: string }
         Returns: Json

@@ -35,6 +35,7 @@ import {
   Tv,
   HandHelping,
   MessageCircleWarning,
+  PackageSearch,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
@@ -251,6 +252,8 @@ export function AppSidebar() {
         ...(isColaborador ? [] : [{ title: "Ocorrências", url: "/ocorrencias", icon: FileQuestion }]),
         ...(isLider ? [{ title: "Reclamações de cliente", url: "/reclamacoes", icon: MessageCircleWarning }] : []),
         ...(isAdmin || isSupervisor ? [{ title: "Reclamações (admin)", url: "/admin/reclamacoes", icon: MessageCircleWarning }] : []),
+        { title: "Produtos faltando", url: "/produtos-faltando", icon: PackageSearch },
+        ...(isAdmin || isSupervisor || isGerenteAdm ? [{ title: "Compras (faltando)", url: "/admin/produtos-faltando", icon: PackageSearch }] : []),
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },

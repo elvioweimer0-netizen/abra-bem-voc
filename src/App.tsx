@@ -53,6 +53,8 @@ import ReposicaoPage from "@/pages/ReposicaoPage";
 import MinhasCoberturasPage from "@/pages/MinhasCoberturasPage";
 import ReclamacoesPage from "@/pages/ReclamacoesPage";
 import AdminReclamacoesPage from "@/pages/AdminReclamacoesPage";
+import ProdutosFaltandoPage from "@/pages/ProdutosFaltandoPage";
+import AdminProdutosFaltandoPage from "@/pages/AdminProdutosFaltandoPage";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
@@ -154,6 +156,13 @@ function ChurnAccess({ children }: { children: ReactNode }) {
   const isRh = useIsRhAdmin();
   const allowed = isRh || ["master", "admin", "supervisor", "gerente_loja"].includes(cargo);
   if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function BuyerAccess({ children }: { children: ReactNode }) {
+  const { isAdmin, isSupervisor, isGerenteAdm, cargo } = useRole();
+  const allowed = isAdmin || isSupervisor || isGerenteAdm || cargo === "master";
+  if (!allowed) return <Navigate to="/produtos-faltando" replace />;
   return <>{children}</>;
 }
 
@@ -278,6 +287,8 @@ function ProtectedRoutes() {
         <Route path="/minhas-coberturas" element={<MinhasCoberturasPage />} />
         <Route path="/reclamacoes" element={<LeaderOnly><ReclamacoesPage /></LeaderOnly>} />
         <Route path="/admin/reclamacoes" element={<AdminOnly><AdminReclamacoesPage /></AdminOnly>} />
+        <Route path="/produtos-faltando" element={<ProdutosFaltandoPage />} />
+        <Route path="/admin/produtos-faltando" element={<BuyerAccess><AdminProdutosFaltandoPage /></BuyerAccess>} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
