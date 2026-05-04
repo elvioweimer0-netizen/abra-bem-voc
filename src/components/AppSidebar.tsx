@@ -33,6 +33,7 @@ import {
   Sunrise,
   Target,
   Tv,
+  HandHelping,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
