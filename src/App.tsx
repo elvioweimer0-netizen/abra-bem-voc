@@ -124,6 +124,10 @@ import RiscoChurnDetalhe from "@/pages/RiscoChurnDetalhe";
 import Chat from "@/pages/Chat";
 import VendasPage from "@/pages/VendasPage";
 import AdminMetasPage from "@/pages/AdminMetasPage";
+import BemEstarPage from "@/pages/BemEstarPage";
+import BemEstarRecursosPage from "@/pages/BemEstarRecursosPage";
+import AdminBemEstarPage from "@/pages/AdminBemEstarPage";
+import AdminBemEstarCriticosPage from "@/pages/AdminBemEstarCriticosPage";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
@@ -237,6 +241,22 @@ function VendasAccess({ children }: { children: ReactNode }) {
 function MetasAdminAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const allowed = ["admin", "master", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function WellbeingAdminAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const isRh = useIsRhAdmin();
+  const allowed = isRh || ["admin", "master", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function WellbeingCriticalAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const isRh = useIsRhAdmin();
+  const allowed = isRh || ["admin", "master"].includes(cargo);
   if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
@@ -390,6 +410,10 @@ function ProtectedRoutes() {
         <Route path="/chat/:id" element={<Chat />} />
         <Route path="/vendas" element={<VendasAccess><VendasPage /></VendasAccess>} />
         <Route path="/admin/metas" element={<MetasAdminAccess><AdminMetasPage /></MetasAdminAccess>} />
+        <Route path="/bem-estar" element={<BemEstarPage />} />
+        <Route path="/bem-estar/recursos" element={<BemEstarRecursosPage />} />
+        <Route path="/admin/bem-estar" element={<WellbeingAdminAccess><AdminBemEstarPage /></WellbeingAdminAccess>} />
+        <Route path="/admin/bem-estar/criticos" element={<WellbeingCriticalAccess><AdminBemEstarCriticosPage /></WellbeingCriticalAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

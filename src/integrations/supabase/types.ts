@@ -5864,6 +5864,103 @@ export type Database = {
           },
         ]
       }
+      wellbeing_checkins: {
+        Row: {
+          checkin_date: string
+          composite_score: number
+          created_at: string
+          id: string
+          notes: string | null
+          responses: Json
+          risk_level: string
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          checkin_date?: string
+          composite_score?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          responses: Json
+          risk_level?: string
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          composite_score?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          responses?: Json
+          risk_level?: string
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellbeing_checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wellbeing_checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wellbeing_checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      wellbeing_questions: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          dimension: string
+          id: string
+          ordem: number
+          question_text: string
+          reverse_scoring: boolean
+          scale_max: number
+          scale_min: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          dimension: string
+          id?: string
+          ordem?: number
+          question_text: string
+          reverse_scoring?: boolean
+          scale_max?: number
+          scale_min?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          dimension?: string
+          id?: string
+          ordem?: number
+          question_text?: string
+          reverse_scoring?: boolean
+          scale_max?: number
+          scale_min?: number
+        }
+        Relationships: []
+      }
       whatsapp_summaries: {
         Row: {
           created_at: string
@@ -6202,6 +6299,19 @@ export type Database = {
         }
         Relationships: []
       }
+      v_wellbeing_aggregated: {
+        Row: {
+          avg_composite_score: number | null
+          count_responses: number | null
+          month: string | null
+          pct_alerta: number | null
+          pct_atencao: number | null
+          pct_critico: number | null
+          pct_ok: number | null
+          unit_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_create_praise: {
@@ -6286,6 +6396,7 @@ export type Database = {
           comment: string
         }[]
       }
+      fn_my_checkin_done_this_month: { Args: never; Returns: boolean }
       fn_my_day_overview: { Args: never; Returns: Json }
       fn_notification_grouping_key: {
         Args: { _payload: Json; _type: string }
@@ -6325,6 +6436,28 @@ export type Database = {
       fn_user_already_answered_cycle: {
         Args: { _cycle_id: string }
         Returns: boolean
+      }
+      fn_wellbeing_aggregated: {
+        Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: {
+          avg_composite_score: number
+          count_responses: number
+          month: string
+          pct_alerta: number
+          pct_atencao: number
+          pct_critico: number
+          pct_ok: number
+          unit_id: string
+        }[]
+      }
+      fn_wellbeing_critical_alerts: {
+        Args: never
+        Returns: {
+          created_at: string
+          risk_level: string
+          unit_id: string
+          user_hash: string
+        }[]
       }
       get_user_departamento: {
         Args: { _user_id: string }
@@ -6408,6 +6541,7 @@ export type Database = {
         Args: { _unit_id: string; _user_id: string }
         Returns: boolean
       }
+      wellbeing_hash_user: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       advertencia_tipo: "verbal" | "escrita"
