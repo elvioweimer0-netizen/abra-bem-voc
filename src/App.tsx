@@ -122,6 +122,8 @@ import WhatsappResumoHistorico from "@/pages/WhatsappResumoHistorico";
 import AdminRiscoChurn from "@/pages/AdminRiscoChurn";
 import RiscoChurnDetalhe from "@/pages/RiscoChurnDetalhe";
 import Chat from "@/pages/Chat";
+import VendasPage from "@/pages/VendasPage";
+import AdminMetasPage from "@/pages/AdminMetasPage";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
@@ -221,6 +223,20 @@ function MyScoreAccess({ children }: { children: ReactNode }) {
 function ScoresRankingAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const allowed = ["master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function VendasAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["gerente_loja", "gerente", "supervisor", "admin", "master"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function MetasAdminAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["admin", "master", "supervisor"].includes(cargo);
   if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
@@ -372,6 +388,8 @@ function ProtectedRoutes() {
         <Route path="/risco-churn/:userId" element={<ChurnAccess><RiscoChurnDetalhe /></ChurnAccess>} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/chat/:id" element={<Chat />} />
+        <Route path="/vendas" element={<VendasAccess><VendasPage /></VendasAccess>} />
+        <Route path="/admin/metas" element={<MetasAdminAccess><AdminMetasPage /></MetasAdminAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
