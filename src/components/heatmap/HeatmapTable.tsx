@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHeatmap, type HeatmapPeriod, type HeatmapRow } from "@/hooks/useHeatmap";
+import { useSafetyHeatmap } from "@/hooks/useSafetyIncidents";
 import { HeatmapCell } from "./HeatmapCell";
 import { HeatmapDetailDrawer } from "./HeatmapDetailDrawer";
 
@@ -22,8 +23,11 @@ const INDICATORS: IndicatorDef[] = [
   { key: "complaints", label: "Reclamações de cliente", field: "total_complaints", thresholds: [0, 3] },
 ];
 
+const SAFETY_THRESHOLDS: [number, number] = [0, 2];
+
 export function HeatmapTable({ period }: { period: HeatmapPeriod }) {
   const { data, isLoading } = useHeatmap(period);
+  const { data: safetyMap } = useSafetyHeatmap();
   const [drawer, setDrawer] = useState<null | {
     indicatorKey: string;
     indicatorLabel: string;
@@ -85,6 +89,32 @@ export function HeatmapTable({ period }: { period: HeatmapPeriod }) {
                 })}
               </tr>
             ))}
+            <tr>
+              <td className="text-sm font-medium text-foreground p-2 sticky left-0 bg-background z-10">
+                Incidentes de segurança
+              </td>
+              {data.map((u) => {
+                const value = Number(safetyMap?.get(u.unit_id) ?? 0);
+                return (
+                  <td key={u.unit_id} className="p-1 align-top">
+                    <HeatmapCell
+                      value={value}
+                      thresholds={SAFETY_THRESHOLDS}
+                      onClick={() =>
+                        setDrawer({
+                          indicatorKey: "safety",
+                          indicatorLabel: "Incidentes de segurança",
+                          unitId: u.unit_id,
+                          unitCode: (u as any).unit?.code ?? "",
+                          unitName: (u as any).unit?.name ?? "—",
+                          value,
+                        })
+                      }
+                    />
+                  </td>
+                );
+              })}
+            </tr>
           </tbody>
         </table>
       </div>
