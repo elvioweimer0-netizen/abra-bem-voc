@@ -190,6 +190,8 @@ export function AppSidebar() {
       { title: "Feedback ao gerente", url: "/feedback-gerente", icon: MessageSquare },
       { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
       { title: "Minhas coberturas", url: "/minhas-coberturas", icon: HandHelping },
+      { title: "Bem-estar", url: "/bem-estar", icon: Heart },
+      { title: "Canais de apoio", url: "/bem-estar/recursos", icon: HeartPulse },
     ];
     return (
       <Sidebar collapsible="offcanvas" className="border-r-0">
@@ -237,6 +239,8 @@ export function AppSidebar() {
     { title: "Mentoria", url: "/mentoria", icon: Users },
     { title: "Enquetes", url: "/polls", icon: CheckSquare },
     { title: "Meu feedback", url: "/meu-feedback", icon: MessageSquare },
+    { title: "Bem-estar", url: "/bem-estar", icon: Heart },
+    { title: "Canais de apoio", url: "/bem-estar/recursos", icon: HeartPulse },
   ];
 
   const operacao: MenuItem[] = isCentralAdm
