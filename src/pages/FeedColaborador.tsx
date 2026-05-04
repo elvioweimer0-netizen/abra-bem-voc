@@ -63,6 +63,8 @@ export default function FeedColaborador() {
       </div>
       <StoriesBar />
 
+      <ComplaintTriggerButton />
+
       <AvisosBanner />
 
       <AniversariantesWidget />
