@@ -37,6 +37,7 @@ import {
   MessageCircleWarning,
   PackageSearch,
   UserSearch,
+  ShieldAlert,
 } from "lucide-react";
 import { useClimateAccess } from "@/hooks/useClimateAccess";
 import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
@@ -266,6 +267,7 @@ export function AppSidebar() {
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },
         { title: isAdmin || isSupervisor ? "Unidades" : "Minha Unidade", url: isAdmin || isSupervisor ? "/unidades" : unitHomeUrl, icon: Building },
         ...(["gerente_loja", "gerente", "supervisor", "admin", "master"].includes(cargo) ? [{ title: "Vendas / Meta da Loja", url: "/vendas", icon: Target }] : []),
+        ...((isRhAdmin || ["gerente_loja", "supervisor", "admin", "master"].includes(cargo)) ? [{ title: "Segurança", url: "/seguranca", icon: ShieldAlert }] : []),
       ];
 
   const gestao: MenuItem[] = [
@@ -307,6 +309,7 @@ export function AppSidebar() {
     ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
     ...(isAdmin ? [{ title: "Dimensões do Score", url: "/admin/score-dimensions", icon: Gauge }] : []),
     ...((isAdmin || isSupervisor) ? [{ title: "TVs", url: "/admin/tv-displays", icon: Tv }] : []),
+    ...((isRhAdmin || ["master", "admin", "supervisor", "gerente_adm"].includes(cargo)) ? [{ title: "Segurança · Rede", url: "/admin/seguranca", icon: ShieldAlert }] : []),
   ];
 
   const climaItems: MenuItem[] = canViewClima
