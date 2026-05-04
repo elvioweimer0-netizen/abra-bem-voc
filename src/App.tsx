@@ -53,6 +53,8 @@ import ReposicaoPage from "@/pages/ReposicaoPage";
 import MinhasCoberturasPage from "@/pages/MinhasCoberturasPage";
 import ReclamacoesPage from "@/pages/ReclamacoesPage";
 import AdminReclamacoesPage from "@/pages/AdminReclamacoesPage";
+import ProdutosFaltandoPage from "@/pages/ProdutosFaltandoPage";
+import AdminProdutosFaltandoPage from "@/pages/AdminProdutosFaltandoPage";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
