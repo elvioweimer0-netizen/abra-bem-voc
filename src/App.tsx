@@ -245,6 +245,22 @@ function MetasAdminAccess({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function WellbeingAdminAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const isRh = useIsRhAdmin();
+  const allowed = isRh || ["admin", "master", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function WellbeingCriticalAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const isRh = useIsRhAdmin();
+  const allowed = isRh || ["admin", "master"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
