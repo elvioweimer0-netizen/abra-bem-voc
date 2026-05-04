@@ -261,6 +261,7 @@ export function AppSidebar() {
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
         { title: "Tarefas", url: "/agenda", icon: CheckSquare },
         { title: isAdmin || isSupervisor ? "Unidades" : "Minha Unidade", url: isAdmin || isSupervisor ? "/unidades" : unitHomeUrl, icon: Building },
+        ...(["gerente_loja", "gerente", "supervisor", "admin", "master"].includes(cargo) ? [{ title: "Vendas / Meta da Loja", url: "/vendas", icon: Target }] : []),
       ];
 
   const gestao: MenuItem[] = [
@@ -291,6 +292,7 @@ export function AppSidebar() {
     : [];
 
   const adminTreinamento: MenuItem[] = [
+    ...((isAdmin || isSupervisor) ? [{ title: "Metas de Vendas", url: "/admin/metas", icon: Target }] : []),
     ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
