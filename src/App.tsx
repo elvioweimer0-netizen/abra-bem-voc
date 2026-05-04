@@ -51,6 +51,8 @@ import MinhaEscalaPage from "@/pages/MinhaEscalaPage";
 import EscalaAdminPage from "@/pages/EscalaAdminPage";
 import ReposicaoPage from "@/pages/ReposicaoPage";
 import MinhasCoberturasPage from "@/pages/MinhasCoberturasPage";
+import ReclamacoesPage from "@/pages/ReclamacoesPage";
+import AdminReclamacoesPage from "@/pages/AdminReclamacoesPage";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
