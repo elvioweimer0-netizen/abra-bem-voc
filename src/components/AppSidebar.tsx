@@ -298,6 +298,8 @@ export function AppSidebar() {
   const adminTreinamento: MenuItem[] = [
     ...((isAdmin || isSupervisor) ? [{ title: "Metas de Vendas", url: "/admin/metas", icon: Target }] : []),
     ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
+    ...((isRhAdmin || isAdmin || isSupervisor) ? [{ title: "Bem-estar", url: "/admin/bem-estar", icon: Heart }] : []),
+    ...((isRhAdmin || isAdmin) ? [{ title: "Bem-estar · críticos", url: "/admin/bem-estar/criticos", icon: HeartPulse }] : []),
     ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
     ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
     ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
