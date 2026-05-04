@@ -1,125 +1,157 @@
+# Plano: REPOSIÇÃO ENTRE LOJAS (cobertura emergencial)
 
-# Plano: Escala de Turnos Visual
+Objetivo: permitir que gerentes de loja solicitem cobertura emergencial e que colaboradores de outras unidades (que se voluntariaram) recebam convites e aceitem turnos.
 
-Conflito detectado: já existem `work_schedules` + `shift_assignments` + `shift_swap_requests` em uso por `EscalaSemana.tsx` e `attendance_records` (modelo `team_members` + `week_start`/`day_of_week`). Para evitar regressão, **crio tabelas novas com nomes diferentes** e deixo o sistema legado intocado.
+---
 
-## 1. Schema (migração única)
+## 1. Schema SQL (migration única)
 
-### Tabela `shifts` (novo nome para evitar colisão)
-- `id` uuid pk
-- `user_id` uuid → profiles.user_id ON DELETE CASCADE (NOT NULL)
-- `unit_id` uuid → units (NOT NULL)
-- `setor` text
-- `shift_date` date NOT NULL
-- `shift_start` time NOT NULL
-- `shift_end` time NOT NULL
-- `role_in_shift` text
-- `status` text CHECK ('agendado','realizado','falta','folga') DEFAULT 'agendado'
-- `notes` text
-- `created_by` uuid → profiles.user_id
-- `created_at`, `updated_at` timestamptz
-- Índices: `(unit_id, shift_date)`, `(user_id, shift_date DESC)`
+### Alterações em `profiles`
+- `available_for_coverage boolean not null default false`
+- `coverage_dates daterange[] null` — janelas de datas em que o colaborador topa ser convidado.
 
-### Tabela `shift_swaps` (novo nome)
-- `id` uuid pk
-- `original_shift_id` uuid → shifts ON DELETE CASCADE
-- `requester_user_id` uuid → profiles.user_id
-- `swap_with_user_id` uuid → profiles.user_id (nullable)
-- `message` text
-- `status` text CHECK ('aberto','aceito','recusado','aprovado_gerente','cancelado') DEFAULT 'aberto'
-- `responded_at` timestamptz
-- `created_at` timestamptz
-- Índice: `(status)`
+### Nova tabela `coverage_requests`
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | uuid pk | gen_random_uuid() |
+| requester_gerente_id | uuid fk profiles(id) | gerente solicitante |
+| requester_unit_id | uuid fk units(id) | loja que precisa |
+| target_date | date not null | |
+| target_shift_start | time not null | |
+| target_shift_end | time not null | |
+| setor | text | |
+| urgency | text check in ('alta','média','baixa') | |
+| accepted_by_user_id | uuid fk profiles(id) null | |
+| status | text check in ('aberto','aceito','recusado','cancelado','concluido') default 'aberto' | |
+| message | text | |
+| created_at | timestamptz default now() | |
+| updated_at | timestamptz default now() | trigger |
 
-### RLS
+### Nova tabela `coverage_invites` (1 request → N convites)
+Necessária para rastrear quem foi convidado individualmente, push de aceite/recusa por convite, e evitar duplicatas.
+| Campo | Tipo |
+|---|---|
+| id | uuid pk |
+| request_id | uuid fk coverage_requests on delete cascade |
+| invitee_user_id | uuid fk profiles |
+| status | text check ('pendente','aceito','recusado','cancelado') default 'pendente' |
+| responded_at | timestamptz null |
+| created_at | timestamptz default now() |
+| unique(request_id, invitee_user_id) |
 
-**shifts**
-- SELECT: `user_id = auth.uid()` OR `is_unit_manager(auth.uid(), unit_id)` OR `has_role admin/master/supervisor`
-- INSERT/UPDATE/DELETE: `is_unit_manager(auth.uid(), unit_id)` OR admin
+Índices: `(invitee_user_id, status)`, `(request_id)`, `coverage_requests(status, target_date)`.
 
-**shift_swaps**
-- SELECT: requester OR swap_with OR gerente da unit do shift original
-- INSERT: `requester_user_id = auth.uid()` E é dono do `original_shift_id`
-- UPDATE: swap_with OR gerente da unit OR requester (pra cancelar)
+### Triggers
+- `tg_coverage_invite_notify` (AFTER INSERT em `coverage_invites`) → insere em `notification_events` (push para colaborador convidado).
+- `tg_coverage_invite_response_notify` (AFTER UPDATE de status) → push para gerente solicitante.
+- Quando invite vira `aceito`: atualiza `coverage_requests.status='aceito'` e `accepted_by_user_id`; cancela demais invites pendentes do mesmo request.
+- `tg_coverage_achievement` (AFTER UPDATE em coverage_requests para `concluido`): conta coberturas concluídas do `accepted_by_user_id`; se ≥3, insere badge "Salvador" em `user_achievements` (se já existir tabela) ou na estrutura de achievements vigente.
 
-### Triggers (notificações via `notification_events`)
-- `tg_shift_swap_request_notify`: ao criar swap → notifica gerente da unit + colega proposto (`swap_with_user_id`).
-- `tg_shift_swap_status_notify`: ao mudar status → notifica requester.
-- `tg_set_updated_at` em shifts.
+---
 
-### Lembrete 1h antes
-- Edge function `shifts-tick` (cron 5/5 min): seleciona shifts em `[now()+55min, now()+65min]` ainda sem flag `reminded_at`. Adiciono coluna `reminded_at timestamptz` em shifts. Insere notification_events tipo `shift_reminder`.
-- Cron via `pg_cron` + `pg_net` (insert tool, não migration).
+## 2. RLS
 
-## 2. Frontend
+### profiles
+- Não alterar políticas existentes. Apenas garantir que UPDATE próprio (já existente) permite tocar `available_for_coverage` e `coverage_dates`. Não criar novas policies se já há "users update own profile".
+
+### coverage_requests
+- **SELECT**: requester (`requester_gerente_id = auth.uid()`) OR usuários com `profiles.available_for_coverage = true` OR admins via `has_role`.
+- **INSERT**: usuários com role `gerente_loja` (via `has_role`), `requester_gerente_id = auth.uid()`.
+- **UPDATE**: `requester_gerente_id = auth.uid()` (cancelar/concluir) OR `accepted_by_user_id = auth.uid()`.
+- **DELETE**: somente requester com status='aberto'.
+
+### coverage_invites
+- **SELECT**: `invitee_user_id = auth.uid()` OR requester do request relacionado.
+- **INSERT**: requester do request (gerente_loja).
+- **UPDATE**: `invitee_user_id = auth.uid()` (aceitar/recusar) OR requester (cancelar).
+
+---
+
+## 3. Frontend
 
 ### Hooks novos
-- `useShifts(unitId, range)` — grid gerente
-- `useMyShifts(days=14)` — vista pessoal
-- `useShiftMutations()` — create/update/delete/move
-- `useShiftSwaps()` — listar/criar/responder
-- `useUnitTeam(unitId)` — colaboradores da unit (de profiles)
+- `useCoverageProfile()` — read/update `available_for_coverage` + `coverage_dates`.
+- `useCoverageRequests()` — list/create requests do gerente.
+- `useAvailableHelpers(date, shift)` — busca profiles com `available_for_coverage=true`, fora da unit do gerente, cujo `coverage_dates` cobre `date`.
+- `useMyCoverageInvites()` — convites recebidos pelo usuário logado.
+- `useInviteHelpers()` — mutation que cria N `coverage_invites`.
+- `useRespondInvite()` — aceitar/recusar.
 
-### Componentes
-- `src/components/shifts/ShiftGrid.tsx` — grid colaboradores × dias com células coloridas por setor; drag-and-drop nativo HTML5; conflitos (overlap mesmo user) destacados em vermelho.
-- `src/components/shifts/CoverageChart.tsx` — barras por hora (recharts) embaixo do grid.
-- `src/components/shifts/NovoTurnoModal.tsx` — select user/data/horário/setor/role.
-- `src/components/shifts/SolicitarTrocaModal.tsx` — escolhe colega + msg.
-- `src/components/shifts/ShiftCell.tsx` — célula com cor por setor.
-- `src/components/shifts/MyShiftCard.tsx` — card de turno pessoal.
+### Páginas/componentes
+- **Edit em `/perfil`**: bloco "Disponibilidade para cobertura" — toggle + multi-select de intervalos de datas (componente `CoverageAvailabilityEditor.tsx` usando date-range picker do shadcn).
+- **`/reposicao`** (gerente_loja): `ReposicaoPage.tsx`
+  - Formulário (`NovaCoberturaForm.tsx`): data, horário início/fim, setor, urgência, mensagem.
+  - Após submit/cria request: lista de candidatos em `HelperCandidateCard.tsx` (nome, unit, telefone/email, badge urgência). Botão "Convidar" → cria invite.
+  - Lista de requests anteriores do gerente com status.
+- **`/minhas-coberturas`** (todos os colaboradores): `MinhasCoberturasPage.tsx`
+  - Tabs: "Convites pendentes" | "Aceitas" | "Histórico".
+  - `InviteCard.tsx` com aceitar/recusar.
+- **Conquista "Salvador"**: badge desbloqueado server-side via trigger; UI exibe no perfil/conquistas existentes.
 
-### Páginas/rotas
-- `/escala` (gerente_loja, gerente_adm) — grid semanal/mensal por unidade, toggle semana/mês, seletor de unidade pra quem tem múltiplas, NovoTurnoModal, gráfico de cobertura.
-- `/minha-escala` (todos) — próximos 14 dias em lista + botão trocar.
-- `/escala/admin` (master/admin) — visão consolidada das 7 unidades (cards por unidade com mini-grid + KPIs: turnos/semana, cobertura média, swaps pendentes).
+### Rotas (`src/App.tsx`)
+- `/reposicao` → `ReposicaoPage` (gerente_loja, admin, master).
+- `/minhas-coberturas` → `MinhasCoberturasPage` (autenticado).
 
-### Sidebar
-- "Escala de turnos" → `/escala` (gerentes)
-- "Minha escala" → `/minha-escala` (todos)
-- "Escala (admin)" → `/escala/admin` (master/admin)
+### Sidebar (`AppSidebar.tsx`)
+- Link "Reposição" para gerente_loja+.
+- Link "Minhas coberturas" para todos.
 
-Mantém o item legado **Escala da Semana** (`/escala-semana`) intacto.
+---
 
-## 3. Detalhes técnicos
+## 4. Push notifications (via `notification_events` existente)
+- Convite criado → push ao colaborador convidado.
+- Invite aceito/recusado → push ao gerente requester.
+- Lembrete 2h antes do turno coberto: nova edge function **`coverage-tick`** (cron a cada 15min) varre `coverage_requests` com status `aceito`, `target_date+target_shift_start` entre agora+1h55 e agora+2h05, ainda não lembrados (campo `reminded_at timestamptz` em coverage_requests). Insere notification_events para `accepted_by_user_id`.
+- Cron registrado via `supabase--insert` (não migration) para não vazar URL/anon em remix.
 
-- **Drag-and-drop**: HTML5 nativo (sem libs novas). Drop em outra célula chama mutation `update shift_date/user_id`.
-- **Conflitos**: cliente detecta overlap (`shift_start < other.end && shift_end > other.start` mesmo user/data) → borda vermelha + tooltip.
-- **Cobertura**: agrupa por unit+date, conta usuários ativos hora a hora (0-23) → BarChart.
-- **Push**:
-  - Lembrete 1h antes: edge function `shifts-tick` + cron 5min.
-  - Swap pedido → trigger insere notification_events pra gerente + colega.
-  - Swap respondido → trigger insere pra requester.
-- **Edge function** `shifts-tick`:
-  - `verify_jwt = false` em config.toml
-  - service_role client, busca shifts em janela, marca `reminded_at`, insere notifications.
+---
 
-## 4. Arquivos tocados
+## 5. Conquista "Salvador"
+- Trigger conta `coverage_requests` com `accepted_by_user_id = X AND status='concluido'`.
+- Ao atingir 3, insere badge na estrutura de achievements existente. (Vou inspecionar tabela atual antes de migrar; se não existir tabela formal, crio `user_achievements(user_id, code, unlocked_at)` mínima; senão reaproveito.)
 
-**Criados:**
-- `supabase/migrations/<ts>_shifts_visual.sql`
-- `supabase/functions/shifts-tick/index.ts`
-- `src/hooks/useShifts.ts`
-- `src/hooks/useMyShifts.ts`
-- `src/hooks/useShiftSwaps.ts`
-- `src/hooks/useUnitTeam.ts`
-- `src/components/shifts/ShiftGrid.tsx`
-- `src/components/shifts/ShiftCell.tsx`
-- `src/components/shifts/CoverageChart.tsx`
-- `src/components/shifts/NovoTurnoModal.tsx`
-- `src/components/shifts/SolicitarTrocaModal.tsx`
-- `src/components/shifts/MyShiftCard.tsx`
-- `src/pages/EscalaPage.tsx`
-- `src/pages/MinhaEscalaPage.tsx`
-- `src/pages/EscalaAdminPage.tsx`
+---
+
+## 6. Arquivos tocados (previsão)
+
+**Migration:**
+- `supabase/migrations/<timestamp>_coverage_between_stores.sql`
+
+**Edge function:**
+- `supabase/functions/coverage-tick/index.ts`
+
+**Cron (via insert tool, não migration):** agendamento `coverage-tick-every-15min`.
+
+**Hooks (novos):**
+- `src/hooks/useCoverageProfile.ts`
+- `src/hooks/useCoverageRequests.ts`
+- `src/hooks/useAvailableHelpers.ts`
+- `src/hooks/useMyCoverageInvites.ts`
+
+**Componentes (novos):**
+- `src/components/coverage/CoverageAvailabilityEditor.tsx`
+- `src/components/coverage/NovaCoberturaForm.tsx`
+- `src/components/coverage/HelperCandidateCard.tsx`
+- `src/components/coverage/InviteCard.tsx`
+
+**Páginas (novas):**
+- `src/pages/ReposicaoPage.tsx`
+- `src/pages/MinhasCoberturasPage.tsx`
 
 **Editados:**
-- `src/App.tsx` (3 rotas novas)
-- `src/components/AppSidebar.tsx` (3 itens)
-- `supabase/config.toml` (verify_jwt shifts-tick)
-- `src/integrations/supabase/types.ts` (auto)
+- `src/App.tsx` (rotas)
+- `src/components/AppSidebar.tsx` (links)
+- `src/pages/<página de edição de perfil>` (encaixar `CoverageAvailabilityEditor`) — confirmar arquivo exato ao executar.
+- `supabase/config.toml` (registrar função `coverage-tick`)
+- `src/integrations/supabase/types.ts` (auto após migration)
+- `.lovable/plan.md`
 
-## 5. Reversibilidade
+---
 
-Migração única em transação. Rollback = `DROP TABLE shifts CASCADE; DROP TABLE shift_swaps CASCADE; DROP FUNCTION ...;` + remover cron job + reverter arquivos. Zero impacto em `work_schedules`/`shift_assignments`/`shift_swap_requests`/`attendance_records` legados.
+## 7. Riscos / decisões
+- **Conquista "Salvador"**: dependo de inspecionar a estrutura de achievements atual. Se não houver, crio tabela mínima `user_achievements` no mesmo migration.
+- **`daterange[]`**: arrays de range são suportados em Postgres; query de disponibilidade usará `EXISTS (SELECT 1 FROM unnest(coverage_dates) r WHERE target_date <@ r)`.
+- **Não mexer em RLS de outras tabelas** ✅ (apenas profiles UPDATE próprio já existe; não recrio).
+- **Único commit reversível**: tudo em uma migration + arquivos novos.
 
 Aprova pra executar?
