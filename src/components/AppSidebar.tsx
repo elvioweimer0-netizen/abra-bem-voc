@@ -185,6 +185,7 @@ export function AppSidebar() {
       { title: "Enquetes", url: "/polls", icon: CheckSquare },
       { title: "Feedback ao gerente", url: "/feedback-gerente", icon: MessageSquare },
       { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
+      { title: "Minhas coberturas", url: "/minhas-coberturas", icon: HandHelping },
     ];
     return (
       <Sidebar collapsible="offcanvas" className="border-r-0">
