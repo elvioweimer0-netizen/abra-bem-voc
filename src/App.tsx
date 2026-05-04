@@ -306,6 +306,9 @@ function ProtectedRoutes() {
         <Route path="/admin/reclamacoes" element={<AdminOnly><AdminReclamacoesPage /></AdminOnly>} />
         <Route path="/produtos-faltando" element={<ProdutosFaltandoPage />} />
         <Route path="/admin/produtos-faltando" element={<BuyerAccess><AdminProdutosFaltandoPage /></BuyerAccess>} />
+        <Route path="/cliente-misterioso" element={<MysteryAccess><MysteryVisitPage /></MysteryAccess>} />
+        <Route path="/cliente-misterioso/historico" element={<MysteryAccess><MysteryHistoricoPage /></MysteryAccess>} />
+        <Route path="/admin/cliente-misterioso" element={<MysteryAdminAccess><AdminMysteryPage /></MysteryAdminAccess>} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
