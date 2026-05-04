@@ -272,6 +272,8 @@ function ProtectedRoutes() {
         <Route path="/escala" element={<LeaderOnly><EscalaPage /></LeaderOnly>} />
         <Route path="/minha-escala" element={<MinhaEscalaPage />} />
         <Route path="/escala/admin" element={<AdminOnly><EscalaAdminPage /></AdminOnly>} />
+        <Route path="/reposicao" element={<LeaderOnly><ReposicaoPage /></LeaderOnly>} />
+        <Route path="/minhas-coberturas" element={<MinhasCoberturasPage />} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />
