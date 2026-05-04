@@ -4719,6 +4719,136 @@ export type Database = {
         }
         Relationships: []
       }
+      safety_incidents: {
+        Row: {
+          action_corrective: string | null
+          action_immediate: string | null
+          created_at: string
+          description: string
+          id: string
+          incident_type: string
+          location_in_store: string | null
+          occurred_at: string
+          people_involved: string | null
+          photos: Json
+          registered_by_user_id: string
+          resolved_at: string | null
+          resolved_by_user_id: string | null
+          root_cause: string | null
+          setor: string | null
+          severity: string
+          status: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_corrective?: string | null
+          action_immediate?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          incident_type: string
+          location_in_store?: string | null
+          occurred_at: string
+          people_involved?: string | null
+          photos?: Json
+          registered_by_user_id: string
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          root_cause?: string | null
+          setor?: string | null
+          severity: string
+          status?: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_corrective?: string | null
+          action_immediate?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          incident_type?: string
+          location_in_store?: string | null
+          occurred_at?: string
+          people_involved?: string | null
+          photos?: Json
+          registered_by_user_id?: string
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          root_cause?: string | null
+          setor?: string | null
+          severity?: string
+          status?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incidents_registered_by_user_id_fkey"
+            columns: ["registered_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_registered_by_user_id_fkey"
+            columns: ["registered_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_registered_by_user_id_fkey"
+            columns: ["registered_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_resolved_by_user_id_fkey"
+            columns: ["resolved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_resolved_by_user_id_fkey"
+            columns: ["resolved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_hoje"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_resolved_by_user_id_fkey"
+            columns: ["resolved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_aniversariantes_proximos_7d"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       sales_metrics: {
         Row: {
           created_at: string
@@ -6287,6 +6417,38 @@ export type Database = {
           },
         ]
       }
+      v_safety_incidents_heatmap: {
+        Row: {
+          month: string | null
+          near_miss_count: number | null
+          severe_count: number | null
+          total_incidents: number | null
+          unit_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incidents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       v_unit_checklist_progress: {
         Row: {
           data: string | null
@@ -6498,6 +6660,7 @@ export type Database = {
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
       is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
       is_rh_or_admin: { Args: { _uid: string }; Returns: boolean }
+      is_safety_viewer: { Args: { _uid: string }; Returns: boolean }
       is_unit_manager: {
         Args: { _unit_id: string; _user_id: string }
         Returns: boolean
