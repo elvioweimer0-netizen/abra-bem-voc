@@ -30,6 +30,7 @@ import { CartaCuriozinhoCard } from "@/components/curiozinho/CartaCuriozinhoCard
 import { IniciarMeuDiaCard } from "@/components/day-start/IniciarMeuDiaCard";
 import { ChurnAtencaoWidget } from "@/components/churn/ChurnAtencaoWidget";
 import { MonthlyCheckinBanner } from "@/components/wellbeing/MonthlyCheckinBanner";
+import { QuickReportButton } from "@/components/safety/QuickReportButton";
 import { useTodayPill } from "@/hooks/useCulturePills";
 
 export default function Dashboard() {
@@ -134,6 +135,9 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       <StoriesBar />
+      <div className="flex justify-end">
+        <QuickReportButton />
+      </div>
       <MonthlyCheckinBanner />
       <AvisosBanner />
       <AniversariantesWidget />
