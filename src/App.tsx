@@ -46,6 +46,9 @@ import MinhaEquipe from "@/pages/MinhaEquipe";
 import MinhasUnidades from "@/pages/MinhasUnidades";
 import MembroDetalhe from "@/pages/MembroDetalhe";
 import EscalaSemana from "@/pages/EscalaSemana";
+import EscalaPage from "@/pages/EscalaPage";
+import MinhaEscalaPage from "@/pages/MinhaEscalaPage";
+import EscalaAdminPage from "@/pages/EscalaAdminPage";
 import AvaliacoesEncarregados from "@/pages/AvaliacoesEncarregados";
 import Reconhecimentos from "@/pages/Reconhecimentos";
 import CentralAdmPlaceholder from "@/pages/CentralAdmPlaceholder";
@@ -264,6 +267,9 @@ function ProtectedRoutes() {
         <Route path="/meu-setor" element={<MinhaEquipe setorOnly />} />
         <Route path="/equipe/:id" element={<MembroDetalhe />} />
         <Route path="/escala-semana" element={<EscalaSemana />} />
+        <Route path="/escala" element={<LeaderOnly><EscalaPage /></LeaderOnly>} />
+        <Route path="/minha-escala" element={<MinhaEscalaPage />} />
+        <Route path="/escala/admin" element={<AdminOnly><EscalaAdminPage /></AdminOnly>} />
         <Route path="/avaliacoes" element={<AvaliacoesEncarregados />} />
         <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/central-adm/:slug" element={<CentralAdmPlaceholder />} />

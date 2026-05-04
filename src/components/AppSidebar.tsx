@@ -184,6 +184,7 @@ export function AppSidebar() {
       { title: "Mentoria", url: "/mentoria", icon: Users },
       { title: "Enquetes", url: "/polls", icon: CheckSquare },
       { title: "Feedback ao gerente", url: "/feedback-gerente", icon: MessageSquare },
+      { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
     ];
     return (
       <Sidebar collapsible="offcanvas" className="border-r-0">
@@ -239,6 +240,9 @@ export function AppSidebar() {
         { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
         ...(isColaborador ? [] : [{ title: isEncarregado && !isGerente ? "Meu Setor" : isSupervisor ? "Minhas Unidades" : "Minha Equipe", url: isSupervisor ? "/minhas-unidades" : isEncarregado && !isGerente ? "/meu-setor" : "/minha-equipe", icon: Users }]),
         { title: "Escala da Semana", url: "/escala-semana", icon: CalendarCheck },
+        { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
+        ...(isGerente || isAdmin ? [{ title: "Escala de turnos", url: "/escala", icon: CalendarClock }] : []),
+        ...(isAdmin ? [{ title: "Escala (admin)", url: "/escala/admin", icon: CalendarClock }] : []),
         ...(isColaborador ? [] : [{ title: "Ocorrências", url: "/ocorrencias", icon: FileQuestion }]),
         { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
         ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
