@@ -145,6 +145,14 @@ import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
+import { RegistrarProvider } from "@/components/nav/RegistrarModal";
+import { lazy, Suspense } from "react";
+const ComunicacaoHub = lazy(() => import("@/pages/hubs/ComunicacaoHub"));
+const MeuDiaHub = lazy(() => import("@/pages/hubs/MeuDiaHub"));
+const MinhaEquipeHub = lazy(() => import("@/pages/hubs/MinhaEquipeHub"));
+const MinhaLojaHub = lazy(() => import("@/pages/hubs/MinhaLojaHub"));
+const CulturaHub = lazy(() => import("@/pages/hubs/CulturaHub"));
+const HubFallback = () => <div className="container mx-auto p-6"><div className="h-64 animate-pulse rounded-xl bg-muted" /></div>;
 
 function LeaderOnly({ children }: { children: ReactNode }) {
   const { isLider } = useRole();
