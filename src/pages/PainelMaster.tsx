@@ -5,6 +5,7 @@ import { UnidadesGrid } from "@/components/master/UnidadesGrid";
 import { GerentesTabela } from "@/components/master/GerentesTabela";
 import { AlertasCriticosRede } from "@/components/master/AlertasCriticosRede";
 import { DecisoesPendentes } from "@/components/master/DecisoesPendentes";
+import { SolicitacoesQuadroPendentes } from "@/components/master/SolicitacoesQuadroPendentes";
 import { AcoesMaster } from "@/components/master/AcoesMaster";
 import { InsightsDaSemana } from "@/components/master/InsightsDaSemana";
 import { AgendaSemanaWidget } from "@/components/master/AgendaSemanaWidget";
