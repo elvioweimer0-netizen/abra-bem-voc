@@ -45,12 +45,12 @@ Deno.serve(async (req) => {
     let notified = 0;
     for (const a of admins ?? []) {
       try {
-        await supabase.from("notifications").insert({
-          user_id: a.user_id,
+        await supabase.from("notification_events").insert({
+          recipient_user_id: a.user_id,
           title: "Resumo diário da rede",
           body: message,
           type: "master_digest",
-          link: "/",
+          payload: { link: "/" },
         });
         notified++;
       } catch { /* ignore single failures */ }
