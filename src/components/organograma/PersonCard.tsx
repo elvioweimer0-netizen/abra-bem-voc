@@ -25,11 +25,16 @@ export function PersonCard({ person, compact = false }: { person: OrgPerson; com
     if (isLider && person.user_id) navigate(`/colaboradores/${person.user_id}`);
   };
 
+  const isAfastado = !!person.afastado_status;
+
   const card = (
     <div
       onClick={isLider ? handleClick : undefined}
-      className={`group inline-flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 shadow-sm transition hover:shadow-md ${isLider && person.user_id ? "cursor-pointer hover:border-primary/40" : ""} ${compact ? "min-w-[140px]" : "min-w-[170px]"}`}
+      className={`group relative inline-flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 shadow-sm transition hover:shadow-md ${isLider && person.user_id ? "cursor-pointer hover:border-primary/40" : ""} ${compact ? "min-w-[140px]" : "min-w-[170px]"}`}
     >
+      {isAfastado && (
+        <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-blue-500" title={`Afastado: ${person.afastado_status}`} />
+      )}
       <Avatar className={compact ? "h-10 w-10" : "h-14 w-14"}>
         {person.foto_url ? <AvatarImage src={person.foto_url} alt={person.nome} /> : null}
         <AvatarFallback className={colorFor(person.nome)}>{initials(person.nome)}</AvatarFallback>
@@ -38,7 +43,11 @@ export function PersonCard({ person, compact = false }: { person: OrgPerson; com
         <p className={`font-semibold leading-tight ${compact ? "text-xs" : "text-sm"}`}>{person.nome}</p>
         <div className="mt-1 flex flex-col items-center gap-1">
           <RoleBadge role={person.cargo} />
-          {setorLabel && <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{setorLabel}</span>}
+          {(person.cargo_text || setorLabel) && (
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground line-clamp-1">
+              {person.cargo_text ?? setorLabel}
+            </span>
+          )}
         </div>
       </div>
     </div>

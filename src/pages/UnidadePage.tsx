@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useUnitOrgData } from "@/hooks/useUnitOrgData";
 import { useAccessibleUnits } from "@/hooks/useAccessibleUnits";
-import { OrganogramaTree } from "@/components/organograma/OrganogramaTree";
+import { FullOrganogramaTree } from "@/components/organograma/FullOrganogramaTree";
 import { UnitKPIs } from "@/components/organograma/UnitKPIs";
 import { useRole } from "@/hooks/useRole";
 
@@ -16,7 +16,6 @@ export default function UnidadePage() {
 
   if (!id) return <Navigate to="/unidades" replace />;
 
-  // Guard: se não é admin/supervisor e a unidade não está nas acessíveis → bloquear
   if (accessible && !isAdmin && !isSupervisor) {
     const allowed = accessible.some((u) => u.id === id);
     if (!allowed) return <Navigate to="/unidades" replace />;
@@ -34,22 +33,15 @@ export default function UnidadePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="md:col-span-2 order-2 md:order-1">
-          <div className="rounded-xl border bg-card p-4 overflow-x-auto" style={{ touchAction: "pinch-zoom" }}>
-            {isLoading || !data ? (
-              <div className="h-64 animate-pulse rounded-lg bg-muted" />
-            ) : (
-              <div className="min-w-[800px]">
-                <OrganogramaTree data={data} />
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="order-1 md:order-2">
-          {data && <UnitKPIs data={data} />}
-        </div>
-      </div>
+      {/* Organograma — full width */}
+      {isLoading || !data ? (
+        <div className="h-64 animate-pulse rounded-xl bg-muted" />
+      ) : (
+        <FullOrganogramaTree data={data} />
+      )}
+
+      {/* KPIs — full width abaixo */}
+      {data && <UnitKPIs data={data} layout="grid" />}
     </div>
   );
 }

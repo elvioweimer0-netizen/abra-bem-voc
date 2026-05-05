@@ -9,7 +9,7 @@ function pct(n: number) {
   return `${Math.round(n)}%`;
 }
 
-export function UnitKPIs({ data }: { data: UnitOrgData }) {
+export function UnitKPIs({ data, layout = "stack" }: { data: UnitOrgData; layout?: "stack" | "grid" }) {
   const unit = data.unit;
   const kind = unit ? detectUnitKind(unit.code, unit.type) : "loja";
   const expectedSlots = unit ? getExpectedSlots(kind).length : 0;
@@ -71,14 +71,18 @@ export function UnitKPIs({ data }: { data: UnitOrgData }) {
     },
   });
 
+  const wrapperClass = layout === "grid"
+    ? "grid grid-cols-2 md:grid-cols-5 gap-3"
+    : "space-y-3";
+
   return (
-    <div className="space-y-3">
+    <div className={wrapperClass}>
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm"><Users className="h-4 w-4" />Pessoas</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">{totalPeople}<span className="text-sm font-normal text-muted-foreground"> / {expectedSlots} previstas</span></p>
+          <p className="text-2xl font-bold">{totalPeople}<span className="text-sm font-normal text-muted-foreground"> / {expectedSlots}</span></p>
         </CardContent>
       </Card>
 
@@ -91,20 +95,19 @@ export function UnitKPIs({ data }: { data: UnitOrgData }) {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-xs"><AlertTriangle className="h-3.5 w-3.5" />Advertências 30d</CardTitle>
-          </CardHeader>
-          <CardContent><p className="text-xl font-bold">{extras?.advs ?? 0}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-xs"><Ban className="h-3.5 w-3.5" />Suspensões 30d</CardTitle>
-          </CardHeader>
-          <CardContent><p className="text-xl font-bold">{extras?.susps ?? 0}</p></CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm"><AlertTriangle className="h-4 w-4" />Advertências 30d</CardTitle>
+        </CardHeader>
+        <CardContent><p className="text-2xl font-bold">{extras?.advs ?? 0}</p></CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm"><Ban className="h-4 w-4" />Suspensões 30d</CardTitle>
+        </CardHeader>
+        <CardContent><p className="text-2xl font-bold">{extras?.susps ?? 0}</p></CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-2">
@@ -114,7 +117,7 @@ export function UnitKPIs({ data }: { data: UnitOrgData }) {
           {extras?.lastVisit ? (
             <>
               <p className="text-sm font-semibold">{new Date(extras.lastVisit.date).toLocaleDateString("pt-BR")}</p>
-              <p className="text-xs text-muted-foreground">{extras.lastVisit.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{extras.lastVisit.name}</p>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">Sem registros</p>
@@ -124,3 +127,4 @@ export function UnitKPIs({ data }: { data: UnitOrgData }) {
     </div>
   );
 }
+
