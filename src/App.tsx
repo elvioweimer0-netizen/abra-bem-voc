@@ -336,8 +336,17 @@ function ProtectedRoutes() {
   return (
     <AppLayout>
       <AchievementUnlockListener />
+  return (
+    <AppLayout>
+      <AchievementUnlockListener />
+      <RegistrarProvider>
+      <Suspense fallback={<HubFallback />}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/comunicacao" element={<ComunicacaoHub />} />
+        <Route path="/meu-dia" element={<MeuDiaHub />} />
+        <Route path="/minha-loja" element={<MinhaLojaHub />} />
+        <Route path="/cultura-hub" element={<CulturaHub />} />
         <Route path="/colaboradores" element={<LeaderOnly><Colaboradores /></LeaderOnly>} />
         <Route path="/colaboradores/:id" element={<LeaderOnly><ColaboradorPerfil /></LeaderOnly>} />
         <Route path="/meu-perfil" element={<MeuPerfil />} />
