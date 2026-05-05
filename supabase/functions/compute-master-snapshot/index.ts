@@ -18,12 +18,12 @@ Deno.serve(async (req) => {
     const results: any[] = [];
 
     for (const u of units ?? []) {
-      const { data: sales } = await supabase
+      const { data: salesArr } = await supabase
         .from("sales_metrics")
         .select("revenue")
         .eq("unit_id", u.id)
-        .eq("date", yesterday)
-        .maybeSingle();
+        .eq("metric_date", yesterday);
+      const revenue = (salesArr ?? []).reduce((a: number, r: any) => a + Number(r.revenue || 0), 0);
 
       const { count: incidents } = await supabase
         .from("safety_incidents")
