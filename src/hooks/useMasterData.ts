@@ -142,12 +142,11 @@ export function useGerentesOverview() {
           : Promise.resolve({ data: [] }),
         userIds.length
           ? supabase
-              .from("manager_scores")
+              .from("manager_scores_monthly")
               .select("user_id,final_score,calculated_at")
               .in("user_id", userIds)
-              .gte("calculated_at", since)
               .order("calculated_at", { ascending: false })
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [] as any[] }),
       ]);
       const oneOnOnesList = (oneOnOnes.data as any[]) ?? [];
       const scoresList = (scoresRes.data as any[]) ?? [];
