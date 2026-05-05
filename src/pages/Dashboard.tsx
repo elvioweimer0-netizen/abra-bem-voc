@@ -113,8 +113,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 md:space-y-8">
       <HeaderHome />
-      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || isEncarregado || cargo === "gerente_loja") && <IniciarMeuDiaCard />}
-      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || cargo === "gerente_loja") && <CartaCuriozinhoCard />}
+      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || isEncarregado) && <IniciarMeuDiaCard />}
+      {(isAdmin || isSupervisor || isGerente || isGerenteAdm) && <CartaCuriozinhoCard />}
       <Card className="border-border card-shadow">
         <CardContent className="p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -148,8 +148,6 @@ export default function Dashboard() {
       <PlaybookSuggestionWidget />
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
-      {cargo === "gerente_loja" && <NovosNoTimeWidget />}
-      {cargo === "gerente_loja" && <ChurnAtencaoWidget />}
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 
