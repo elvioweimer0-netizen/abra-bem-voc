@@ -44,6 +44,8 @@ export default function UnidadePage() {
       {/* Organograma — full width */}
       {isLoading || !data ? (
         <div className="h-64 animate-pulse rounded-xl bg-muted" />
+      ) : isCidadeAlta(data.unit) ? (
+        <CidadeAltaOrgTree data={data} />
       ) : (
         <FullOrganogramaTree data={data} />
       )}
