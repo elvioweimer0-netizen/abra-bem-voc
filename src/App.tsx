@@ -376,7 +376,8 @@ function ProtectedRoutes() {
         <Route path="/bo-eletronico" element={<Navigate to="/ocorrencias" replace />} />
         <Route path="/inspecoes" element={<Inspecoes />} />
         <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
-        <Route path="/minha-equipe" element={<MinhaEquipe />} />
+        <Route path="/minha-equipe" element={<MinhaEquipeHub />} />
+        <Route path="/minha-equipe/lista" element={<MinhaEquipe />} />
         <Route path="/minhas-unidades" element={<MinhasUnidades />} />
         <Route path="/meu-setor" element={<MinhaEquipe setorOnly />} />
         <Route path="/equipe/:id" element={<MembroDetalhe />} />
