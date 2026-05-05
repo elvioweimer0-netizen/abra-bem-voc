@@ -336,7 +336,6 @@ function ProtectedRoutes() {
   return (
     <AppLayout>
       <AchievementUnlockListener />
-      <RegistrarProvider>
       <Suspense fallback={<HubFallback />}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
