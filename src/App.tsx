@@ -367,6 +367,7 @@ function ProtectedRoutes() {
         <Route path="/reunioes/historico" element={<HistoricoReunioes />} />
         <Route path="/gestao-usuarios" element={<GestaoUsuarios />} />
         <Route path="/admin/importar-colaboradores" element={<AdminImportarColaboradores />} />
+        <Route path="/admin/historico-solicitacoes" element={<HistoricoSolicitacoes />} />
         <Route path="/gerencias/:slug" element={<GerenciaPage />} />
         <Route path="/checklist-diario" element={<ChecklistDiario />} />
         <Route path="/painel-cobranca" element={<PainelCobranca />} />
