@@ -99,12 +99,12 @@ export function useNetworkUrgencias() {
       const [inc, complaints] = await Promise.all([
         supabase
           .from("safety_incidents")
-          .select("id,unit_id,title,created_at,severity,status")
+          .select("id,unit_id,description,created_at,severity,status")
           .eq("severity", "muito_grave")
-          .neq("status", "fechado"),
+          .neq("status", "arquivado"),
         supabase
           .from("customer_complaints")
-          .select("id,unit_id,subject,created_at,status")
+          .select("id,unit_id,category,created_at,status")
           .neq("status", "resolvida")
           .lt("created_at", threeDaysAgo),
       ]);
