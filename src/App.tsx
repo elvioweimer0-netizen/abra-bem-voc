@@ -133,6 +133,7 @@ import SegurancaPage from "@/pages/SegurancaPage";
 import AdminSegurancaPage from "@/pages/AdminSegurancaPage";
 import PainelMaster from "@/pages/PainelMaster";
 import HistoricoSolicitacoes from "@/pages/HistoricoSolicitacoes";
+import RhSolicitacoes from "@/pages/RhSolicitacoes";
 import MasterGerenteDossie from "@/pages/MasterGerenteDossie";
 import MasterUnidadeEspiao from "@/pages/MasterUnidadeEspiao";
 import MasterCompararUnidades from "@/pages/MasterCompararUnidades";
