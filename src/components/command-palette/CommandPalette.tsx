@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/command";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Activity,
   Award,
