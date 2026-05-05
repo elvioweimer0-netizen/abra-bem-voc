@@ -4,24 +4,11 @@ import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PersonCard } from "./PersonCard";
 import { VacancyCard } from "./VacancyCard";
+import { EmptySectorCard } from "./EmptySectorCard";
+import { useSectorTemplates } from "@/hooks/useSectorTemplates";
 import type { OrgPerson, UnitOrgData } from "@/hooks/useUnitOrgData";
 
 const PRIMARY_LINE = "hsl(var(--primary) / 0.4)";
-
-const SETOR_LABELS: Record<string, string> = {
-  PADARIA: "Padaria",
-  ACOUGUE: "Açougue",
-  FRENTE_CAIXA: "Frente de Caixa",
-  REPOSICAO: "Reposição / Hortifruti",
-  RECEBIMENTO: "Recebimento",
-  LIMPEZA: "Limpeza",
-  PREVENCAO: "Prevenção",
-  PRODUCAO: "Produção",
-  LOGISTICA: "Logística",
-  TI: "TI",
-  ADM: "Administrativo",
-  OUTROS: "Outros",
-};
 
 function isManager(p: OrgPerson) {
   return p.posicao_organograma === "gerente_unidade" || p.is_general_manager === true ||
@@ -30,37 +17,40 @@ function isManager(p: OrgPerson) {
 function isEncarregado(p: OrgPerson) {
   return p.posicao_organograma === "encarregado" || p.cargo === "encarregado";
 }
-
 function setorOf(p: OrgPerson): string {
-  return p.setor_organograma ?? p.setor ?? "OUTROS";
+  return (p.setor_organograma ?? p.setor ?? "").trim();
+}
+
+function sectorMatches(personSector: string, templateName: string) {
+  const a = personSector.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const b = templateName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  return a === b || a.includes(b) || b.includes(a);
 }
 
 function SectorBlock({
-  setor,
+  label,
   encarregados,
   colabs,
-  unitId,
 }: {
-  setor: string;
+  label: string;
   encarregados: OrgPerson[];
   colabs: OrgPerson[];
-  unitId: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const visibleColabs = expanded ? colabs : colabs.slice(0, 5);
-  const hidden = colabs.length - visibleColabs.length;
 
-  const renderColabs = () =>
-    visibleColabs.map((c) => (
-      <TreeNode key={c.id} label={<PersonCard person={c} compact />} />
-    ));
+  if (encarregados.length === 0 && colabs.length === 0) {
+    return <TreeNode label={<EmptySectorCard label={label} />} />;
+  }
 
+  // Without encarregado: render a sector header box with colabs underneath
   if (encarregados.length === 0) {
+    const visible = expanded ? colabs : colabs.slice(0, 5);
+    const hidden = colabs.length - visible.length;
     return (
-      <TreeNode
-        label={<VacancyCard label={SETOR_LABELS[setor] ?? setor} cargo="encarregado" setor={setor as any} unitId={unitId} />}
-      >
-        {renderColabs()}
+      <TreeNode label={<EmptySectorCard label={label} />}>
+        {visible.map((c) => (
+          <TreeNode key={c.id} label={<PersonCard person={c} compact />} />
+        ))}
         {hidden > 0 && (
           <TreeNode
             label={
@@ -77,7 +67,6 @@ function SectorBlock({
     );
   }
 
-  // Distribute colaboradores under their lider_setor_id when matched, otherwise under first encarregado
   return (
     <>
       {encarregados.map((enc, idx) => {
@@ -112,38 +101,48 @@ function SectorBlock({
 
 export function FullOrganogramaTree({ data }: { data: UnitOrgData }) {
   const [zoom, setZoom] = useState(1);
+  const unit = data.unit;
+  const unitKind = (unit as any)?.unit_kind ?? null;
+  const { data: templates = [] } = useSectorTemplates(unitKind, unit?.id);
 
   const grouped = useMemo(() => {
     const people = data.people ?? [];
     const gerentes = people.filter(isManager);
     const gerenteGeral = gerentes.find((p) => p.is_general_manager) ?? gerentes[0] ?? null;
-
     const encarregados = people.filter(isEncarregado);
     const colabs = people.filter((p) => !isManager(p) && !isEncarregado(p));
-
-    const setores = new Set<string>([
-      ...encarregados.map(setorOf),
-      ...colabs.map(setorOf),
-    ]);
-
-    const bySetor = Array.from(setores)
-      .filter(Boolean)
-      .map((s) => ({
-        setor: s,
-        encarregados: encarregados.filter((e) => setorOf(e) === s),
-        colabs: colabs.filter((c) => setorOf(c) === s),
-      }))
-      .sort((a, b) => (SETOR_LABELS[a.setor] ?? a.setor).localeCompare(SETOR_LABELS[b.setor] ?? b.setor));
-
-    return { gerenteGeral, bySetor, total: people.length };
+    return { gerenteGeral, encarregados, colabs, total: people.length };
   }, [data.people]);
 
-  if (!data.unit) return null;
-  const unit = data.unit;
+  if (!unit) return null;
 
   const root = grouped.gerenteGeral
     ? <PersonCard person={grouped.gerenteGeral} />
     : <VacancyCard label="Gerente da Unidade" cargo="gerente_loja" unitId={unit.id} />;
+
+  // Sectors: from templates if available; otherwise derive from data
+  const sectorList = templates.length > 0
+    ? templates.map((t) => t.sector_name)
+    : Array.from(new Set([
+        ...grouped.encarregados.map(setorOf),
+        ...grouped.colabs.map(setorOf),
+      ].filter(Boolean))).sort();
+
+  // Find leftover people whose sector doesn't match any template
+  const matchedPersonIds = new Set<string>();
+  const sections = sectorList.map((label) => {
+    const enc = grouped.encarregados.filter((e) => sectorMatches(setorOf(e), label));
+    const col = grouped.colabs.filter((c) => sectorMatches(setorOf(c), label));
+    enc.forEach((p) => matchedPersonIds.add(p.id));
+    col.forEach((p) => matchedPersonIds.add(p.id));
+    return { label, encarregados: enc, colabs: col };
+  });
+
+  const leftoverEnc = grouped.encarregados.filter((e) => !matchedPersonIds.has(e.id));
+  const leftoverCol = grouped.colabs.filter((c) => !matchedPersonIds.has(c.id));
+  if (leftoverEnc.length || leftoverCol.length) {
+    sections.push({ label: "Outros", encarregados: leftoverEnc, colabs: leftoverCol });
+  }
 
   return (
     <div className="space-y-3">
@@ -165,13 +164,12 @@ export function FullOrganogramaTree({ data }: { data: UnitOrgData }) {
       <div className="overflow-auto rounded-xl border bg-card p-4" style={{ maxHeight: "70vh" }}>
         <div style={{ transform: `scale(${zoom})`, transformOrigin: "top left", display: "inline-block" }}>
           <Tree lineWidth="2px" lineColor={PRIMARY_LINE} lineBorderRadius="8px" label={root}>
-            {grouped.bySetor.map((s) => (
+            {sections.map((s) => (
               <SectorBlock
-                key={s.setor}
-                setor={s.setor}
+                key={s.label}
+                label={s.label}
                 encarregados={s.encarregados}
                 colabs={s.colabs}
-                unitId={unit.id}
               />
             ))}
           </Tree>
