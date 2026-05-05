@@ -145,6 +145,14 @@ import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
+// RegistrarProvider mounted in AppLayout
+import { lazy, Suspense } from "react";
+const ComunicacaoHub = lazy(() => import("@/pages/hubs/ComunicacaoHub"));
+const MeuDiaHub = lazy(() => import("@/pages/hubs/MeuDiaHub"));
+const MinhaEquipeHub = lazy(() => import("@/pages/hubs/MinhaEquipeHub"));
+const MinhaLojaHub = lazy(() => import("@/pages/hubs/MinhaLojaHub"));
+const CulturaHub = lazy(() => import("@/pages/hubs/CulturaHub"));
+const HubFallback = () => <div className="container mx-auto p-6"><div className="h-64 animate-pulse rounded-xl bg-muted" /></div>;
 
 function LeaderOnly({ children }: { children: ReactNode }) {
   const { isLider } = useRole();
@@ -328,8 +336,13 @@ function ProtectedRoutes() {
   return (
     <AppLayout>
       <AchievementUnlockListener />
+      <Suspense fallback={<HubFallback />}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/comunicacao" element={<ComunicacaoHub />} />
+        <Route path="/meu-dia" element={<MeuDiaHub />} />
+        <Route path="/minha-loja" element={<MinhaLojaHub />} />
+        <Route path="/cultura-hub" element={<CulturaHub />} />
         <Route path="/colaboradores" element={<LeaderOnly><Colaboradores /></LeaderOnly>} />
         <Route path="/colaboradores/:id" element={<LeaderOnly><ColaboradorPerfil /></LeaderOnly>} />
         <Route path="/meu-perfil" element={<MeuPerfil />} />
@@ -362,7 +375,8 @@ function ProtectedRoutes() {
         <Route path="/bo-eletronico" element={<Navigate to="/ocorrencias" replace />} />
         <Route path="/inspecoes" element={<Inspecoes />} />
         <Route path="/visao-geral-admin" element={<VisaoGeralAdmin />} />
-        <Route path="/minha-equipe" element={<MinhaEquipe />} />
+        <Route path="/minha-equipe" element={<MinhaEquipeHub />} />
+        <Route path="/minha-equipe/lista" element={<MinhaEquipe />} />
         <Route path="/minhas-unidades" element={<MinhasUnidades />} />
         <Route path="/meu-setor" element={<MinhaEquipe setorOnly />} />
         <Route path="/equipe/:id" element={<MembroDetalhe />} />
@@ -458,6 +472,7 @@ function ProtectedRoutes() {
         <Route path="/master/tv" element={<MasterAccess><MasterTV /></MasterAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
     </AppLayout>
   );
 }

@@ -1,44 +1,27 @@
-import { Bell, Home, LayoutDashboard, Megaphone, Menu, Sparkles, Trophy, Users } from "lucide-react";
+import { Home, MessageSquare, Plus, Users, Menu } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useRole } from "@/hooks/useRole";
+import { useRegistrar } from "@/components/nav/RegistrarModal";
 
 type Item = {
   label: string;
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
   featured?: boolean;
-  action?: "openMenu";
+  action?: "openMenu" | "registrar";
 };
 
 export function MobileBottomNav() {
   const { toggleSidebar } = useSidebar();
-  const { isFeedUser, isSupervisor, isEncarregado, isGerente } = useRole();
+  const registrar = useRegistrar();
 
-  // Equipe rota dinâmica para líderes
-  const equipeHref = isSupervisor
-    ? "/minhas-unidades"
-    : isEncarregado && !isGerente
-      ? "/meu-setor"
-      : "/minha-equipe";
-
-  const leaderItems: Item[] = [
-    { label: "Painel", href: "/", icon: LayoutDashboard },
-    { label: "Equipe", href: equipeHref, icon: Users },
-    { label: "Curiózinho", href: "/assistente", icon: Sparkles, featured: true },
-    { label: "Avisos", href: "/avisos", icon: Megaphone },
+  const items: Item[] = [
+    { label: "Painel", href: "/", icon: Home },
+    { label: "Comunicação", href: "/comunicacao", icon: MessageSquare },
+    { label: "Registrar", icon: Plus, action: "registrar", featured: true },
+    { label: "Equipe", href: "/minha-equipe", icon: Users },
     { label: "Mais", icon: Menu, action: "openMenu" },
   ];
-
-  const feedItems: Item[] = [
-    { label: "Início", href: "/", icon: Home },
-    { label: "Avisos", href: "/avisos", icon: Bell },
-    { label: "Curiózinho", href: "/assistente", icon: Sparkles, featured: true },
-    { label: "Curió de Ouro", href: "/curio-de-ouro", icon: Trophy },
-    { label: "Mais", icon: Menu, action: "openMenu" },
-  ];
-
-  const items = isFeedUser ? feedItems : leaderItems;
 
   return (
     <nav
@@ -48,16 +31,25 @@ export function MobileBottomNav() {
     >
       <div className="grid h-16 grid-cols-5 items-center px-1">
         {items.map((item) => {
-          if (item.action === "openMenu") {
+          if (item.action) {
+            const onClick = item.action === "openMenu" ? toggleSidebar : registrar.open;
             return (
               <button
                 key={item.label}
                 type="button"
-                onClick={toggleSidebar}
+                onClick={onClick}
                 className="relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-muted-foreground transition-colors active:scale-95"
-                aria-label="Abrir menu completo"
+                aria-label={item.label}
               >
-                <item.icon className="h-5 w-5" />
+                <span
+                  className={
+                    item.featured
+                      ? "-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-card"
+                      : ""
+                  }
+                >
+                  <item.icon className={item.featured ? "h-6 w-6" : "h-5 w-5"} />
+                </span>
                 <span className="text-[11px] leading-none">{item.label}</span>
               </button>
             );
@@ -70,15 +62,7 @@ export function MobileBottomNav() {
               className="relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-muted-foreground transition-colors active:scale-95"
               activeClassName="text-primary font-semibold"
             >
-              <span
-                className={
-                  item.featured
-                    ? "-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-card"
-                    : ""
-                }
-              >
-                <item.icon className={item.featured ? "h-6 w-6" : "h-5 w-5"} />
-              </span>
+              <item.icon className="h-5 w-5" />
               <span className="text-[11px] leading-none">{item.label}</span>
             </NavLink>
           );

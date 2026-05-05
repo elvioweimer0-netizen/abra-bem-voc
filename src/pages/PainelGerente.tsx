@@ -18,6 +18,7 @@ import { RecomendacoesDoDia } from "@/components/painel/RecomendacoesDoDia";
 import { PainelOnboarding } from "@/components/painel/PainelOnboarding";
 import { FabRapido } from "@/components/painel/FabRapido";
 import { ConfeteCelebracao } from "@/components/painel/ConfeteCelebracao";
+import { VerOrganogramaWidget } from "@/components/painel/VerOrganogramaWidget";
 import { TrendingUp, Target, Trophy, DollarSign, Sun, AlertTriangle, MessageSquarePlus, Bell, MessageSquare } from "lucide-react";
 
 export default function PainelGerente({ unitOverride, gerenteName }: { unitOverride?: string; gerenteName?: string } = {}) {
@@ -64,6 +65,8 @@ export default function PainelGerente({ unitOverride, gerenteName }: { unitOverr
       <HeaderSaudacao subtitle={profile?.unidade ?? undefined} resumoTexto={resumoTexto} />
 
       <AtalhoDoGuga />
+
+      <VerOrganogramaWidget />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard

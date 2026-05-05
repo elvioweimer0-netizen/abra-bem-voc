@@ -1,49 +1,25 @@
 import {
-  Bell,
-  Briefcase,
-  Building,
-  CalendarCheck,
-  CalendarClock,
-  Camera,
-  CheckSquare,
-  ClipboardCheck,
-  FileQuestion,
-  Gauge,
-  HardDrive,
-  Heart,
   Home,
-  LogOut,
-  Megaphone,
   MessageSquare,
-  ScrollText,
-  SearchCheck,
-  Settings,
-  ShoppingCart,
-  Star,
-  Trophy,
-  UserCircle,
-  UserCog,
+  CheckSquare,
   Users,
-  Video,
-  Wrench,
-  Map,
-  History,
-  GraduationCap,
+  Store,
+  Plus,
+  Building,
+  BookOpen,
+  ChevronDown,
+  LogOut,
+  Settings,
   HeartPulse,
-  Sunrise,
-  Target,
-  Tv,
-  HandHelping,
-  MessageCircleWarning,
-  PackageSearch,
-  UserSearch,
-  ShieldAlert,
+  Heart,
+  CheckSquare as CheckIcon,
+  Trophy,
+  Upload,
+  Crown,
+  UserCircle,
 } from "lucide-react";
-import { useClimateAccess } from "@/hooks/useClimateAccess";
-import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
-import { useHasActiveJourney } from "@/hooks/useOnboarding";
-import { useCanEditCulture } from "@/hooks/useCanEditCulture";
-import { Sparkles as SparklesIcon } from "lucide-react";
+import { useState } from "react";
+import { NavLink as RRNavLink, useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import ConectaLockup from "@/components/ConectaLockup";
 import { Button } from "@/components/ui/button";
@@ -54,7 +30,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -62,12 +37,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
+import { useRegistrar } from "@/components/nav/RegistrarModal";
 
-type MenuItem = {
-  title: string;
-  url: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
+type Item = { title: string; url?: string; icon: any; onClick?: () => void; show?: boolean; danger?: boolean };
 
 const cargoLabels: Record<string, string> = {
   master: "Master", admin: "Admin", supervisor: "Supervisor",
@@ -97,55 +69,39 @@ function UserBlock({ profile }: { profile: ReturnType<typeof useAuth>["profile"]
   );
 }
 
-const centralAreas = [
-  { title: "RH", url: "/central-adm/rh", icon: Users, owner: "Gleisiane" },
-  { title: "DP", url: "/central-adm/dp", icon: Briefcase, owner: "Ygor" },
-  { title: "Financeiro", url: "/central-adm/financeiro", icon: Gauge, owner: "Regiane" },
-  { title: "TI", url: "/central-adm/ti", icon: HardDrive, owner: "Kildery" },
-  { title: "Manutenção", url: "/central-adm/manutencao", icon: Wrench, owner: "Hilton" },
-  { title: "Marketing", url: "/central-adm/marketing", icon: Megaphone, owner: "Marketing" },
-  { title: "Comercial", url: "/central-adm/comercial", icon: ShoppingCart, owner: "Comercial" },
-  { title: "Administrativo", url: "/central-adm/administrativo", icon: ScrollText, owner: "Administrativo" },
-] satisfies Array<MenuItem & { owner: string }>;
+function NavRow({ item, collapsed, onNavigate, highlight }: { item: Item; collapsed: boolean; onNavigate?: () => void; highlight?: boolean }) {
+  const className = `flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${
+    highlight ? "bg-primary/15 text-primary hover:bg-primary/20 font-semibold" : "text-sidebar-foreground/80 hover:text-sidebar-accent-foreground"
+  }`;
 
-function MenuSection({ label, items, collapsed, onNavigate }: { label: string; items: MenuItem[]; collapsed: boolean; onNavigate?: () => void }) {
-  if (!items.length) return null;
-
+  if (item.onClick) {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <button type="button" onClick={() => { item.onClick?.(); onNavigate?.(); }} className={className + " w-full text-left"}>
+            <item.icon className="h-4.5 w-4.5 shrink-0" />
+            {!collapsed && <span className="text-sm">{item.title}</span>}
+          </button>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
   return (
-    <SidebarGroup>
-      {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase text-[10px] font-semibold tracking-widest">{label}</SidebarGroupLabel>}
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={`${label}-${item.title}`}>
-              <SidebarMenuButton asChild>
-                <NavLink
-                  to={item.url}
-                  end={item.url === "/"}
-                  onClick={onNavigate}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                >
-                  <item.icon className="h-4.5 w-4.5 shrink-0" />
-                  {!collapsed && <span className="text-sm">{item.title}</span>}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild>
+        <NavLink
+          to={item.url!}
+          end={item.url === "/"}
+          onClick={onNavigate}
+          className={className}
+          activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+        >
+          <item.icon className="h-4.5 w-4.5 shrink-0" />
+          {!collapsed && <span className="text-sm">{item.title}</span>}
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
-}
-
-function getCentralArea(profile: ReturnType<typeof useAuth>["profile"]): MenuItem[] {
-  const text = `${profile?.nome ?? ""} ${profile?.cargo_titulo ?? ""} ${profile?.descricao ?? ""}`.toLowerCase();
-  if (text.includes("gleisiane") || text.includes("rh")) return centralAreas.filter((a) => a.title === "RH");
-  if (text.includes("ygor") || text.includes("departamento pessoal") || text.includes("dp")) return centralAreas.filter((a) => a.title === "DP");
-  if (text.includes("regiane") || text.includes("financeiro")) return centralAreas.filter((a) => a.title === "Financeiro");
-  if (text.includes("kildery") || text.includes("ti")) return centralAreas.filter((a) => a.title === "TI");
-  if (text.includes("hilton") || text.includes("manutenção") || text.includes("manutencao")) return centralAreas.filter((a) => a.title === "Manutenção");
-  return [];
 }
 
 export function AppSidebar() {
@@ -153,237 +109,37 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const menuCollapsed = isMobile ? false : collapsed;
   const { signOut, profile } = useAuth();
-  const { cargo, isAdmin, isSupervisor, isGerente, isEncarregado, isColaborador, isGerenteAdm, isFeedUser, isLider } = useRole();
-  const isCentralAdm = !isAdmin && isGerenteAdm;
-  const isRhAdmin = useIsRhAdmin();
-  const hasActiveOnboarding = useHasActiveJourney();
-  const { canViewClima, canManageClima } = useClimateAccess();
-  const canEditCulture = useCanEditCulture();
-
-  const profileAny = profile as any;
-  const myUnitId = profileAny?.unit_id as string | undefined;
-  const unitHomeUrl = myUnitId ? `/unidade/${myUnitId}` : "/unidades";
+  const { cargo, isAdmin, isSupervisor, isLider } = useRole();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const registrar = useRegistrar();
 
   const closeOnNav = () => isMobile && setOpenMobile(false);
 
-  // ───── Feed users: menu mínimo ─────
-  if (isFeedUser) {
-    const feedPrincipal: MenuItem[] = [
-      { title: "Início", url: "/", icon: Home },
-      { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
-      { title: "Chat", url: "/chat", icon: MessageSquare },
-      { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
-      { title: "Minha Unidade", url: unitHomeUrl, icon: Building },
-      ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
-    ];
-    const feedComunicacao: MenuItem[] = [
-      { title: "Avisos", url: "/avisos", icon: Bell },
-      { title: "Notícias", url: "/noticias", icon: Megaphone },
-      { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
-      { title: "Histórias do Curió", url: "/historias", icon: ScrollText },
-      { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
-      { title: "Galeria do Curió", url: "/galeria", icon: Camera },
-      { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
-      { title: "Documentos", url: "/rh/cartilha", icon: ScrollText },
-      { title: "Falar com RH", url: "/central-adm/rh", icon: Users },
-      { title: "Mentoria", url: "/mentoria", icon: Users },
-      { title: "Enquetes", url: "/polls", icon: CheckSquare },
-      { title: "Feedback ao gerente", url: "/feedback-gerente", icon: MessageSquare },
-      { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
-      { title: "Minhas coberturas", url: "/minhas-coberturas", icon: HandHelping },
-      { title: "Bem-estar", url: "/bem-estar", icon: Heart },
-      { title: "Canais de apoio", url: "/bem-estar/recursos", icon: HeartPulse },
-    ];
-    return (
-      <Sidebar collapsible="offcanvas" className="border-r-0">
-        <div className="flex items-center justify-center p-8">
-          {menuCollapsed ? (
-            <img src="/logos/curio_logo_vermelho.png" alt="Curió" className="h-10 w-auto object-contain" />
-          ) : (
-            <ConectaLockup variant="brown" size="md" />
-          )}
-        </div>
-        {!menuCollapsed && <Separator className="mx-4 w-auto opacity-30" />}
-        {!menuCollapsed && <UserBlock profile={profile} />}
-        <SidebarContent className="mt-1 px-2">
-          <MenuSection label="Principal" items={feedPrincipal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-          <MenuSection label="Comunicação" items={feedComunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        </SidebarContent>
-        <SidebarFooter className="p-2">
-          <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground" onClick={signOut}>
-            <LogOut className="h-5 w-5" />
-            {!menuCollapsed && "Sair"}
-          </Button>
-        </SidebarFooter>
-      </Sidebar>
-    );
-  }
+  const showMinhaLoja = ["gerente_loja", "gerente", "encarregado", "supervisor", "admin", "master"].includes(cargo);
 
-  // ───── Líderes: menu completo (comportamento original) ─────
-  const principal: MenuItem[] = [
-    { title: "Início", url: "/", icon: Home },
+  const principal: Item[] = [
+    { title: "Painel", url: "/", icon: Home },
+    { title: "Comunicação", url: "/comunicacao", icon: MessageSquare },
+    { title: "Meu Dia", url: "/meu-dia", icon: CheckSquare, show: isLider },
+    { title: "Minha Equipe", url: "/minha-equipe", icon: Users },
+    { title: "Minha Loja", url: "/minha-loja", icon: Store, show: showMinhaLoja },
+    { title: "Registrar", icon: Plus, onClick: registrar.open },
+    { title: "Unidades", url: "/unidades", icon: Building },
+    { title: "Cultura", url: "/cultura-hub", icon: BookOpen },
+  ].filter((i) => i.show !== false);
+
+  const mais: Item[] = [
     { title: "Meu Perfil", url: "/meu-perfil", icon: UserCircle },
-    { title: "Chat", url: "/chat", icon: MessageSquare },
     { title: "Curiózinho", url: "/assistente", icon: MessageSquare },
-  ];
-
-  const comunicacao: MenuItem[] = [
-    { title: "Avisos", url: "/avisos", icon: Bell },
-    { title: "Notícias", url: "/noticias", icon: Megaphone },
-    { title: "Cultura Curió", url: "/cultura", icon: SparklesIcon },
-    { title: "Histórias do Curió", url: "/historias", icon: ScrollText },
-    { title: "Curió de Ouro", url: "/curio-de-ouro", icon: Trophy },
-    { title: "Mural de Reconhecimentos", url: "/reconhecimentos", icon: Trophy },
-    { title: "Galeria do Curió", url: "/galeria", icon: Camera },
-    { title: "Treinamento", url: "/treinamento", icon: GraduationCap },
-    { title: "Campanhas Internas", url: "/endomarketing", icon: Heart },
-    { title: "Mentoria", url: "/mentoria", icon: Users },
-    { title: "Enquetes", url: "/polls", icon: CheckSquare },
-    { title: "Meu feedback", url: "/meu-feedback", icon: MessageSquare },
+    { title: "Enquetes", url: "/polls", icon: CheckIcon },
+    { title: "Marcos", url: "/admin/milestones", icon: Trophy, show: isAdmin },
     { title: "Bem-estar", url: "/bem-estar", icon: Heart },
-    { title: "Canais de apoio", url: "/bem-estar/recursos", icon: HeartPulse },
-  ];
-
-  const operacao: MenuItem[] = isCentralAdm
-    ? []
-    : [
-        { title: "Meu Checklist do Dia", url: "/checklist-diario", icon: ClipboardCheck },
-        ...(isColaborador ? [] : [{ title: isEncarregado && !isGerente ? "Meu Setor" : isSupervisor ? "Minhas Unidades" : "Minha Equipe", url: isSupervisor ? "/minhas-unidades" : isEncarregado && !isGerente ? "/meu-setor" : "/minha-equipe", icon: Users }]),
-        { title: "Escala da Semana", url: "/escala-semana", icon: CalendarCheck },
-        { title: "Minha escala", url: "/minha-escala", icon: CalendarClock },
-        ...(isGerente || isAdmin ? [{ title: "Escala de turnos", url: "/escala", icon: CalendarClock }] : []),
-        ...(isAdmin ? [{ title: "Escala (admin)", url: "/escala/admin", icon: CalendarClock }] : []),
-        ...(isGerente || isAdmin || isSupervisor ? [{ title: "Reposição entre lojas", url: "/reposicao", icon: HandHelping }] : []),
-        { title: "Minhas coberturas", url: "/minhas-coberturas", icon: HandHelping },
-        ...(isColaborador ? [] : [{ title: "Ocorrências", url: "/ocorrencias", icon: FileQuestion }]),
-        ...(isLider ? [{ title: "Reclamações de cliente", url: "/reclamacoes", icon: MessageCircleWarning }] : []),
-        ...(isAdmin || isSupervisor ? [{ title: "Reclamações (admin)", url: "/admin/reclamacoes", icon: MessageCircleWarning }] : []),
-        { title: "Produtos faltando", url: "/produtos-faltando", icon: PackageSearch },
-        ...(isAdmin || isSupervisor || isGerenteAdm ? [{ title: "Compras (faltando)", url: "/admin/produtos-faltando", icon: PackageSearch }] : []),
-        ...(isGerente || isSupervisor || isAdmin || isGerenteAdm ? [{ title: "Cliente Misterioso", url: "/cliente-misterioso", icon: UserSearch }] : []),
-        ...(isAdmin || isSupervisor ? [{ title: "Cliente Misterioso (admin)", url: "/admin/cliente-misterioso", icon: UserSearch }] : []),
-        { title: "Reuniões da Unidade", url: "/reunioes-lideranca", icon: Video },
-        ...(isGerente || isSupervisor || isAdmin ? [{ title: "Documentos", url: "/documentos-lideranca", icon: ScrollText }] : []),
-        { title: "Tarefas", url: "/agenda", icon: CheckSquare },
-        { title: isAdmin || isSupervisor ? "Unidades" : "Minha Unidade", url: isAdmin || isSupervisor ? "/unidades" : unitHomeUrl, icon: Building },
-        ...(["gerente_loja", "gerente", "supervisor", "admin", "master"].includes(cargo) ? [{ title: "Vendas / Meta da Loja", url: "/vendas", icon: Target }] : []),
-        ...((isRhAdmin || ["gerente_loja", "supervisor", "admin", "master"].includes(cargo)) ? [{ title: "Segurança", url: "/seguranca", icon: ShieldAlert }] : []),
-      ];
-
-  const gestao: MenuItem[] = [
-    ...(isSupervisor || isAdmin ? [{ title: "Painel de Cobrança", url: "/painel-cobranca", icon: Gauge }] : []),
-    ...(isGerente || isSupervisor || isAdmin ? [{ title: "Inspeções", url: "/inspecoes", icon: SearchCheck }] : []),
-    ...(isGerente ? [{ title: "Avaliações de Encarregado", url: "/avaliacoes", icon: Star }, { title: "Aprovação de Solicitações", url: "/solicitacoes", icon: FileQuestion }, { title: "Relatórios da Unidade", url: "/relatorios", icon: Gauge }] : []),
-    ...(["gerente_loja", "gerente_adm", "encarregado"].includes(cargo) ? [{ title: "Meu Score", url: "/meu-score", icon: Gauge }] : []),
-    ...((["gerente_loja", "gerente_adm", "supervisor"].includes(cargo) || isAdmin) ? [{ title: "Carta do Curiozinho", url: "/curiozinho/historico", icon: SparklesIcon }] : []),
-  ];
-
-  const visitas: MenuItem[] = (isAdmin || isSupervisor)
-    ? [
-        { title: "Mapa de Visitas", url: "/mapa-visitas", icon: Map },
-        { title: "Histórico de Visitas", url: "/historico-visitas", icon: History },
-      ]
-    : [];
-
-  const centralAdm = isAdmin ? centralAreas : getCentralArea(profile);
-
-  const superAdmin: MenuItem[] = isAdmin
-    ? [
-        { title: "Visão Geral", url: "/visao-geral-admin", icon: Gauge },
-        { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: UserCog },
-        { title: "Gestão de Unidades", url: "/departamentos", icon: Building },
-        { title: "Configurações do App", url: "/gestao-usuarios", icon: Settings },
-        { title: "Logs do Sistema", url: "/relatorios", icon: ScrollText },
-      ]
-    : [];
-
-  const adminTreinamento: MenuItem[] = [
-    ...((isAdmin || isSupervisor) ? [{ title: "Metas de Vendas", url: "/admin/metas", icon: Target }] : []),
-    ...(isRhAdmin ? [{ title: "Treinamento", url: "/admin/treinamento", icon: GraduationCap }] : []),
-    ...((isRhAdmin || isAdmin || isSupervisor) ? [{ title: "Bem-estar", url: "/admin/bem-estar", icon: Heart }] : []),
-    ...((isRhAdmin || isAdmin) ? [{ title: "Bem-estar · críticos", url: "/admin/bem-estar/criticos", icon: HeartPulse }] : []),
-    ...(canManageClima ? [{ title: "Clima", url: "/admin/clima", icon: HeartPulse }] : []),
-    ...(canEditCulture ? [{ title: "Cultura", url: "/admin/cultura", icon: SparklesIcon }] : []),
-    ...(isAdmin ? [{ title: "Conquistas", url: "/admin/conquistas", icon: Trophy }] : []),
-    ...(isAdmin ? [{ title: "Marcos de Tempo", url: "/admin/milestones", icon: Trophy }] : []),
-    ...(isRhAdmin ? [{ title: "Histórias", url: "/admin/historias", icon: ScrollText }] : []),
-    ...(isAdmin ? [{ title: "Dimensões do Score", url: "/admin/score-dimensions", icon: Gauge }] : []),
-    ...((isAdmin || isSupervisor) ? [{ title: "TVs", url: "/admin/tv-displays", icon: Tv }] : []),
-    ...((isRhAdmin || ["master", "admin", "supervisor", "gerente_adm"].includes(cargo)) ? [{ title: "Segurança · Rede", url: "/admin/seguranca", icon: ShieldAlert }] : []),
-  ];
-
-  const climaItems: MenuItem[] = canViewClima
-    ? [{ title: "Clima", url: "/clima", icon: HeartPulse }]
-    : [];
-
-  const dailyItems: MenuItem[] = [
-    ...(isLider ? [{ title: "Daily Huddle", url: "/daily-huddle", icon: Sunrise }] : []),
-    ...(isAdmin || isSupervisor ? [{ title: "Painel Daily", url: "/daily-huddle/painel", icon: Gauge }] : []),
-  ];
-
-  const compromissoItems: MenuItem[] = [
-    ...(isLider ? [{ title: "Compromissos", url: "/compromissos", icon: Target }] : []),
-    ...(isAdmin || isSupervisor ? [{ title: "Quadro", url: "/compromissos/board", icon: ClipboardCheck }] : []),
-  ];
-
-  const conquistasItems: MenuItem[] = [
-    { title: "Minhas Conquistas", url: "/perfil/conquistas", icon: Trophy },
-    ...(isLider ? [{ title: "Ranking", url: "/conquistas/ranking", icon: Star }] : []),
-  ];
-
-  const cadernoItems: MenuItem[] = isLider
-    ? [
-        { title: "Caderno", url: "/caderno", icon: ScrollText },
-        ...(isRhAdmin ? [{ title: "Admin · Caderno", url: "/admin/caderno", icon: ScrollText }] : []),
-      ]
-    : [];
-
-  const perguntaSemanaItems: MenuItem[] = (isAdmin || isSupervisor || cargo === "gerente_loja" || cargo === "gerente_adm" || cargo === "master")
-    ? [
-        { title: "Pergunta da Semana", url: "/pergunta-semana", icon: MessageSquare },
-        ...(isAdmin || isSupervisor ? [{ title: "Admin · Perguntas", url: "/admin/pergunta-semana", icon: MessageSquare }] : []),
-      ]
-    : [];
-
-  const storiesItems: MenuItem[] = [
-    { title: "Meus Stories", url: "/perfil/stories", icon: Camera },
-    ...(isAdmin ? [{ title: "Admin · Stories", url: "/admin/stories", icon: Camera }] : []),
-  ];
-
-  const analiseItems: MenuItem[] = (isAdmin || isSupervisor || isGerenteAdm)
-    ? [
-        { title: "Heatmap", url: "/heatmap", icon: Gauge },
-        { title: "Auditoria Visual", url: "/auditoria-visual", icon: Camera },
-        ...((isAdmin || isSupervisor) ? [{ title: "Ranking de Gerentes", url: "/scores/ranking", icon: Gauge }] : []),
-      ]
-    : [];
-
-  const pdiItems: MenuItem[] = [
-    ...(["master", "admin", "supervisor", "gerente_loja", "gerente", "gerente_adm", "encarregado", "lider_setor", "colaborador", "fiscal"].includes(cargo)
-      ? [{ title: "Meu PDI", url: "/pdi", icon: Target }]
-      : []),
-    ...(["master", "admin", "supervisor", "gerente_loja", "gerente", "encarregado"].includes(cargo)
-      ? [{ title: "PDI da Equipe", url: "/pdi/equipe", icon: Target }]
-      : []),
-    ...((isAdmin || isSupervisor)
-      ? [{ title: "PDI · Visão Geral", url: "/pdi/admin", icon: Target }]
-      : []),
-  ];
-
-  const onboardingItems: MenuItem[] = [
-    ...(hasActiveOnboarding ? [{ title: "Onboarding", url: "/onboarding", icon: GraduationCap }] : []),
-    ...(isRhAdmin ? [{ title: "Admin · Onboarding", url: "/admin/onboarding", icon: GraduationCap }] : []),
-  ];
-
-  const waAllowed = ["master", "admin", "supervisor", "gerente_loja", "gerente_adm", "gerente", "encarregado"].includes(cargo);
-  const whatsappItems: MenuItem[] = waAllowed
-    ? [{ title: "Resumo WhatsApp", url: "/whatsapp-resumo", icon: MessageSquare }]
-    : [];
-
-  const churnAllowed = isRhAdmin || ["master", "admin", "supervisor", "gerente_loja"].includes(cargo);
-  const churnItems: MenuItem[] = churnAllowed
-    ? [{ title: "Risco de churn", url: "/admin/risco-churn", icon: HeartPulse }]
-    : [];
+    { title: "Canais de Apoio", url: "/bem-estar/recursos", icon: HeartPulse },
+    { title: "Importar Colaboradores", url: "/admin/importar-colaboradores", icon: Upload, show: isAdmin },
+    { title: "Painel Master", url: "/visao-geral-admin", icon: Crown, show: isAdmin },
+    { title: "Gestão de Usuários", url: "/gestao-usuarios", icon: Settings, show: isAdmin },
+    { title: "Configurações", url: "/meu-perfil", icon: Settings },
+  ].filter((i) => i.show !== false);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0">
@@ -399,30 +155,45 @@ export function AppSidebar() {
       {!menuCollapsed && <UserBlock profile={profile} />}
 
       <SidebarContent className="mt-1 px-2">
-        <MenuSection label="Principal" items={principal} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Comunicação" items={comunicacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Operação" items={operacao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Visitas" items={visitas} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Gestão" items={gestao} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Clima" items={climaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Daily" items={dailyItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Compromissos" items={compromissoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Conquistas" items={conquistasItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Caderno" items={cadernoItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Pergunta da Semana" items={perguntaSemanaItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Stories" items={storiesItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Análise" items={analiseItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="PDI" items={pdiItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Onboarding" items={onboardingItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Central ADM" items={centralAdm} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Super Admin" items={superAdmin} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="WhatsApp" items={whatsappItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Pessoas" items={churnItems} collapsed={menuCollapsed} onNavigate={closeOnNav} />
-        <MenuSection label="Admin · RH" items={adminTreinamento} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {principal.map((it) => (
+                <NavRow
+                  key={it.title}
+                  item={it}
+                  collapsed={menuCollapsed}
+                  onNavigate={closeOnNav}
+                  highlight={it.title === "Registrar"}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
-        <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground" onClick={signOut}>
+      <SidebarFooter className="p-2 space-y-1">
+        <button
+          type="button"
+          onClick={() => setMoreOpen((v) => !v)}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent"
+        >
+          <ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? "" : "-rotate-90"}`} />
+          {!menuCollapsed && <span>Mais</span>}
+        </button>
+        {moreOpen && (
+          <SidebarMenu>
+            {mais.map((it) => (
+              <NavRow key={it.title} item={it} collapsed={menuCollapsed} onNavigate={closeOnNav} />
+            ))}
+          </SidebarMenu>
+        )}
+        <Separator className="my-1 opacity-30" />
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          onClick={signOut}
+        >
           <LogOut className="h-5 w-5" />
           {!menuCollapsed && "Sair"}
         </Button>
