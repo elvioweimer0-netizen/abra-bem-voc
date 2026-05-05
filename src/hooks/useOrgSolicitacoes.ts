@@ -95,6 +95,23 @@ export function useDecideOrgSolicitacao() {
   });
 }
 
+export function useTriagemRhOrgSolicitacao() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; decision: "aprovar" | "recusar"; motivo?: string }) => {
+      const { error } = await (supabase as any).rpc("triagem_rh_org_solicitacao", {
+        _id: input.id, _decision: input.decision, _motivo: input.motivo ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["org_solicitacoes"] });
+      toast({ title: vars.decision === "aprovar" ? "Aprovado pelo RH (vai pro master)" : "Recusado pelo RH" });
+    },
+    onError: (e: any) => toast({ title: "Erro", description: String(e?.message ?? e), variant: "destructive" }),
+  });
+}
+
 export function isExceedsDesiredError(e: any): boolean {
   const msg = String(e?.message ?? e ?? "");
   return msg.includes("EXCEEDS_DESIRED");
