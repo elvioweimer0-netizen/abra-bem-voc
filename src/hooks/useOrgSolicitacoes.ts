@@ -13,12 +13,18 @@ export type OrgSolicitacao = {
   aumento_pretendido: number;
   justificativa_texto: string;
   numeros_jsonb: Record<string, any> | null;
-  status: "pendente" | "aprovada" | "recusada" | "cancelada";
+  status: "pendente" | "pendente_rh" | "pendente_master" | "aprovada" | "recusada" | "cancelada";
   solicitado_por: string | null;
   solicitado_em: string;
   decidido_por: string | null;
   decidido_em: string | null;
   motivo_decisao: string | null;
+  rh_decidido_por?: string | null;
+  rh_decidido_em?: string | null;
+  rh_motivo?: string | null;
+  master_decidido_por?: string | null;
+  master_decidido_em?: string | null;
+  master_motivo?: string | null;
 };
 
 export function useOrgSolicitacoes(opts: { unitId?: string; status?: OrgSolicitacao["status"] | "todas" } = {}) {
