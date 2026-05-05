@@ -473,6 +473,8 @@ function ProtectedRoutes() {
         <Route path="/master/tv" element={<MasterAccess><MasterTV /></MasterAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
+      </RegistrarProvider>
     </AppLayout>
   );
 }
