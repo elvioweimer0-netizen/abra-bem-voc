@@ -4195,6 +4195,78 @@ export type Database = {
           },
         ]
       }
+      org_alocacoes: {
+        Row: {
+          alocado_em: string
+          alocado_por: string | null
+          id: string
+          ordem: number
+          posicao: string
+          profile_id: string
+          setor: string | null
+          sub_setor: string | null
+          unit_id: string
+        }
+        Insert: {
+          alocado_em?: string
+          alocado_por?: string | null
+          id?: string
+          ordem?: number
+          posicao: string
+          profile_id: string
+          setor?: string | null
+          sub_setor?: string | null
+          unit_id: string
+        }
+        Update: {
+          alocado_em?: string
+          alocado_por?: string | null
+          id?: string
+          ordem?: number
+          posicao?: string
+          profile_id?: string
+          setor?: string | null
+          sub_setor?: string | null
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_alocacoes_alocado_por_fkey"
+            columns: ["alocado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_alocacoes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_alocacoes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_alocacoes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "org_alocacoes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       painel_opens: {
         Row: {
           opened_date: string
