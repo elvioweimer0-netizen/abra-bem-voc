@@ -6332,6 +6332,7 @@ export type Database = {
           location: string | null
           longitude: number | null
           name: string
+          total_desejado: number
           type: Database["public"]["Enums"]["unit_type"]
           unit_kind: string
           updated_at: string
@@ -6346,6 +6347,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name: string
+          total_desejado?: number
           type: Database["public"]["Enums"]["unit_type"]
           unit_kind?: string
           updated_at?: string
@@ -6360,6 +6362,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name?: string
+          total_desejado?: number
           type?: Database["public"]["Enums"]["unit_type"]
           unit_kind?: string
           updated_at?: string
