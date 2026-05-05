@@ -245,13 +245,25 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
   const allOfSetor = (setor: AlocacaoSetor) => bySetor(setor);
 
   const pickInto = (posicao: AlocacaoPosicao, setor: AlocacaoSetor | null, subSetor?: string | null) =>
-    (p: OrgPerson) =>
-      allocate.mutate({ profile_id: p.id, posicao, setor, sub_setor: subSetor ?? null });
+    async (p: OrgPerson) => {
+      try {
+        await allocate.mutateAsync({ profile_id: p.id, posicao, setor, sub_setor: subSetor ?? null });
+      } catch (e: any) {
+        const msg = String(e?.message ?? e);
+        if (msg.includes("EXCEEDS_DESIRED")) {
+          setSolicitState({ person: p, setor: setor ?? null, posicao });
+        }
+      }
+    };
 
   const total = (data.people ?? []).length;
   const allocCount = alocacoes.length;
   const pct = total > 0 ? Math.round((allocCount / total) * 100) : 0;
   const line = "bg-border";
+
+  const desiredStatus =
+    totalDesejado > 0 && allocCount > totalDesejado ? "exceeded" :
+    totalDesejado > 0 && allocCount === totalDesejado ? "full" : "ok";
 
   return (
     <div className="space-y-3">
