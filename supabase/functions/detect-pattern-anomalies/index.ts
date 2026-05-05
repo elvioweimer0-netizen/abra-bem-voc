@@ -1,7 +1,6 @@
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
-// Detects pattern anomalies across the network and inserts pending decisions for masters.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -17,25 +16,23 @@ Deno.serve(async (req) => {
 
     const inserts: any[] = [];
 
-    // 1) Ruptura subindo em 3+ unidades
+    // 1) Ruptura: 3+ unidades com aumento
     const { data: missing } = await supabase
       .from("missing_product_requests")
       .select("unit_id, created_at")
       .gte("created_at", sinceISO);
     const byUnit: Record<string, number> = {};
-    (missing ?? []).forEach((m: any) => { byUnit[m.unit_id] = (byUnit[m.unit_id] || 0) + 1; });
+    (missing ?? []).forEach((m: any) => { if (m.unit_id) byUnit[m.unit_id] = (byUnit[m.unit_id] || 0) + 1; });
     const risingUnits = Object.entries(byUnit).filter(([, n]) => n >= 5).map(([id]) => id);
     if (risingUnits.length >= 3) {
       inserts.push({
-        decision_type: "pattern_ruptura",
-        priority: "alta",
+        type: "pattern_ruptura",
         title: `Ruptura subindo em ${risingUnits.length} unidades`,
-        description: `Detectado aumento de produtos faltando nos últimos 3 dias em ${risingUnits.length} unidades simultaneamente.`,
-        payload: { unit_ids: risingUnits, window_days: 3 },
+        description: `Aumento de produtos faltando nos últimos 3 dias em ${risingUnits.length} unidades.`,
       });
     }
 
-    // 2) Gerentes com 3+ quedas seguidas no score
+    // 2) Gerentes com 3+ quedas
     const { data: scores } = await supabase
       .from("manager_scores_monthly")
       .select("user_id, month, final_score")
@@ -48,39 +45,37 @@ Deno.serve(async (req) => {
     Object.entries(byMgr).forEach(([uid, arr]) => {
       if (arr.length >= 4 && arr[0] < arr[1] && arr[1] < arr[2] && arr[2] < arr[3]) {
         inserts.push({
-          decision_type: "pattern_gerente_queda",
-          priority: "alta",
+          type: "pattern_gerente_queda",
+          ref_id: uid,
           title: `Gerente com 3 quedas seguidas no score`,
           description: `Score caindo há 3 meses consecutivos.`,
-          payload: { user_id: uid, scores: arr },
         });
       }
     });
 
-    // 3) Humor caindo em multiplas unidades (wellbeing)
+    // 3) Humor caindo
     try {
       const { data: well } = await supabase
         .from("wellbeing_checkins")
-        .select("unit_id, mood_score, created_at")
+        .select("unit_id, composite_score, created_at")
         .gte("created_at", sinceISO);
       const moodByUnit: Record<string, number[]> = {};
       (well ?? []).forEach((w: any) => {
+        if (!w.unit_id) return;
         if (!moodByUnit[w.unit_id]) moodByUnit[w.unit_id] = [];
-        moodByUnit[w.unit_id].push(Number(w.mood_score || 0));
+        moodByUnit[w.unit_id].push(Number(w.composite_score || 0));
       });
       const lowMoodUnits = Object.entries(moodByUnit)
         .filter(([, arr]) => arr.length >= 3 && arr.reduce((a, b) => a + b, 0) / arr.length < 3)
         .map(([id]) => id);
       if (lowMoodUnits.length >= 2) {
         inserts.push({
-          decision_type: "pattern_humor",
-          priority: "alta",
+          type: "pattern_humor",
           title: `Humor da equipe caindo em ${lowMoodUnits.length} unidades`,
           description: `Média de humor abaixo de 3 nos últimos 3 dias.`,
-          payload: { unit_ids: lowMoodUnits },
         });
       }
-    } catch { /* table may not exist */ }
+    } catch { /* ignore */ }
 
     let inserted = 0;
     if (inserts.length) {
