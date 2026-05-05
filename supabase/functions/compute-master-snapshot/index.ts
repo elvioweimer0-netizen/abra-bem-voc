@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
         .lte("created_at", `${yesterday}T23:59:59`);
 
       const { count: missing } = await supabase
-        .from("missing_products")
+        .from("missing_product_requests")
         .select("id", { count: "exact", head: true })
         .eq("unit_id", u.id)
         .gte("created_at", `${yesterday}T00:00:00`)

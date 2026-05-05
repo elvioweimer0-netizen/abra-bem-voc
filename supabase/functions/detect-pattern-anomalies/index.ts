@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
     // 1) Ruptura subindo em 3+ unidades
     const { data: missing } = await supabase
-      .from("missing_products")
+      .from("missing_product_requests")
       .select("unit_id, created_at")
       .gte("created_at", sinceISO);
     const byUnit: Record<string, number> = {};
