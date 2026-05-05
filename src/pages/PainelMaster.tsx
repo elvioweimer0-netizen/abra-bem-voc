@@ -11,6 +11,7 @@ import { AgendaSemanaWidget } from "@/components/master/AgendaSemanaWidget";
 import { RankingUnidades } from "@/components/master/RankingUnidades";
 import { QuemVoceNaoFalaWidget } from "@/components/master/QuemVoceNaoFalaWidget";
 import { PerguntaProCurio } from "@/components/master/PerguntaProCurio";
+import { RelatorioSemanalButton } from "@/components/master/RelatorioSemanalButton";
 
 export default function PainelMaster() {
   return (
@@ -29,6 +30,7 @@ export default function PainelMaster() {
         </div>
       </div>
       <AcoesMaster />
+      <RelatorioSemanalButton />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <InsightsDaSemana />
         <QuemVoceNaoFalaWidget />
