@@ -165,6 +165,15 @@ export function CommandPalette() {
         <CommandSeparator />
 
         <CommandGroup heading="Ações rápidas">
+          {myUnitId && (
+            <CommandItem
+              value="acao ver organograma minha loja unidade equipe"
+              onSelect={() => go(`/unidade/${myUnitId}`)}
+            >
+              <Building2 className="mr-2 h-4 w-4 text-primary" />
+              <span>Ver organograma da minha loja</span>
+            </CommandItem>
+          )}
           {ACTIONS.map((a) => (
             <CommandItem key={a.label} value={`acao ${a.label}`} onSelect={() => go(a.path)}>
               <a.icon className="mr-2 h-4 w-4 text-primary" />
