@@ -187,6 +187,18 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
   const allocate = useAllocateMutation(unitId);
   const [zoom, setZoom] = useState(1);
   const [modalPerson, setModalPerson] = useState<OrgPerson | null>(null);
+  const [solicitState, setSolicitState] = useState<{
+    person: OrgPerson | null; setor: string | null; posicao: string | null;
+  } | null>(null);
+
+  const { data: totalDesejado = 0 } = useQuery({
+    queryKey: ["unit-total-desejado", unitId],
+    enabled: !!unitId,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("units").select("total_desejado").eq("id", unitId).maybeSingle();
+      return (data?.total_desejado ?? 0) as number;
+    },
+  });
 
   const peopleById = useMemo(() => {
     const m = new Map<string, OrgPerson>();
