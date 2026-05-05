@@ -98,13 +98,53 @@ function PersonCard({
   );
 }
 
+const SUGGESTED_BY_SETOR: Record<string, RegExp> = {
+  PADARIA: /(padeiro|atendente.*padaria)/i,
+  ACOUGUE: /(a[çc]ougueiro|balconista)/i,
+  FLV: /(repositor.*horti|aux.*hortifr|hortifr)/i,
+  FRENTE_CAIXA: /(operador.*caixa|fiscal.*caixa|empacotador)/i,
+  MERCEARIA: /(repositor.*mercearia|estoquista|repositor.*bebida)/i,
+  RECEBIMENTO: /(conferente|faturista)/i,
+  LIMPEZA: /(aux.*limpeza|manuten[çc]|limpeza)/i,
+  VIGIA: /(fiscal.*patrim|vigia|preven[çc][ãa]o.*perda)/i,
+};
+
+function isSuggested(p: OrgPerson, setorKey?: string | null): boolean {
+  if (!setorKey) return false;
+  const rx = SUGGESTED_BY_SETOR[setorKey];
+  if (!rx) return false;
+  const hay = `${p.cargo_titulo ?? ""} ${p.cargo_text ?? ""} ${(p as any).cargo ?? ""}`;
+  return rx.test(hay);
+}
+
 function IncluirSlot({
-  label, unallocated, onPick,
+  label, unallocated, onPick, suggestedKey,
 }: {
   label: string;
   unallocated: OrgPerson[];
   onPick: (p: OrgPerson) => void;
+  suggestedKey?: string | null;
 }) {
+  const sugeridos = suggestedKey ? unallocated.filter((p) => isSuggested(p, suggestedKey)) : [];
+  const outros = suggestedKey ? unallocated.filter((p) => !isSuggested(p, suggestedKey)) : unallocated;
+
+  const renderItem = (p: OrgPerson) => (
+    <button
+      key={p.id}
+      onClick={() => onPick(p)}
+      className="flex w-full items-center gap-2 rounded p-1.5 text-left hover:bg-accent"
+    >
+      <Avatar className="h-7 w-7">
+        {p.foto_url ? <AvatarImage src={p.foto_url} /> : null}
+        <AvatarFallback className={`text-[9px] ${colorFor(p.nome)}`}>{initials(p.nome)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12px] font-medium">{p.nome}</p>
+        <p className="truncate text-[10px] text-muted-foreground">{p.cargo_titulo ?? p.cargo_text ?? "—"}</p>
+      </div>
+    </button>
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -122,26 +162,24 @@ function IncluirSlot({
         ) : (
           <ScrollArea className="h-72">
             <div className="space-y-1">
-              {unallocated.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => onPick(p)}
-                  className="flex w-full items-center gap-2 rounded p-1.5 text-left hover:bg-accent"
-                >
-                  <Avatar className="h-7 w-7">
-                    {p.foto_url ? <AvatarImage src={p.foto_url} /> : null}
-                    <AvatarFallback className={`text-[9px] ${colorFor(p.nome)}`}>
-                      {initials(p.nome)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[12px] font-medium">{p.nome}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">
-                      {p.cargo_titulo ?? p.cargo_text ?? "—"}
-                    </p>
+              {sugeridos.length > 0 && (
+                <>
+                  <div className="px-1 py-0.5 flex items-center gap-1.5">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-success">Sugeridos ({sugeridos.length})</span>
                   </div>
-                </button>
-              ))}
+                  {sugeridos.map(renderItem)}
+                  {outros.length > 0 && <div className="my-1 h-px w-full bg-border" />}
+                </>
+              )}
+              {outros.length > 0 && (
+                <>
+                  {sugeridos.length > 0 && (
+                    <div className="px-1 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Outros</div>
+                  )}
+                  {outros.map(renderItem)}
+                </>
+              )}
             </div>
           </ScrollArea>
         )}
