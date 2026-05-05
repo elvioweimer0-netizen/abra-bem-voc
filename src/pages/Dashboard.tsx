@@ -41,14 +41,12 @@ export default function Dashboard() {
   const { profile } = useAuth();
   const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser, cargo } = useRole();
   const { data: todayPill } = useTodayPill();
-  // Detect role from profile (real cargo) so role-based panels render even before ViewAs settles.
+  // Detect role from real profile so role-based panels render reliably.
   const realCargo = (profile as any)?.cargo as string | undefined;
   if (realCargo === "master" || realCargo === "admin" || realCargo === "supervisor") return <PainelMaster />;
   if (realCargo === "gerente_loja" || realCargo === "gerente") return <PainelGerente />;
-  if (realCargo === "encarregado" || realCargo === "fiscal" || realCargo === "lider_setor") return <PainelEncarregado />;
+  if (realCargo === "encarregado" || realCargo === "fiscal") return <PainelEncarregado />;
   if (isFeedUser) return <FeedColaborador />;
-  if (cargo === "gerente_loja") return <PainelGerente />;
-  if (isEncarregado) return <PainelEncarregado />;
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
   const [noticias, setNoticias] = useState<Noticia[]>([]);
