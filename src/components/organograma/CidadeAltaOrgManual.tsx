@@ -17,6 +17,10 @@ import {
   useOrgAlocacoes, useAllocateMutation, useRemoveAlocacaoMutation,
 } from "@/hooks/useOrgAlocacoes";
 import { AlocacaoModal } from "./AlocacaoModal";
+import { SolicitacaoExcedenteModal } from "./SolicitacaoExcedenteModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const initials = (n: string) =>
   n.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
