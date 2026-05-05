@@ -145,7 +145,7 @@ import { useIsRhAdmin } from "@/hooks/useIsRhAdmin";
 import type { ReactNode } from "react";
 import NotFound from "@/pages/NotFound";
 import { useRole } from "@/hooks/useRole";
-import { RegistrarProvider } from "@/components/nav/RegistrarModal";
+// RegistrarProvider mounted in AppLayout
 import { lazy, Suspense } from "react";
 const ComunicacaoHub = lazy(() => import("@/pages/hubs/ComunicacaoHub"));
 const MeuDiaHub = lazy(() => import("@/pages/hubs/MeuDiaHub"));
