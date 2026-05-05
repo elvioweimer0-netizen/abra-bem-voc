@@ -133,6 +133,7 @@ import SegurancaPage from "@/pages/SegurancaPage";
 import AdminSegurancaPage from "@/pages/AdminSegurancaPage";
 import PainelMaster from "@/pages/PainelMaster";
 import HistoricoSolicitacoes from "@/pages/HistoricoSolicitacoes";
+import RhSolicitacoes from "@/pages/RhSolicitacoes";
 import MasterGerenteDossie from "@/pages/MasterGerenteDossie";
 import MasterUnidadeEspiao from "@/pages/MasterUnidadeEspiao";
 import MasterCompararUnidades from "@/pages/MasterCompararUnidades";
@@ -368,6 +369,7 @@ function ProtectedRoutes() {
         <Route path="/gestao-usuarios" element={<GestaoUsuarios />} />
         <Route path="/admin/importar-colaboradores" element={<AdminImportarColaboradores />} />
         <Route path="/admin/historico-solicitacoes" element={<HistoricoSolicitacoes />} />
+        <Route path="/rh/solicitacoes" element={<RhSolicitacoes />} />
         <Route path="/gerencias/:slug" element={<GerenciaPage />} />
         <Route path="/checklist-diario" element={<ChecklistDiario />} />
         <Route path="/painel-cobranca" element={<PainelCobranca />} />

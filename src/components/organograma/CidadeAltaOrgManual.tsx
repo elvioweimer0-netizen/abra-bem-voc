@@ -98,13 +98,53 @@ function PersonCard({
   );
 }
 
+const SUGGESTED_BY_SETOR: Record<string, RegExp> = {
+  PADARIA: /(padeiro|atendente.*padaria)/i,
+  ACOUGUE: /(a[çc]ougueiro|balconista)/i,
+  FLV: /(repositor.*horti|aux.*hortifr|hortifr)/i,
+  FRENTE_CAIXA: /(operador.*caixa|fiscal.*caixa|empacotador)/i,
+  MERCEARIA: /(repositor.*mercearia|estoquista|repositor.*bebida)/i,
+  RECEBIMENTO: /(conferente|faturista)/i,
+  LIMPEZA: /(aux.*limpeza|manuten[çc]|limpeza)/i,
+  VIGIA: /(fiscal.*patrim|vigia|preven[çc][ãa]o.*perda)/i,
+};
+
+function isSuggested(p: OrgPerson, setorKey?: string | null): boolean {
+  if (!setorKey) return false;
+  const rx = SUGGESTED_BY_SETOR[setorKey];
+  if (!rx) return false;
+  const hay = `${p.cargo_titulo ?? ""} ${p.cargo_text ?? ""} ${(p as any).cargo ?? ""}`;
+  return rx.test(hay);
+}
+
 function IncluirSlot({
-  label, unallocated, onPick,
+  label, unallocated, onPick, suggestedKey,
 }: {
   label: string;
   unallocated: OrgPerson[];
   onPick: (p: OrgPerson) => void;
+  suggestedKey?: string | null;
 }) {
+  const sugeridos = suggestedKey ? unallocated.filter((p) => isSuggested(p, suggestedKey)) : [];
+  const outros = suggestedKey ? unallocated.filter((p) => !isSuggested(p, suggestedKey)) : unallocated;
+
+  const renderItem = (p: OrgPerson) => (
+    <button
+      key={p.id}
+      onClick={() => onPick(p)}
+      className="flex w-full items-center gap-2 rounded p-1.5 text-left hover:bg-accent"
+    >
+      <Avatar className="h-7 w-7">
+        {p.foto_url ? <AvatarImage src={p.foto_url} /> : null}
+        <AvatarFallback className={`text-[9px] ${colorFor(p.nome)}`}>{initials(p.nome)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12px] font-medium">{p.nome}</p>
+        <p className="truncate text-[10px] text-muted-foreground">{p.cargo_titulo ?? p.cargo_text ?? "—"}</p>
+      </div>
+    </button>
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -122,26 +162,24 @@ function IncluirSlot({
         ) : (
           <ScrollArea className="h-72">
             <div className="space-y-1">
-              {unallocated.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => onPick(p)}
-                  className="flex w-full items-center gap-2 rounded p-1.5 text-left hover:bg-accent"
-                >
-                  <Avatar className="h-7 w-7">
-                    {p.foto_url ? <AvatarImage src={p.foto_url} /> : null}
-                    <AvatarFallback className={`text-[9px] ${colorFor(p.nome)}`}>
-                      {initials(p.nome)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[12px] font-medium">{p.nome}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">
-                      {p.cargo_titulo ?? p.cargo_text ?? "—"}
-                    </p>
+              {sugeridos.length > 0 && (
+                <>
+                  <div className="px-1 py-0.5 flex items-center gap-1.5">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-success">Sugeridos ({sugeridos.length})</span>
                   </div>
-                </button>
-              ))}
+                  {sugeridos.map(renderItem)}
+                  {outros.length > 0 && <div className="my-1 h-px w-full bg-border" />}
+                </>
+              )}
+              {outros.length > 0 && (
+                <>
+                  {sugeridos.length > 0 && (
+                    <div className="px-1 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Outros</div>
+                  )}
+                  {outros.map(renderItem)}
+                </>
+              )}
             </div>
           </ScrollArea>
         )}
@@ -157,7 +195,7 @@ function ColumnHeader({ label }: { label: string }) {
 }
 
 function SideBox({
-  title, people, unitId, unallocated, onPick, onMove,
+  title, people, unitId, unallocated, onPick, onMove, suggestedKey,
 }: {
   title: string;
   people: OrgPerson[];
@@ -165,6 +203,7 @@ function SideBox({
   unallocated: OrgPerson[];
   onPick: (p: OrgPerson) => void;
   onMove: (p: OrgPerson) => void;
+  suggestedKey?: string | null;
 }) {
   return (
     <div className="rounded-md border bg-muted/30 p-2">
@@ -175,7 +214,7 @@ function SideBox({
         {people.map((p) => (
           <PersonCard key={p.id} person={p} unitId={unitId} onMove={onMove} />
         ))}
-        <IncluirSlot label={title} unallocated={unallocated} onPick={onPick} />
+        <IncluirSlot label={title} unallocated={unallocated} onPick={onPick} suggestedKey={suggestedKey} />
       </div>
     </div>
   );
@@ -319,6 +358,7 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                     unallocated={unallocated}
                     onPick={pickInto("colaborador", "RECEBIMENTO")}
                     onMove={setModalPerson}
+                    suggestedKey="RECEBIMENTO"
                   />
                 </div>
               </div>
@@ -336,6 +376,7 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                     unallocated={unallocated}
                     onPick={pickInto("colaborador", "LIMPEZA")}
                     onMove={setModalPerson}
+                    suggestedKey="LIMPEZA"
                   />
                 </div>
                 <div className="w-[160px]">
@@ -346,6 +387,7 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                     unallocated={unallocated}
                     onPick={pickInto("colaborador", "VIGIA")}
                     onMove={setModalPerson}
+                    suggestedKey="VIGIA"
                   />
                 </div>
               </div>
@@ -362,12 +404,12 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                 <ColumnHeader label="FLV" />
                 {encOf("FLV")
                   ? <PersonCard person={encOf("FLV")!} role="Enc. FLV" unitId={unitId} onMove={setModalPerson} />
-                  : <IncluirSlot label="Enc. FLV" unallocated={unallocated} onPick={pickInto("encarregado_setor", "FLV")} />}
+                  : <IncluirSlot label="Enc. FLV" unallocated={unallocated} onPick={pickInto("encarregado_setor", "FLV")} suggestedKey="FLV" />}
                 <div className={`h-2 w-px ${line}`} />
                 {colabsOf("FLV").map((p) => (
                   <PersonCard key={p.id} person={p} role="FLV" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="FLV" unallocated={unallocated} onPick={pickInto("colaborador", "FLV")} />
+                <IncluirSlot label="FLV" unallocated={unallocated} onPick={pickInto("colaborador", "FLV")} suggestedKey="FLV" />
               </div>
 
               {/* PADARIA */}
@@ -376,12 +418,12 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                 <ColumnHeader label="Padaria" />
                 {encOf("PADARIA")
                   ? <PersonCard person={encOf("PADARIA")!} role="Enc. Padaria" unitId={unitId} onMove={setModalPerson} />
-                  : <IncluirSlot label="Enc. Padaria" unallocated={unallocated} onPick={pickInto("encarregado_setor", "PADARIA")} />}
+                  : <IncluirSlot label="Enc. Padaria" unallocated={unallocated} onPick={pickInto("encarregado_setor", "PADARIA")} suggestedKey="PADARIA" />}
                 <div className={`h-2 w-px ${line}`} />
                 {colabsOf("PADARIA").map((p) => (
                   <PersonCard key={p.id} person={p} role="Padaria" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Padaria" unallocated={unallocated} onPick={pickInto("colaborador", "PADARIA")} />
+                <IncluirSlot label="Padaria" unallocated={unallocated} onPick={pickInto("colaborador", "PADARIA")} suggestedKey="PADARIA" />
               </div>
 
               {/* FRENTE DE CAIXA */}
@@ -390,25 +432,25 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                 <ColumnHeader label="Frente de Caixa" />
                 {encOf("FRENTE_CAIXA")
                   ? <PersonCard person={encOf("FRENTE_CAIXA")!} role="Enc. Caixa" unitId={unitId} onMove={setModalPerson} />
-                  : <IncluirSlot label="Enc. Caixa" unallocated={unallocated} onPick={pickInto("encarregado_setor", "FRENTE_CAIXA")} />}
+                  : <IncluirSlot label="Enc. Caixa" unallocated={unallocated} onPick={pickInto("encarregado_setor", "FRENTE_CAIXA")} suggestedKey="FRENTE_CAIXA" />}
                 <div className={`h-2 w-px ${line}`} />
                 <p className="text-[10px] font-semibold uppercase text-muted-foreground">Fiscais</p>
                 {bySetor("FRENTE_CAIXA", "Fiscais").map((p) => (
                   <PersonCard key={p.id} person={p} role="Fiscal" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Fiscal" unallocated={unallocated} onPick={pickInto("colaborador", "FRENTE_CAIXA", "Fiscais")} />
+                <IncluirSlot label="Fiscal" unallocated={unallocated} onPick={pickInto("colaborador", "FRENTE_CAIXA", "Fiscais")} suggestedKey="FRENTE_CAIXA" />
                 <div className="my-1 h-px w-full bg-border/60" />
                 <p className="text-[10px] font-semibold uppercase text-muted-foreground">Operadores</p>
                 {bySetor("FRENTE_CAIXA", "Operadores de Caixa").map((p) => (
                   <PersonCard key={p.id} person={p} role="Operador" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Operador" unallocated={unallocated} onPick={pickInto("colaborador", "FRENTE_CAIXA", "Operadores de Caixa")} />
+                <IncluirSlot label="Operador" unallocated={unallocated} onPick={pickInto("colaborador", "FRENTE_CAIXA", "Operadores de Caixa")} suggestedKey="FRENTE_CAIXA" />
                 <div className="my-1 h-px w-full bg-border/60" />
                 <p className="text-[10px] font-semibold uppercase text-muted-foreground">Empacotadores</p>
                 {bySetor("FRENTE_CAIXA", "Empacotadores").map((p) => (
                   <PersonCard key={p.id} person={p} role="Empacotador" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Empacotador" unallocated={unallocated} onPick={pickInto("colaborador", "FRENTE_CAIXA", "Empacotadores")} />
+                <IncluirSlot label="Empacotador" unallocated={unallocated} onPick={pickInto("colaborador", "FRENTE_CAIXA", "Empacotadores")} suggestedKey="FRENTE_CAIXA" />
               </div>
 
               {/* AÇOUGUE */}
@@ -417,19 +459,19 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                 <ColumnHeader label="Açougue" />
                 {encOf("ACOUGUE")
                   ? <PersonCard person={encOf("ACOUGUE")!} role="Enc. Açougue" unitId={unitId} onMove={setModalPerson} />
-                  : <IncluirSlot label="Enc. Açougue" unallocated={unallocated} onPick={pickInto("encarregado_setor", "ACOUGUE")} />}
+                  : <IncluirSlot label="Enc. Açougue" unallocated={unallocated} onPick={pickInto("encarregado_setor", "ACOUGUE")} suggestedKey="ACOUGUE" />}
                 <div className={`h-2 w-px ${line}`} />
                 <p className="text-[10px] font-semibold uppercase text-muted-foreground">Açougueiros</p>
                 {bySetor("ACOUGUE", "Açougueiros").map((p) => (
                   <PersonCard key={p.id} person={p} role="Açougueiro" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Açougueiro" unallocated={unallocated} onPick={pickInto("colaborador", "ACOUGUE", "Açougueiros")} />
+                <IncluirSlot label="Açougueiro" unallocated={unallocated} onPick={pickInto("colaborador", "ACOUGUE", "Açougueiros")} suggestedKey="ACOUGUE" />
                 <div className="my-1 h-px w-full bg-border/60" />
                 <p className="text-[10px] font-semibold uppercase text-muted-foreground">Balconistas</p>
                 {bySetor("ACOUGUE", "Balconistas").map((p) => (
                   <PersonCard key={p.id} person={p} role="Balconista" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Balconista" unallocated={unallocated} onPick={pickInto("colaborador", "ACOUGUE", "Balconistas")} />
+                <IncluirSlot label="Balconista" unallocated={unallocated} onPick={pickInto("colaborador", "ACOUGUE", "Balconistas")} suggestedKey="ACOUGUE" />
               </div>
 
               {/* MERCEARIA */}
@@ -438,12 +480,12 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
                 <ColumnHeader label="Mercearia" />
                 {encOf("MERCEARIA")
                   ? <PersonCard person={encOf("MERCEARIA")!} role="Enc. Mercearia" unitId={unitId} onMove={setModalPerson} />
-                  : <IncluirSlot label="Enc. Mercearia" unallocated={unallocated} onPick={pickInto("encarregado_setor", "MERCEARIA")} />}
+                  : <IncluirSlot label="Enc. Mercearia" unallocated={unallocated} onPick={pickInto("encarregado_setor", "MERCEARIA")} suggestedKey="MERCEARIA" />}
                 <div className={`h-2 w-px ${line}`} />
                 {colabsOf("MERCEARIA").map((p) => (
                   <PersonCard key={p.id} person={p} role="Mercearia" unitId={unitId} onMove={setModalPerson} />
                 ))}
-                <IncluirSlot label="Mercearia" unallocated={unallocated} onPick={pickInto("colaborador", "MERCEARIA")} />
+                <IncluirSlot label="Mercearia" unallocated={unallocated} onPick={pickInto("colaborador", "MERCEARIA")} suggestedKey="MERCEARIA" />
               </div>
             </div>
           </div>

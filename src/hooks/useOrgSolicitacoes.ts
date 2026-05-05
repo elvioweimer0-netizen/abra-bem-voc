@@ -13,12 +13,18 @@ export type OrgSolicitacao = {
   aumento_pretendido: number;
   justificativa_texto: string;
   numeros_jsonb: Record<string, any> | null;
-  status: "pendente" | "aprovada" | "recusada" | "cancelada";
+  status: "pendente" | "pendente_rh" | "pendente_master" | "aprovada" | "recusada" | "cancelada";
   solicitado_por: string | null;
   solicitado_em: string;
   decidido_por: string | null;
   decidido_em: string | null;
   motivo_decisao: string | null;
+  rh_decidido_por?: string | null;
+  rh_decidido_em?: string | null;
+  rh_motivo?: string | null;
+  master_decidido_por?: string | null;
+  master_decidido_em?: string | null;
+  master_motivo?: string | null;
 };
 
 export function useOrgSolicitacoes(opts: { unitId?: string; status?: OrgSolicitacao["status"] | "todas" } = {}) {
@@ -84,6 +90,23 @@ export function useDecideOrgSolicitacao() {
       qc.invalidateQueries({ queryKey: ["org_alocacoes"] });
       qc.invalidateQueries({ queryKey: ["unit-total-desejado"] });
       toast({ title: vars.decision === "aprovar" ? "Aprovada" : "Recusada" });
+    },
+    onError: (e: any) => toast({ title: "Erro", description: String(e?.message ?? e), variant: "destructive" }),
+  });
+}
+
+export function useTriagemRhOrgSolicitacao() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; decision: "aprovar" | "recusar"; motivo?: string }) => {
+      const { error } = await (supabase as any).rpc("triagem_rh_org_solicitacao", {
+        _id: input.id, _decision: input.decision, _motivo: input.motivo ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["org_solicitacoes"] });
+      toast({ title: vars.decision === "aprovar" ? "Aprovado pelo RH (vai pro master)" : "Recusado pelo RH" });
     },
     onError: (e: any) => toast({ title: "Erro", description: String(e?.message ?? e), variant: "destructive" }),
   });

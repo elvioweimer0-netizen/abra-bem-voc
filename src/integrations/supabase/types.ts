@@ -4275,10 +4275,16 @@ export type Database = {
           decidido_por: string | null
           id: string
           justificativa_texto: string
+          master_decidido_em: string | null
+          master_decidido_por: string | null
+          master_motivo: string | null
           motivo_decisao: string | null
           numeros_jsonb: Json | null
           posicao_alvo: string | null
           profile_id: string | null
+          rh_decidido_em: string | null
+          rh_decidido_por: string | null
+          rh_motivo: string | null
           setor_alvo: string | null
           solicitado_em: string
           solicitado_por: string | null
@@ -4294,10 +4300,16 @@ export type Database = {
           decidido_por?: string | null
           id?: string
           justificativa_texto: string
+          master_decidido_em?: string | null
+          master_decidido_por?: string | null
+          master_motivo?: string | null
           motivo_decisao?: string | null
           numeros_jsonb?: Json | null
           posicao_alvo?: string | null
           profile_id?: string | null
+          rh_decidido_em?: string | null
+          rh_decidido_por?: string | null
+          rh_motivo?: string | null
           setor_alvo?: string | null
           solicitado_em?: string
           solicitado_por?: string | null
@@ -4313,10 +4325,16 @@ export type Database = {
           decidido_por?: string | null
           id?: string
           justificativa_texto?: string
+          master_decidido_em?: string | null
+          master_decidido_por?: string | null
+          master_motivo?: string | null
           motivo_decisao?: string | null
           numeros_jsonb?: Json | null
           posicao_alvo?: string | null
           profile_id?: string | null
+          rh_decidido_em?: string | null
+          rh_decidido_por?: string | null
+          rh_motivo?: string | null
           setor_alvo?: string | null
           solicitado_em?: string
           solicitado_por?: string | null
@@ -7431,7 +7449,7 @@ export type Database = {
         Returns: boolean
       }
       recusar_org_solicitacao: {
-        Args: { _id: string; _motivo: string }
+        Args: { _id: string; _motivo?: string }
         Returns: undefined
       }
       regenerate_tv_display_token: {
@@ -7456,6 +7474,10 @@ export type Database = {
       submit_quiz: {
         Args: { _answers: Json; _module_id: string }
         Returns: Json
+      }
+      triagem_rh_org_solicitacao: {
+        Args: { _decision: string; _id: string; _motivo?: string }
+        Returns: undefined
       }
       user_already_answered_question: {
         Args: { _question_id: string; _uid: string }
