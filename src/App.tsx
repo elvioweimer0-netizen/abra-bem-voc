@@ -130,6 +130,13 @@ import AdminBemEstarPage from "@/pages/AdminBemEstarPage";
 import AdminBemEstarCriticosPage from "@/pages/AdminBemEstarCriticosPage";
 import SegurancaPage from "@/pages/SegurancaPage";
 import AdminSegurancaPage from "@/pages/AdminSegurancaPage";
+import PainelMaster from "@/pages/PainelMaster";
+import MasterGerenteDossie from "@/pages/MasterGerenteDossie";
+import MasterUnidadeEspiao from "@/pages/MasterUnidadeEspiao";
+import MasterCompararUnidades from "@/pages/MasterCompararUnidades";
+import MasterAtalhoConfig from "@/pages/MasterAtalhoConfig";
+import MasterAgenda from "@/pages/MasterAgenda";
+import MasterTV from "@/pages/MasterTV";
 import { AchievementUnlockListener } from "@/components/achievements/AchievementUnlockListener";
 import { CommandPaletteProvider } from "@/hooks/useCommandPalette";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
@@ -275,6 +282,13 @@ function SafetyAdminAccess({ children }: { children: ReactNode }) {
   const { cargo } = useRole();
   const isRh = useIsRhAdmin();
   const allowed = isRh || ["master", "admin", "supervisor", "gerente_adm"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
+function MasterAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor"].includes(cargo);
   if (!allowed) return <NotFound />;
   return <>{children}</>;
 }
@@ -434,6 +448,12 @@ function ProtectedRoutes() {
         <Route path="/admin/bem-estar/criticos" element={<WellbeingCriticalAccess><AdminBemEstarCriticosPage /></WellbeingCriticalAccess>} />
         <Route path="/seguranca" element={<SafetyAccess><SegurancaPage /></SafetyAccess>} />
         <Route path="/admin/seguranca" element={<SafetyAdminAccess><AdminSegurancaPage /></SafetyAdminAccess>} />
+        <Route path="/master/gerente/:id" element={<MasterAccess><MasterGerenteDossie /></MasterAccess>} />
+        <Route path="/master/unidade/:id" element={<MasterAccess><MasterUnidadeEspiao /></MasterAccess>} />
+        <Route path="/master/comparar" element={<MasterAccess><MasterCompararUnidades /></MasterAccess>} />
+        <Route path="/master/atalho" element={<MasterAccess><MasterAtalhoConfig /></MasterAccess>} />
+        <Route path="/master/agenda" element={<MasterAccess><MasterAgenda /></MasterAccess>} />
+        <Route path="/master/tv" element={<MasterAccess><MasterTV /></MasterAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

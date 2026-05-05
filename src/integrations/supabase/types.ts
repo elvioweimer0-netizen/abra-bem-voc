@@ -2912,6 +2912,108 @@ export type Database = {
         }
         Relationships: []
       }
+      master_manager_notes: {
+        Row: {
+          created_at: string
+          id: string
+          manager_user_id: string
+          master_user_id: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manager_user_id: string
+          master_user_id: string
+          note: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manager_user_id?: string
+          master_user_id?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      master_one_on_ones: {
+        Row: {
+          action_items: Json | null
+          completed_at: string | null
+          created_at: string
+          gerente_user_id: string
+          id: string
+          master_user_id: string
+          notes: string | null
+          scheduled_for: string
+          updated_at: string
+        }
+        Insert: {
+          action_items?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          gerente_user_id: string
+          id?: string
+          master_user_id: string
+          notes?: string | null
+          scheduled_for: string
+          updated_at?: string
+        }
+        Update: {
+          action_items?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          gerente_user_id?: string
+          id?: string
+          master_user_id?: string
+          notes?: string | null
+          scheduled_for?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      master_pending_decisions: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          description: string | null
+          id: string
+          ref_id: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string | null
+          id?: string
+          ref_id?: string | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string | null
+          id?: string
+          ref_id?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       master_pinned_items: {
         Row: {
           active: boolean
@@ -2944,6 +3046,96 @@ export type Database = {
           link?: string | null
           ordem?: number
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      master_snapshots: {
+        Row: {
+          alerts: Json
+          created_at: string
+          id: string
+          kpis: Json
+          snapshot_date: string
+          top_movers: Json
+        }
+        Insert: {
+          alerts?: Json
+          created_at?: string
+          id?: string
+          kpis?: Json
+          snapshot_date: string
+          top_movers?: Json
+        }
+        Update: {
+          alerts?: Json
+          created_at?: string
+          id?: string
+          kpis?: Json
+          snapshot_date?: string
+          top_movers?: Json
+        }
+        Relationships: []
+      }
+      master_spy_log: {
+        Row: {
+          action_taken: string | null
+          id: string
+          master_user_id: string
+          target_unit_id: string | null
+          target_user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          action_taken?: string | null
+          id?: string
+          master_user_id: string
+          target_unit_id?: string | null
+          target_user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          action_taken?: string | null
+          id?: string
+          master_user_id?: string
+          target_unit_id?: string | null
+          target_user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: []
+      }
+      master_visits: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          master_user_id: string
+          notes: string | null
+          photos: Json
+          scheduled_for: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          master_user_id: string
+          notes?: string | null
+          photos?: Json
+          scheduled_for: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          master_user_id?: string
+          notes?: string | null
+          photos?: Json
+          scheduled_for?: string
+          unit_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -6895,6 +7087,7 @@ export type Database = {
         Returns: boolean
       }
       is_leadership: { Args: { _user_id: string }; Returns: boolean }
+      is_master_or_admin: { Args: { _uid: string }; Returns: boolean }
       is_rh_admin: { Args: { _user_id: string }; Returns: boolean }
       is_rh_or_admin: { Args: { _uid: string }; Returns: boolean }
       is_safety_viewer: { Args: { _uid: string }; Returns: boolean }
