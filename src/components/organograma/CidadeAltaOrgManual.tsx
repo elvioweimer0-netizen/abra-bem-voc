@@ -459,8 +459,6 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
         defaultSetor={modalPerson ? ((allocByProfile.get(modalPerson.id)?.setor as AlocacaoSetor | undefined) ?? null) : null}
         defaultSubSetor={modalPerson ? (allocByProfile.get(modalPerson.id)?.sub_setor ?? null) : null}
       />
-    </div>
-  );
       <SolicitacaoExcedenteModal
         open={!!solicitState}
         onOpenChange={(v) => !v && setSolicitState(null)}
