@@ -448,6 +448,12 @@ function ProtectedRoutes() {
         <Route path="/admin/bem-estar/criticos" element={<WellbeingCriticalAccess><AdminBemEstarCriticosPage /></WellbeingCriticalAccess>} />
         <Route path="/seguranca" element={<SafetyAccess><SegurancaPage /></SafetyAccess>} />
         <Route path="/admin/seguranca" element={<SafetyAdminAccess><AdminSegurancaPage /></SafetyAdminAccess>} />
+        <Route path="/master/gerente/:id" element={<MasterAccess><MasterGerenteDossie /></MasterAccess>} />
+        <Route path="/master/unidade/:id" element={<MasterAccess><MasterUnidadeEspiao /></MasterAccess>} />
+        <Route path="/master/comparar" element={<MasterAccess><MasterCompararUnidades /></MasterAccess>} />
+        <Route path="/master/atalho" element={<MasterAccess><MasterAtalhoConfig /></MasterAccess>} />
+        <Route path="/master/agenda" element={<MasterAccess><MasterAgenda /></MasterAccess>} />
+        <Route path="/master/tv" element={<MasterAccess><MasterTV /></MasterAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
