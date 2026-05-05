@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
         unit_id: u.id,
         snapshot_date: today,
         kpis: {
-          revenue: Number(sales?.revenue ?? 0),
+          revenue,
           incidents: incidents ?? 0,
           missing: missing ?? 0,
           status,
