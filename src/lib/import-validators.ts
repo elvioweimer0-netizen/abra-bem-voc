@@ -1,6 +1,8 @@
 import { normalizeCpf, isValidCpf } from "./cpf";
 
 export type RawRow = Record<string, any>;
+export type UnitKind = "loja" | "cp" | "cd" | "cpa" | "adm";
+
 export type ValidatedRow = {
   index: number;
   raw: RawRow;
@@ -12,6 +14,7 @@ export type ValidatedRow = {
     unidade_input: string;
     unit_id: string | null;
     unit_name: string | null;
+    unit_kind: UnitKind | null;
     setor: string | null;
     cargo: string | null;
     role: "gerente_loja" | "gerente_adm" | "encarregado" | "colaborador";
@@ -78,30 +81,90 @@ export function inferPosicaoOrganograma(cargo: string): ValidatedRow["normalized
   return "colaborador";
 }
 
+/**
+ * Setor é livre por unit_kind, casado com nomes em unit_sector_templates.
+ * Retorna o nome canônico do setor para a unidade ou string vazia se não se aplica.
+ */
+export function inferSetorByKind(cargo: string, kind: UnitKind | null): string {
+  const c = norm(cargo);
+  if (!kind) return "";
+
+  // Gerência geral / RH / financeiro não têm setor
+  if (c.includes("GERENTE GERAL")) return "";
+
+  if (kind === "cp") {
+    if (/PAO FRANCES/.test(c)) return "Pão Francês";
+    if (/ACOUGUEIRO\/PADEIRO/.test(c)) return "Pão Francês";
+    if (c === "PADEIRO" || /^PADEIRO\b/.test(c)) return "Pão Francês";
+    if (/PAO EMBALADO/.test(c)) return "Pão Embalado";
+    if (/AUX\.?\s*PRODUCAO|AUXILIAR DE PRODUCAO/.test(c)) return "Pão Embalado";
+    if (/COZINHEIRO|AUX\.?\s*(DE\s*)?COZINHA/.test(c)) return "Cozinha";
+    if (/SALGADEIRO|SALGADO/.test(c)) return "Salgado";
+    if (/CONFEITEIRO|CONFEITARIA/.test(c)) return "Confeitaria";
+    if (/MOTORISTA|SERVICOS GERAIS|AUX\.?\s*LIMPEZA/.test(c)) return "Apoio/Logística";
+    if (/ENCARREGADO DE PRODUCAO/.test(c)) return "";
+    return "Apoio/Logística";
+  }
+
+  if (kind === "cd") {
+    if (/COMPRADOR|AUX\.?\s*COMPRAS|FATURISTA|GERENTE RH|(^|\s)RH(\s|$)|(^|\s)DP(\s|$)|FINANCEIRO/.test(c)) return "Administrativo";
+    if (/CONFERENTE|ESTOQUISTA|ENCARREGADO DE LOGISTICA|ENCARREGADO DE HORTIFRUTI|MOTORISTA|AUX\.?\s*PERECIVEIS/.test(c)) return "Operacional";
+    return "Operacional";
+  }
+
+  if (kind === "loja") {
+    if (/SUSHIMAN|ATENDIMENTO AO CLIENTE/.test(c)) return "Sushi/Atendimento";
+    if (/ACOUGUEIRO|BALCONISTA DE ACOUGUE|ACOUGUE/.test(c)) return "Açougue";
+    if (/PADEIRO|ATENDENTE PADARIA|PADARIA/.test(c)) return "Padaria";
+    if (/OPERADOR\s*(DE)?\s*CAIXA|FISCAL\s*(DE)?\s*CAIXA|EMPACOTADOR/.test(c)) return "Frente de Caixa";
+    if (/REPOSITOR|AUX\.?\s*HORTIFRUTI|HORTIFRUTI|ATENDENTE\s*(DE)?\s*LOJA/.test(c)) return "Repositores";
+    if (/MONITOR\s*(DE)?\s*PREVENCAO|PREVENCAO/.test(c)) return "Prevenção";
+    if (/CONFERENTE|FATURISTA|RECEBIMENTO|PERDAS/.test(c)) return "Recebimento e Perdas";
+    if (/FISCAL\s*DE\s*PATRIMONIO|VIGIA|VIGILANTE/.test(c)) return "Vigia";
+    if (/AUX\.?\s*LIMPEZA|SERVICOS GERAIS|MANUTENCAO|LIMPEZA/.test(c)) return "Manutenção e Limpeza";
+    return "";
+  }
+
+  if (kind === "cpa") {
+    if (/ACOUGUEIRO|BALCONISTA DE ACOUGUE|ACOUGUE/.test(c)) return "Açougue";
+    if (/PADEIRO|ATENDENTE PADARIA|PADARIA/.test(c)) return "Padaria";
+    if (/OPERADOR\s*(DE)?\s*CAIXA|FISCAL\s*(DE)?\s*CAIXA|EMPACOTADOR/.test(c)) return "Frente de Caixa";
+    if (/REPOSITOR|AUX\.?\s*HORTIFRUTI|HORTIFRUTI|ATENDENTE\s*(DE)?\s*LOJA/.test(c)) return "Repositores e Hortifruti";
+    if (/CONFERENTE|FATURISTA|RECEBIMENTO|PERDAS/.test(c)) return "Recebimento e Perdas";
+    if (/FISCAL\s*DE\s*PATRIMONIO|VIGIA|VIGILANTE|AUX\.?\s*LIMPEZA|SERVICOS GERAIS|LIMPEZA/.test(c)) return "Vigia e Limpeza";
+    return "";
+  }
+
+  if (kind === "adm") {
+    if (/DIRETOR|PRESIDENT/.test(c)) return "Diretoria";
+    if (/FINANCEIRO|CONTROLLER|CONTABIL|FATURISTA/.test(c)) return "Financeiro";
+    if (/(^|\s)RH(\s|$)|RECURSOS HUMANOS|DEPARTAMENTO PESSOAL|(^|\s)DP(\s|$)/.test(c)) return "Recursos Humanos";
+    if (/(^|\s)TI(\s|$)|TECNOLOGIA|ANALISTA TI|DESENVOLVEDOR|SISTEMAS/.test(c)) return "Tecnologia";
+    return "Recursos Humanos";
+  }
+
+  return "";
+}
+
+/** Backwards-compat fallback used until we have unit_kind. */
 export function inferSetorOrganograma(cargo: string): string {
   const c = norm(cargo);
-  if (/PADEIRO|PADARIA/.test(c)) return "PADARIA";
-  if (/ACOUGUEIRO|ACOUGUE/.test(c)) return "ACOUGUE";
-  if (/OPERADOR DE CAIXA|FISCAL DE CAIXA|EMPACOTADOR/.test(c)) return "FRENTE_CAIXA";
-  if (/REPOSITOR|HORTIFRUTI|ATENDENTE DE LOJA/.test(c)) return "REPOSICAO";
-  if (/CONFERENTE|FATURISTA|ESTOQUISTA/.test(c)) return "RECEBIMENTO";
-  if (/LIMPEZA|SERVICOS GERAIS/.test(c)) return "LIMPEZA";
-  if (/FISCAL DE PATRIMONIO|MONITOR DE PREVENCAO|PREVENCAO/.test(c)) return "PREVENCAO";
-  if (/CONFEITEIRO|SALGADEIRO|COZINHEIRO/.test(c)) return "PRODUCAO";
-  if (/MOTORISTA/.test(c)) return "LOGISTICA";
-  if (/(^|\s)TI(\s|$)|ANALISTA TI/.test(c)) return "TI";
-  if (/(^|\s)RH(\s|$)|DEPARTAMENTO PESSOAL|FINANCEIRO|CONTROLLER|ASSISTENTE DE DP|ASSISTENTE FINANCEIRO/.test(c))
-    return "ADM";
-  return "OUTROS";
+  if (/PADEIRO|PADARIA/.test(c)) return "Padaria";
+  if (/ACOUGUEIRO|ACOUGUE/.test(c)) return "Açougue";
+  if (/OPERADOR DE CAIXA|FISCAL DE CAIXA|EMPACOTADOR/.test(c)) return "Frente de Caixa";
+  if (/REPOSITOR|HORTIFRUTI/.test(c)) return "Repositores";
+  if (/CONFERENTE|FATURISTA|ESTOQUISTA/.test(c)) return "Recebimento e Perdas";
+  if (/LIMPEZA|SERVICOS GERAIS/.test(c)) return "Manutenção e Limpeza";
+  if (/PREVENCAO/.test(c)) return "Prevenção";
+  if (/VIGIA|FISCAL DE PATRIMONIO/.test(c)) return "Vigia";
+  return "";
 }
 
 function parseDateBr(input: any): string | null {
   if (!input) return null;
   const s = String(input).trim();
-  // ISO
   const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
-  // DD/MM/YYYY
   const br = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if (br) {
     const d = br[1].padStart(2, "0");
@@ -110,7 +173,6 @@ function parseDateBr(input: any): string | null {
     if (y.length === 2) y = (parseInt(y) > 50 ? "19" : "20") + y;
     return `${y}-${m}-${d}`;
   }
-  // Excel serial number
   const n = Number(s);
   if (Number.isFinite(n) && n > 20000 && n < 80000) {
     const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
@@ -119,9 +181,7 @@ function parseDateBr(input: any): string | null {
   return null;
 }
 
-export type UnitLookup = { id: string; name: string; code: string | null };
-
-const ADM_TARGETS = ["TI", "ADM"];
+export type UnitLookup = { id: string; name: string; code: string | null; unit_kind?: UnitKind | null };
 
 export function validateRow(
   raw: RawRow,
@@ -141,7 +201,6 @@ export function validateRow(
   const cargo = String(r.cargo ?? "").trim();
 
   const role = inferRole(cargo);
-  const setorOrg = inferSetorOrganograma(cargo);
   const isGM = inferIsGeneralManager(cargo);
   const posicao = inferPosicaoOrganograma(cargo);
 
@@ -153,15 +212,17 @@ export function validateRow(
   if (inputN) {
     unit = unitsByName.get(inputN) ?? unitsByCode.get(inputN) ?? null;
     if (!unit) {
-      // partial match by name
       unit = units.find((u) => norm(u.name).includes(inputN) || inputN.includes(norm(u.name))) ?? null;
     }
   }
-  // Force ADM for TI / RH / DP / financeiro
-  if (ADM_TARGETS.includes(setorOrg) || role === "gerente_adm") {
-    const adm = units.find((u) => norm(u.code ?? "") === "CENTRAL_ADM" || norm(u.name).includes("CENTRAL ADMIN"));
+  // Force ADM for RH / DP / financeiro / TI
+  if (role === "gerente_adm") {
+    const adm = units.find((u) => u.unit_kind === "adm" || norm(u.code ?? "") === "CENTRAL_ADM" || norm(u.name).includes("CENTRAL ADMIN"));
     if (adm) unit = adm;
   }
+
+  const kind = (unit?.unit_kind ?? null) as UnitKind | null;
+  const setorOrg = inferSetorByKind(cargo, kind) || (kind ? "" : inferSetorOrganograma(cargo));
 
   if (!nome || nome.length < 3) reasons.push("Nome obrigatório (min 3 chars)");
   if (!cpf) reasons.push("CPF vazio");
@@ -178,6 +239,9 @@ export function validateRow(
   else if (!cargo) {
     reasons.push("Cargo vazio - será criado como colaborador");
     status = "aviso";
+  } else if (posicao === "colaborador" && !setorOrg && kind) {
+    reasons.push("Setor não inferido - revise antes de importar");
+    status = "aviso";
   }
 
   return {
@@ -191,6 +255,7 @@ export function validateRow(
       unidade_input: unidadeInput,
       unit_id: unit?.id ?? null,
       unit_name: unit?.name ?? null,
+      unit_kind: kind,
       setor: r.setor ? String(r.setor) : null,
       cargo: cargo || null,
       role,
