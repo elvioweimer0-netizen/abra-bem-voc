@@ -5,8 +5,16 @@ import { Button } from "@/components/ui/button";
 import { useUnitOrgData } from "@/hooks/useUnitOrgData";
 import { useAccessibleUnits } from "@/hooks/useAccessibleUnits";
 import { FullOrganogramaTree } from "@/components/organograma/FullOrganogramaTree";
+import { CidadeAltaOrgTree } from "@/components/organograma/CidadeAltaOrgTree";
 import { UnitKPIs } from "@/components/organograma/UnitKPIs";
 import { useRole } from "@/hooks/useRole";
+
+function isCidadeAlta(u: { code?: string | null; name?: string | null; type?: string | null } | null | undefined) {
+  if (!u) return false;
+  const code = (u.code ?? "").toUpperCase();
+  const name = (u.name ?? "").toLowerCase();
+  return u.type === "loja" && (code === "MATRIZ" || code === "L01" || name.includes("cidade alta"));
+}
 
 export default function UnidadePage() {
   const { id } = useParams<{ id: string }>();
