@@ -473,7 +473,6 @@ function ProtectedRoutes() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>
-      </RegistrarProvider>
     </AppLayout>
   );
 }
