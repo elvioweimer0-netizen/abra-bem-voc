@@ -20,6 +20,8 @@ import { CalendarClock, CheckCircle2, ClipboardList, Gauge, MapPin } from "lucid
 import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
+import PainelGerente from "@/pages/PainelGerente";
+import PainelEncarregado from "@/pages/PainelEncarregado";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
@@ -39,6 +41,8 @@ export default function Dashboard() {
   const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser, cargo } = useRole();
   const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
+  if (cargo === "gerente_loja") return <PainelGerente />;
+  if (isEncarregado) return <PainelEncarregado />;
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
   const [noticias, setNoticias] = useState<Noticia[]>([]);
