@@ -35,6 +35,7 @@ import CriarReuniao from "@/pages/CriarReuniao";
 import AgendaReunioes from "@/pages/AgendaReunioes";
 import HistoricoReunioes from "@/pages/HistoricoReunioes";
 import GestaoUsuarios from "@/pages/GestaoUsuarios";
+import AdminImportarColaboradores from "@/pages/AdminImportarColaboradores";
 import GerenciaPage from "@/pages/GerenciaPage";
 import ChecklistDiario from "@/pages/ChecklistDiario";
 import PainelCobranca from "@/pages/PainelCobranca";
@@ -351,6 +352,7 @@ function ProtectedRoutes() {
         <Route path="/agenda" element={<AgendaReunioes />} />
         <Route path="/reunioes/historico" element={<HistoricoReunioes />} />
         <Route path="/gestao-usuarios" element={<GestaoUsuarios />} />
+        <Route path="/admin/importar-colaboradores" element={<AdminImportarColaboradores />} />
         <Route path="/gerencias/:slug" element={<GerenciaPage />} />
         <Route path="/checklist-diario" element={<ChecklistDiario />} />
         <Route path="/painel-cobranca" element={<PainelCobranca />} />

@@ -61,3 +61,6 @@ verify_jwt = false
 
 [functions.wellbeing-tick]
 verify_jwt = false
+
+[functions.bulk-import-colaboradores]
+verify_jwt = false
