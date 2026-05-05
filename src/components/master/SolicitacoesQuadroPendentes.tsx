@@ -24,7 +24,7 @@ function NumerosInline({ n }: { n: Record<string, any> | null }) {
 }
 
 export function SolicitacoesQuadroPendentes() {
-  const { data: items = [], isLoading } = useOrgSolicitacoes({ status: "pendente" });
+  const { data: items = [], isLoading } = useOrgSolicitacoes({ status: "pendente_master" });
   const decide = useDecideOrgSolicitacao();
   const [decision, setDecision] = useState<{ s: OrgSolicitacao; type: "aprovar" | "recusar" } | null>(null);
   const [motivo, setMotivo] = useState("");
