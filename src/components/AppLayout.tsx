@@ -42,6 +42,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
         <MoodPrompt />
         <PulsePrompt />
+      </RegistrarProvider>
       </SidebarProvider>
     </ViewAsProvider>
   );
