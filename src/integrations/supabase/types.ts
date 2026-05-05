@@ -400,6 +400,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_import_log: {
+        Row: {
+          details: Json | null
+          failed: number | null
+          file_name: string | null
+          id: string
+          performed_at: string
+          performed_by: string | null
+          successful: number | null
+          total_rows: number | null
+          updated: number | null
+        }
+        Insert: {
+          details?: Json | null
+          failed?: number | null
+          file_name?: string | null
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          successful?: number | null
+          total_rows?: number | null
+          updated?: number | null
+        }
+        Update: {
+          details?: Json | null
+          failed?: number | null
+          file_name?: string | null
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          successful?: number | null
+          total_rows?: number | null
+          updated?: number | null
+        }
+        Relationships: []
+      }
       chat_audit_log: {
         Row: {
           action: string
@@ -4765,12 +4801,19 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admissao_date: string | null
+          afastado_desde: string | null
+          afastado_status: string | null
           ativo: boolean
           audio_painel_enabled: boolean
           available_for_coverage: boolean
           cargo: Database["public"]["Enums"]["cargo_tipo"]
+          cargo_text: string | null
           cargo_titulo: string | null
+          cbo: string | null
+          codigo_empregado: string | null
           coverage_dates: unknown[] | null
+          cpf: string | null
           created_at: string
           data_admissao: string | null
           data_nascimento: string | null
@@ -4780,16 +4823,25 @@ export type Database = {
           foto_url: string | null
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
+          is_general_manager: boolean | null
           is_test: boolean
           lider_setor_id: string | null
           login_count: number
           must_change_password: boolean
+          nascimento_date: string | null
           nome: string
           painel_mode: string
           painel_onboarding_seen: boolean
+          pcd_flag: boolean | null
+          periodo: string | null
           permission_units: string[]
+          pis: string | null
+          posicao_organograma: string | null
           role: Database["public"]["Enums"]["cargo_tipo"] | null
           setor: Database["public"]["Enums"]["setor_tipo"] | null
+          setor_organograma: string | null
+          setor_text: string | null
+          sexo: string | null
           telefone: string | null
           theme_preference: string
           unidade: Database["public"]["Enums"]["unidade_tipo"]
@@ -4800,12 +4852,19 @@ export type Database = {
           welcome_banner_dismissed: boolean
         }
         Insert: {
+          admissao_date?: string | null
+          afastado_desde?: string | null
+          afastado_status?: string | null
           ativo?: boolean
           audio_painel_enabled?: boolean
           available_for_coverage?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          cargo_text?: string | null
           cargo_titulo?: string | null
+          cbo?: string | null
+          codigo_empregado?: string | null
           coverage_dates?: unknown[] | null
+          cpf?: string | null
           created_at?: string
           data_admissao?: string | null
           data_nascimento?: string | null
@@ -4815,16 +4874,25 @@ export type Database = {
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
+          is_general_manager?: boolean | null
           is_test?: boolean
           lider_setor_id?: string | null
           login_count?: number
           must_change_password?: boolean
+          nascimento_date?: string | null
           nome: string
           painel_mode?: string
           painel_onboarding_seen?: boolean
+          pcd_flag?: boolean | null
+          periodo?: string | null
           permission_units?: string[]
+          pis?: string | null
+          posicao_organograma?: string | null
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          setor_organograma?: string | null
+          setor_text?: string | null
+          sexo?: string | null
           telefone?: string | null
           theme_preference?: string
           unidade: Database["public"]["Enums"]["unidade_tipo"]
@@ -4835,12 +4903,19 @@ export type Database = {
           welcome_banner_dismissed?: boolean
         }
         Update: {
+          admissao_date?: string | null
+          afastado_desde?: string | null
+          afastado_status?: string | null
           ativo?: boolean
           audio_painel_enabled?: boolean
           available_for_coverage?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
+          cargo_text?: string | null
           cargo_titulo?: string | null
+          cbo?: string | null
+          codigo_empregado?: string | null
           coverage_dates?: unknown[] | null
+          cpf?: string | null
           created_at?: string
           data_admissao?: string | null
           data_nascimento?: string | null
@@ -4850,16 +4925,25 @@ export type Database = {
           foto_url?: string | null
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
+          is_general_manager?: boolean | null
           is_test?: boolean
           lider_setor_id?: string | null
           login_count?: number
           must_change_password?: boolean
+          nascimento_date?: string | null
           nome?: string
           painel_mode?: string
           painel_onboarding_seen?: boolean
+          pcd_flag?: boolean | null
+          periodo?: string | null
           permission_units?: string[]
+          pis?: string | null
+          posicao_organograma?: string | null
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
+          setor_organograma?: string | null
+          setor_text?: string | null
+          sexo?: string | null
           telefone?: string | null
           theme_preference?: string
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
