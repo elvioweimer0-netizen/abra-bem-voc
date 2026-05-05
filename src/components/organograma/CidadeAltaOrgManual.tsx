@@ -268,10 +268,21 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs">
-          <span className="font-semibold">{allocCount} de {total}</span>{" "}
-          <span className="text-muted-foreground">alocados ({pct}%) — clique em uma pessoa para mover/remover</span>
-        </p>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "rounded-md border px-2 py-1 text-xs font-semibold",
+              desiredStatus === "exceeded" && "border-destructive/40 bg-destructive/10 text-destructive",
+              desiredStatus === "full" && "border-warning/40 bg-warning/10 text-warning",
+              desiredStatus === "ok" && "border-success/40 bg-success/10 text-success",
+            )}
+          >
+            {allocCount} de {totalDesejado || total} alocados
+            {desiredStatus === "exceeded" && " · EXCEDIDO"}
+            {desiredStatus === "full" && " · CHEIO"}
+          </span>
+          <span className="text-xs text-muted-foreground">{pct}%</span>
+        </div>
         <div className="flex items-center gap-1">
           <Button variant="outline" size="icon" onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>
             <ZoomOut className="h-4 w-4" />
