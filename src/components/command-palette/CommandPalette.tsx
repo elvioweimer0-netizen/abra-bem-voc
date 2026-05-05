@@ -73,6 +73,9 @@ export function CommandPalette() {
   const { open, setOpen } = useCommandPalette();
   const navigate = useNavigate();
 
+  const { profile } = useAuth();
+  const myUnitId = (profile as any)?.unit_id as string | undefined;
+
   const { data: people = [] } = useQuery({
     queryKey: ["cmdk", "people"],
     enabled: open,
