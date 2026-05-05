@@ -286,6 +286,13 @@ function SafetyAdminAccess({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function MasterAccess({ children }: { children: ReactNode }) {
+  const { cargo } = useRole();
+  const allowed = ["master", "admin", "supervisor"].includes(cargo);
+  if (!allowed) return <NotFound />;
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
