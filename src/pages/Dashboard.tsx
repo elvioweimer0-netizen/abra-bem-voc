@@ -22,6 +22,7 @@ import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
 import PainelGerente from "@/pages/PainelGerente";
 import PainelEncarregado from "@/pages/PainelEncarregado";
+import PainelMaster from "@/pages/PainelMaster";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
@@ -41,6 +42,7 @@ export default function Dashboard() {
   const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser, cargo } = useRole();
   const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
+  if (cargo === "master" || cargo === "admin" || cargo === "supervisor") return <PainelMaster />;
   if (cargo === "gerente_loja") return <PainelGerente />;
   if (isEncarregado) return <PainelEncarregado />;
   const showAdminMetrics = isGerente || isAdmin;
