@@ -2056,6 +2056,39 @@ export type Database = {
           },
         ]
       }
+      encarregado_scores: {
+        Row: {
+          calculated_at: string
+          components: Json
+          encarregado_user_id: string
+          id: string
+          month: number
+          score: number
+          unit_id: string | null
+          year: number
+        }
+        Insert: {
+          calculated_at?: string
+          components?: Json
+          encarregado_user_id: string
+          id?: string
+          month: number
+          score?: number
+          unit_id?: string | null
+          year: number
+        }
+        Update: {
+          calculated_at?: string
+          components?: Json
+          encarregado_user_id?: string
+          id?: string
+          month?: number
+          score?: number
+          unit_id?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       endomarketing: {
         Row: {
           created_at: string
@@ -2773,6 +2806,84 @@ export type Database = {
             referencedColumns: ["unit_id"]
           },
         ]
+      }
+      manager_to_supervisor_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          from_user_id: string
+          id: string
+          status: string
+          title: string
+          to_user_id: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          from_user_id: string
+          id?: string
+          status?: string
+          title: string
+          to_user_id: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          from_user_id?: string
+          id?: string
+          status?: string
+          title?: string
+          to_user_id?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      master_pinned_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          link: string | null
+          ordem: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          link?: string | null
+          ordem?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          link?: string | null
+          ordem?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       meeting_action_items: {
         Row: {

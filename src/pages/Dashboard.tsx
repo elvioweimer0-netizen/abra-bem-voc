@@ -20,6 +20,8 @@ import { CalendarClock, CheckCircle2, ClipboardList, Gauge, MapPin } from "lucid
 import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
+import PainelGerente from "@/pages/PainelGerente";
+import PainelEncarregado from "@/pages/PainelEncarregado";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
 import { CulturePillCard } from "@/components/culture/CulturePillCard";
 import { AniversariantesWidget } from "@/components/birthdays/AniversariantesWidget";
@@ -39,6 +41,8 @@ export default function Dashboard() {
   const { isGerente, isAdmin, isSupervisor, isEncarregado, isGerenteAdm, isColaborador, isFeedUser, cargo } = useRole();
   const { data: todayPill } = useTodayPill();
   if (isFeedUser) return <FeedColaborador />;
+  if (cargo === "gerente_loja") return <PainelGerente />;
+  if (isEncarregado) return <PainelEncarregado />;
   const showAdminMetrics = isGerente || isAdmin;
   const [counts, setCounts] = useState({ colaboradores: 0, advertencias: 0, suspensoes: 0, ocorrencias: 0 });
   const [noticias, setNoticias] = useState<Noticia[]>([]);
@@ -109,8 +113,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 md:space-y-8">
       <HeaderHome />
-      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || isEncarregado || cargo === "gerente_loja") && <IniciarMeuDiaCard />}
-      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || cargo === "gerente_loja") && <CartaCuriozinhoCard />}
+      {(isAdmin || isSupervisor || isGerente || isGerenteAdm || isEncarregado) && <IniciarMeuDiaCard />}
+      {(isAdmin || isSupervisor || isGerente || isGerenteAdm) && <CartaCuriozinhoCard />}
       <Card className="border-border card-shadow">
         <CardContent className="p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -144,8 +148,6 @@ export default function Dashboard() {
       <PlaybookSuggestionWidget />
       {todayPill && <CulturePillCard pill={todayPill} variant="compact" />}
       <CommitmentsWidget />
-      {cargo === "gerente_loja" && <NovosNoTimeWidget />}
-      {cargo === "gerente_loja" && <ChurnAtencaoWidget />}
       <BannerPrincipal noticia={heroBanner} />
       <MensagemColaborador mensagens={mensagens} />
 
