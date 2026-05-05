@@ -166,7 +166,7 @@ export default function GestaoUsuarios() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 rounded-lg bg-primary/10">
             <UserCog className="h-6 w-6 text-primary" />
@@ -178,6 +178,14 @@ export default function GestaoUsuarios() {
             </p>
           </div>
         </div>
+        {isAdmin && (
+          <a
+            href="/admin/importar-colaboradores"
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+          >
+            Importar em massa
+          </a>
+        )}
       </div>
 
       {/* Stats */}
