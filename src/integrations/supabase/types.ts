@@ -1274,6 +1274,42 @@ export type Database = {
         }
         Relationships: []
       }
+      curio_messages: {
+        Row: {
+          active: boolean
+          code: string
+          context: string
+          created_at: string
+          id: string
+          message: string
+          priority: number
+          role_target: string[] | null
+          tone: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          context: string
+          created_at?: string
+          id?: string
+          message: string
+          priority?: number
+          role_target?: string[] | null
+          tone?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          context?: string
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: number
+          role_target?: string[] | null
+          tone?: string
+        }
+        Relationships: []
+      }
       curio_stories: {
         Row: {
           author_user_id: string
@@ -2116,6 +2152,33 @@ export type Database = {
           tipo?: Database["public"]["Enums"]["endomarketing_tipo"]
           titulo?: string
           unidade?: Database["public"]["Enums"]["unidade_tipo"] | null
+        }
+        Relationships: []
+      }
+      frases_do_dia: {
+        Row: {
+          active: boolean
+          autor: string | null
+          created_at: string
+          dia_semana: number | null
+          frase: string
+          id: string
+        }
+        Insert: {
+          active?: boolean
+          autor?: string | null
+          created_at?: string
+          dia_semana?: number | null
+          frase: string
+          id?: string
+        }
+        Update: {
+          active?: boolean
+          autor?: string | null
+          created_at?: string
+          dia_semana?: number | null
+          frase?: string
+          id?: string
         }
         Relationships: []
       }
@@ -3904,6 +3967,21 @@ export type Database = {
           },
         ]
       }
+      painel_opens: {
+        Row: {
+          opened_date: string
+          user_id: string
+        }
+        Insert: {
+          opened_date: string
+          user_id: string
+        }
+        Update: {
+          opened_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pdi_goals: {
         Row: {
           ano: number
@@ -4496,6 +4574,7 @@ export type Database = {
       profiles: {
         Row: {
           ativo: boolean
+          audio_painel_enabled: boolean
           available_for_coverage: boolean
           cargo: Database["public"]["Enums"]["cargo_tipo"]
           cargo_titulo: string | null
@@ -4514,6 +4593,8 @@ export type Database = {
           login_count: number
           must_change_password: boolean
           nome: string
+          painel_mode: string
+          painel_onboarding_seen: boolean
           permission_units: string[]
           role: Database["public"]["Enums"]["cargo_tipo"] | null
           setor: Database["public"]["Enums"]["setor_tipo"] | null
@@ -4528,6 +4609,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          audio_painel_enabled?: boolean
           available_for_coverage?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           cargo_titulo?: string | null
@@ -4546,6 +4628,8 @@ export type Database = {
           login_count?: number
           must_change_password?: boolean
           nome: string
+          painel_mode?: string
+          painel_onboarding_seen?: boolean
           permission_units?: string[]
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
@@ -4560,6 +4644,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          audio_painel_enabled?: boolean
           available_for_coverage?: boolean
           cargo?: Database["public"]["Enums"]["cargo_tipo"]
           cargo_titulo?: string | null
@@ -4578,6 +4663,8 @@ export type Database = {
           login_count?: number
           must_change_password?: boolean
           nome?: string
+          painel_mode?: string
+          painel_onboarding_seen?: boolean
           permission_units?: string[]
           role?: Database["public"]["Enums"]["cargo_tipo"] | null
           setor?: Database["public"]["Enums"]["setor_tipo"] | null
@@ -4775,6 +4862,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      recommendations: {
+        Row: {
+          action_link: string | null
+          created_at: string
+          description: string | null
+          dismissed_at: string | null
+          expires_at: string
+          id: string
+          priority: number
+          target_user_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          action_link?: string | null
+          created_at?: string
+          description?: string | null
+          dismissed_at?: string | null
+          expires_at?: string
+          id?: string
+          priority?: number
+          target_user_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          action_link?: string | null
+          created_at?: string
+          description?: string | null
+          dismissed_at?: string | null
+          expires_at?: string
+          id?: string
+          priority?: number
+          target_user_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
       }
       reunioes: {
         Row: {
