@@ -17,6 +17,10 @@ import {
   useOrgAlocacoes, useAllocateMutation, useRemoveAlocacaoMutation,
 } from "@/hooks/useOrgAlocacoes";
 import { AlocacaoModal } from "./AlocacaoModal";
+import { SolicitacaoExcedenteModal } from "./SolicitacaoExcedenteModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const initials = (n: string) =>
   n.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
@@ -183,6 +187,18 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
   const allocate = useAllocateMutation(unitId);
   const [zoom, setZoom] = useState(1);
   const [modalPerson, setModalPerson] = useState<OrgPerson | null>(null);
+  const [solicitState, setSolicitState] = useState<{
+    person: OrgPerson | null; setor: string | null; posicao: string | null;
+  } | null>(null);
+
+  const { data: totalDesejado = 0 } = useQuery({
+    queryKey: ["unit-total-desejado", unitId],
+    enabled: !!unitId,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("units").select("total_desejado").eq("id", unitId).maybeSingle();
+      return (data?.total_desejado ?? 0) as number;
+    },
+  });
 
   const peopleById = useMemo(() => {
     const m = new Map<string, OrgPerson>();
@@ -229,21 +245,44 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
   const allOfSetor = (setor: AlocacaoSetor) => bySetor(setor);
 
   const pickInto = (posicao: AlocacaoPosicao, setor: AlocacaoSetor | null, subSetor?: string | null) =>
-    (p: OrgPerson) =>
-      allocate.mutate({ profile_id: p.id, posicao, setor, sub_setor: subSetor ?? null });
+    async (p: OrgPerson) => {
+      try {
+        await allocate.mutateAsync({ profile_id: p.id, posicao, setor, sub_setor: subSetor ?? null });
+      } catch (e: any) {
+        const msg = String(e?.message ?? e);
+        if (msg.includes("EXCEEDS_DESIRED")) {
+          setSolicitState({ person: p, setor: setor ?? null, posicao });
+        }
+      }
+    };
 
   const total = (data.people ?? []).length;
   const allocCount = alocacoes.length;
   const pct = total > 0 ? Math.round((allocCount / total) * 100) : 0;
   const line = "bg-border";
 
+  const desiredStatus =
+    totalDesejado > 0 && allocCount > totalDesejado ? "exceeded" :
+    totalDesejado > 0 && allocCount === totalDesejado ? "full" : "ok";
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs">
-          <span className="font-semibold">{allocCount} de {total}</span>{" "}
-          <span className="text-muted-foreground">alocados ({pct}%) — clique em uma pessoa para mover/remover</span>
-        </p>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "rounded-md border px-2 py-1 text-xs font-semibold",
+              desiredStatus === "exceeded" && "border-destructive/40 bg-destructive/10 text-destructive",
+              desiredStatus === "full" && "border-warning/40 bg-warning/10 text-warning",
+              desiredStatus === "ok" && "border-success/40 bg-success/10 text-success",
+            )}
+          >
+            {allocCount} de {totalDesejado || total} alocados
+            {desiredStatus === "exceeded" && " · EXCEDIDO"}
+            {desiredStatus === "full" && " · CHEIO"}
+          </span>
+          <span className="text-xs text-muted-foreground">{pct}%</span>
+        </div>
         <div className="flex items-center gap-1">
           <Button variant="outline" size="icon" onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>
             <ZoomOut className="h-4 w-4" />
@@ -419,6 +458,15 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
         defaultPosicao={modalPerson ? (allocByProfile.get(modalPerson.id)?.posicao ?? "colaborador") : "colaborador"}
         defaultSetor={modalPerson ? ((allocByProfile.get(modalPerson.id)?.setor as AlocacaoSetor | undefined) ?? null) : null}
         defaultSubSetor={modalPerson ? (allocByProfile.get(modalPerson.id)?.sub_setor ?? null) : null}
+      />
+      <SolicitacaoExcedenteModal
+        open={!!solicitState}
+        onOpenChange={(v) => !v && setSolicitState(null)}
+        unitId={unitId}
+        person={solicitState?.person ?? null}
+        totalDesejado={totalDesejado}
+        setorAlvo={solicitState?.setor ?? null}
+        posicaoAlvo={solicitState?.posicao ?? null}
       />
     </div>
   );

@@ -4267,6 +4267,109 @@ export type Database = {
           },
         ]
       }
+      org_solicitacoes: {
+        Row: {
+          aumento_pretendido: number
+          created_at: string
+          decidido_em: string | null
+          decidido_por: string | null
+          id: string
+          justificativa_texto: string
+          motivo_decisao: string | null
+          numeros_jsonb: Json | null
+          posicao_alvo: string | null
+          profile_id: string | null
+          setor_alvo: string | null
+          solicitado_em: string
+          solicitado_por: string | null
+          status: string
+          tipo_solicitacao: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          aumento_pretendido?: number
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          id?: string
+          justificativa_texto: string
+          motivo_decisao?: string | null
+          numeros_jsonb?: Json | null
+          posicao_alvo?: string | null
+          profile_id?: string | null
+          setor_alvo?: string | null
+          solicitado_em?: string
+          solicitado_por?: string | null
+          status?: string
+          tipo_solicitacao?: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          aumento_pretendido?: number
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          id?: string
+          justificativa_texto?: string
+          motivo_decisao?: string | null
+          numeros_jsonb?: Json | null
+          posicao_alvo?: string | null
+          profile_id?: string | null
+          setor_alvo?: string | null
+          solicitado_em?: string
+          solicitado_por?: string | null
+          status?: string
+          tipo_solicitacao?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_solicitacoes_decidido_por_fkey"
+            columns: ["decidido_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_solicitacoes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_solicitacoes_solicitado_por_fkey"
+            columns: ["solicitado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_solicitacoes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_solicitacoes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "org_solicitacoes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       painel_opens: {
         Row: {
           opened_date: string
@@ -7125,6 +7228,10 @@ export type Database = {
       }
     }
     Functions: {
+      aprovar_org_solicitacao: {
+        Args: { _id: string; _motivo?: string }
+        Returns: undefined
+      }
       can_create_praise: {
         Args: { _autor: string; _destinatario_member: string; _type: string }
         Returns: boolean
@@ -7322,6 +7429,10 @@ export type Database = {
       question_deadline_passed: {
         Args: { _question_id: string }
         Returns: boolean
+      }
+      recusar_org_solicitacao: {
+        Args: { _id: string; _motivo: string }
+        Returns: undefined
       }
       regenerate_tv_display_token: {
         Args: { _display_id: string }

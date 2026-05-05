@@ -43,13 +43,21 @@ export function AlocacaoModal({
   const subOpts = setor && SUB_SETORES[setor] ? SUB_SETORES[setor] : [];
 
   const handleSubmit = async () => {
-    await allocate.mutateAsync({
-      profile_id: person.id,
-      posicao,
-      setor: posicao === "gerente_unidade" ? "GERENTE" : posicao === "encarregado_loja" ? "ENCARREGADO_LOJA" : (setor || null) as any,
-      sub_setor: subSetor || null,
-    });
-    onOpenChange(false);
+    try {
+      await allocate.mutateAsync({
+        profile_id: person.id,
+        posicao,
+        setor: posicao === "gerente_unidade" ? "GERENTE" : posicao === "encarregado_loja" ? "ENCARREGADO_LOJA" : (setor || null) as any,
+        sub_setor: subSetor || null,
+      });
+      onOpenChange(false);
+    } catch (e: any) {
+      const msg = String(e?.message ?? e);
+      if (msg.includes("EXCEEDS_DESIRED")) {
+        // Still close so caller can react if desired; the limit only triggers on insert.
+        onOpenChange(false);
+      }
+    }
   };
 
   return (

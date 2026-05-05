@@ -106,7 +106,9 @@ export function useAllocateMutation(unitId: string | undefined) {
       toast({ title: "Alocação salva" });
     },
     onError: (e: any) => {
-      toast({ title: "Erro ao alocar", description: String(e?.message ?? e), variant: "destructive" });
+      const msg = String(e?.message ?? e);
+      if (msg.includes("EXCEEDS_DESIRED")) return; // caller handles
+      toast({ title: "Erro ao alocar", description: msg, variant: "destructive" });
     },
   });
 }
