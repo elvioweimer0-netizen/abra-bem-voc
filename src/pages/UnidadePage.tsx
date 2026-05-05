@@ -14,9 +14,11 @@ import { useOrgAlocacoes } from "@/hooks/useOrgAlocacoes";
 
 function isCidadeAlta(u: { code?: string | null; name?: string | null; type?: string | null } | null | undefined) {
   if (!u) return false;
+  const idMatch = (u as any).id === "1afcfed3-1a5b-442e-bb20-5c9268d69f74";
   const code = (u.code ?? "").toUpperCase();
+  const codigo = ((u as any).codigo ?? "").toUpperCase();
   const name = (u.name ?? "").toLowerCase();
-  return u.type === "loja" && (code === "MATRIZ" || code === "L01" || name.includes("cidade alta"));
+  return idMatch || code === "L01" || codigo === "L01" || code === "MATRIZ" || codigo === "MATRIZ" || name.includes("cidade alta");
 }
 
 export default function UnidadePage() {
@@ -50,29 +52,32 @@ export default function UnidadePage() {
       {isLoading || !data ? (
         <div className="h-64 animate-pulse rounded-xl bg-muted" />
       ) : isCA ? (
-        <Tabs defaultValue="organograma">
-          <TabsList>
-            <TabsTrigger value="organograma">Organograma</TabsTrigger>
-            <TabsTrigger value="funcionarios">Funcionários ({(data.people ?? []).length})</TabsTrigger>
-            <TabsTrigger value="sem_alocacao">
-              Sem Alocação ({(data.people ?? []).filter((p) => !alocacoes.some((a) => a.profile_id === p.id)).length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="organograma" className="mt-3">
-            <CidadeAltaOrgManual data={data} />
-          </TabsContent>
-          <TabsContent value="funcionarios" className="mt-3">
-            <FuncionariosTable unitId={id} people={data.people ?? []} alocacoes={alocacoes} />
-          </TabsContent>
-          <TabsContent value="sem_alocacao" className="mt-3">
-            <FuncionariosTable unitId={id} people={data.people ?? []} alocacoes={alocacoes} onlyUnallocated />
-          </TabsContent>
-        </Tabs>
+        <>
+          <UnitKPIs data={data} layout="grid" />
+          <Tabs defaultValue="organograma">
+            <TabsList>
+              <TabsTrigger value="organograma">Organograma</TabsTrigger>
+              <TabsTrigger value="funcionarios">Funcionários ({(data.people ?? []).length})</TabsTrigger>
+              <TabsTrigger value="sem_alocacao">
+                Sem Alocação ({(data.people ?? []).filter((p) => !alocacoes.some((a) => a.profile_id === p.id)).length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="organograma" className="mt-3">
+              <CidadeAltaOrgManual data={data} />
+            </TabsContent>
+            <TabsContent value="funcionarios" className="mt-3">
+              <FuncionariosTable unitId={id} people={data.people ?? []} alocacoes={alocacoes} />
+            </TabsContent>
+            <TabsContent value="sem_alocacao" className="mt-3">
+              <FuncionariosTable unitId={id} people={data.people ?? []} alocacoes={alocacoes} onlyUnallocated />
+            </TabsContent>
+          </Tabs>
+        </>
       ) : (
         <FullOrganogramaTree data={data} />
       )}
 
-      {data && <UnitKPIs data={data} layout="grid" />}
+      {data && !isCA && <UnitKPIs data={data} layout="grid" />}
     </div>
   );
 }
