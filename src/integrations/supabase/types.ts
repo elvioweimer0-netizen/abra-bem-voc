@@ -6191,6 +6191,61 @@ export type Database = {
           },
         ]
       }
+      unit_sector_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          icon: string | null
+          id: string
+          ordem: number
+          sector_name: string
+          unit_id: string | null
+          unit_kind: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          ordem?: number
+          sector_name: string
+          unit_id?: string | null
+          unit_kind: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          ordem?: number
+          sector_name?: string
+          unit_id?: string | null
+          unit_kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_sector_templates_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_sector_templates_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_auditoria_visual"
+            referencedColumns: ["unit_id"]
+          },
+          {
+            foreignKeyName: "unit_sector_templates_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "v_unit_checklist_progress"
+            referencedColumns: ["unit_id"]
+          },
+        ]
+      }
       units: {
         Row: {
           active: boolean
@@ -6203,6 +6258,7 @@ export type Database = {
           longitude: number | null
           name: string
           type: Database["public"]["Enums"]["unit_type"]
+          unit_kind: string
           updated_at: string
         }
         Insert: {
@@ -6216,6 +6272,7 @@ export type Database = {
           longitude?: number | null
           name: string
           type: Database["public"]["Enums"]["unit_type"]
+          unit_kind?: string
           updated_at?: string
         }
         Update: {
@@ -6229,6 +6286,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           type?: Database["public"]["Enums"]["unit_type"]
+          unit_kind?: string
           updated_at?: string
         }
         Relationships: []
