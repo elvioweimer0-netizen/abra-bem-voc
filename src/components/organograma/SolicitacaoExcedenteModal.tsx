@@ -64,10 +64,10 @@ export function SolicitacaoExcedenteModal({
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Solicitar autorização do master</DialogTitle>
+          <DialogTitle>Solicitar autorização (RH → Master)</DialogTitle>
           <DialogDescription>
-            Sua unidade já está no limite de <strong>{totalDesejado}</strong> pessoas. Pra alocar mais,
-            escreva uma justificativa pro guga.
+            Sua unidade já está no limite de <strong>{totalDesejado}</strong> pessoas. O pedido vai
+            primeiro pro RH (triagem) e depois pro master decidir.
           </DialogDescription>
         </DialogHeader>
 
