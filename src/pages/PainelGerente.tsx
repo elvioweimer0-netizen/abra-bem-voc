@@ -20,11 +20,11 @@ import { FabRapido } from "@/components/painel/FabRapido";
 import { ConfeteCelebracao } from "@/components/painel/ConfeteCelebracao";
 import { TrendingUp, Target, Trophy, DollarSign, Sun, AlertTriangle, MessageSquarePlus, Bell, MessageSquare } from "lucide-react";
 
-export default function PainelGerente() {
+export default function PainelGerente({ unitOverride, gerenteName }: { unitOverride?: string; gerenteName?: string } = {}) {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { mode } = usePainelMode();
-  const unitId = (profile as any)?.unit_id as string | undefined;
+  const unitId = unitOverride ?? ((profile as any)?.unit_id as string | undefined);
   const { data: sales } = useSalesToday(unitId);
   const { data: scores = [] } = useMyScores(2);
   const { data: commitments = [] } = useMyCommitments(getMonday());
