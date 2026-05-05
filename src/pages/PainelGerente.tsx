@@ -66,6 +66,8 @@ export default function PainelGerente({ unitOverride, gerenteName }: { unitOverr
 
       <AtalhoDoGuga />
 
+      <VerOrganogramaWidget />
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
           pergunta="Vai bater meta hoje?"
