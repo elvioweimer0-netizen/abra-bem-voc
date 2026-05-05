@@ -10,6 +10,8 @@ import { ptBR } from "date-fns/locale";
 
 const STATUS_VARIANT: Record<OrgSolicitacao["status"], "default" | "secondary" | "destructive" | "outline"> = {
   pendente: "secondary",
+  pendente_rh: "secondary",
+  pendente_master: "secondary",
   aprovada: "default",
   recusada: "destructive",
   cancelada: "outline",
