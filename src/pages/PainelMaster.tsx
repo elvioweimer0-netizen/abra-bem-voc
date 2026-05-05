@@ -11,6 +11,7 @@ import { AgendaSemanaWidget } from "@/components/master/AgendaSemanaWidget";
 import { RankingUnidades } from "@/components/master/RankingUnidades";
 import { QuemVoceNaoFalaWidget } from "@/components/master/QuemVoceNaoFalaWidget";
 import { PerguntaProCurio } from "@/components/master/PerguntaProCurio";
+import { RelatorioSemanalButton } from "@/components/master/RelatorioSemanalButton";
 
 export default function PainelMaster() {
   return (
