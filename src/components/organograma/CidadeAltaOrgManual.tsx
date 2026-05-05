@@ -195,7 +195,7 @@ function ColumnHeader({ label }: { label: string }) {
 }
 
 function SideBox({
-  title, people, unitId, unallocated, onPick, onMove,
+  title, people, unitId, unallocated, onPick, onMove, suggestedKey,
 }: {
   title: string;
   people: OrgPerson[];
@@ -203,6 +203,7 @@ function SideBox({
   unallocated: OrgPerson[];
   onPick: (p: OrgPerson) => void;
   onMove: (p: OrgPerson) => void;
+  suggestedKey?: string | null;
 }) {
   return (
     <div className="rounded-md border bg-muted/30 p-2">
@@ -213,7 +214,7 @@ function SideBox({
         {people.map((p) => (
           <PersonCard key={p.id} person={p} unitId={unitId} onMove={onMove} />
         ))}
-        <IncluirSlot label={title} unallocated={unallocated} onPick={onPick} />
+        <IncluirSlot label={title} unallocated={unallocated} onPick={onPick} suggestedKey={suggestedKey} />
       </div>
     </div>
   );
