@@ -178,14 +178,18 @@ export function UnitKPIs({ data, layout = "stack" }: { data: UnitOrgData; layout
 
   return (
     <div className={wrapperClass}>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm"><Users className="h-4 w-4" />Pessoas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{totalPeople}<span className="text-sm font-normal text-muted-foreground"> / {expectedSlots}</span></p>
-        </CardContent>
-      </Card>
+      {isCA ? (
+        <PessoasCardCidadeAlta data={data} />
+      ) : (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm"><Users className="h-4 w-4" />Pessoas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{totalPeople}<span className="text-sm font-normal text-muted-foreground"> / {expectedSlots}</span></p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
