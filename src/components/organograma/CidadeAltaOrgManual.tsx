@@ -461,4 +461,15 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
       />
     </div>
   );
+      <SolicitacaoExcedenteModal
+        open={!!solicitState}
+        onOpenChange={(v) => !v && setSolicitState(null)}
+        unitId={unitId}
+        person={solicitState?.person ?? null}
+        totalDesejado={totalDesejado}
+        setorAlvo={solicitState?.setor ?? null}
+        posicaoAlvo={solicitState?.posicao ?? null}
+      />
+    </div>
+  );
 }
