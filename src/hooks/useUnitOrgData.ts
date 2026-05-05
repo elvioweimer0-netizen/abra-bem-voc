@@ -21,7 +21,7 @@ export type OrgPerson = {
 };
 
 export type UnitOrgData = {
-  unit: { id: string; code: string; name: string; type: string | null } | null;
+  unit: { id: string; code: string; name: string; type: string | null; unit_kind: string | null } | null;
   people: OrgPerson[];
 };
 
@@ -31,7 +31,7 @@ export function useUnitOrgData(unitId: string | undefined) {
     enabled: !!unitId,
     queryFn: async (): Promise<UnitOrgData> => {
       const [{ data: unit }, { data: people, error }] = await Promise.all([
-        supabase.from("units").select("id, code, name, type").eq("id", unitId!).maybeSingle(),
+        (supabase as any).from("units").select("id, code, name, type, unit_kind").eq("id", unitId!).maybeSingle(),
         (supabase as any)
           .from("profiles")
           .select("id, user_id, nome, cargo, cargo_titulo, cargo_text, setor, gerencia, foto_url, email, telefone, lider_setor_id, ativo, posicao_organograma, setor_organograma, is_general_manager, afastado_status")
