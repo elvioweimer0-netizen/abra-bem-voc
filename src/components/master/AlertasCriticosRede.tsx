@@ -15,7 +15,7 @@ export function AlertasCriticosRede() {
     items.push({
       type: "incident",
       icon: AlertTriangle,
-      title: `Incidente grave: ${i.title ?? "Sem título"}`,
+      title: `Incidente grave: ${(i.description ?? "").slice(0, 60) || "Sem descrição"}`,
       subtitle: `Aberto há ${formatDistanceToNow(new Date(i.created_at), { locale: ptBR })}`,
       href: "/seguranca",
     });
@@ -24,7 +24,7 @@ export function AlertasCriticosRede() {
     items.push({
       type: "complaint",
       icon: MessageSquareWarning,
-      title: `Reclamação aberta: ${c.subject ?? "Sem assunto"}`,
+      title: `Reclamação: ${c.category ?? "Sem categoria"}`,
       subtitle: `Há ${formatDistanceToNow(new Date(c.created_at), { locale: ptBR })}`,
       href: "/admin/reclamacoes",
     });
