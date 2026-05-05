@@ -416,9 +416,9 @@ export function CidadeAltaOrgManual({ data }: { data: UnitOrgData }) {
         onOpenChange={(v) => !v && setModalPerson(null)}
         person={modalPerson}
         unitId={unitId}
-        defaultPosicao={(modalPerson && allocByProfile.get(modalPerson.id)?.posicao) ?? "colaborador"}
-        defaultSetor={(modalPerson && (allocByProfile.get(modalPerson.id)?.setor as AlocacaoSetor)) ?? null}
-        defaultSubSetor={(modalPerson && allocByProfile.get(modalPerson.id)?.sub_setor) ?? null}
+        defaultPosicao={modalPerson ? (allocByProfile.get(modalPerson.id)?.posicao ?? "colaborador") : "colaborador"}
+        defaultSetor={modalPerson ? ((allocByProfile.get(modalPerson.id)?.setor as AlocacaoSetor | undefined) ?? null) : null}
+        defaultSubSetor={modalPerson ? (allocByProfile.get(modalPerson.id)?.sub_setor ?? null) : null}
       />
     </div>
   );
