@@ -28,6 +28,7 @@ export default function PainelMaster() {
         <div className="space-y-4">
           <AlertasCriticosRede />
           <DecisoesPendentes />
+          <SolicitacoesQuadroPendentes />
         </div>
       </div>
       <AcoesMaster />
