@@ -4824,6 +4824,7 @@ export type Database = {
           gerencia: Database["public"]["Enums"]["gerencia_tipo"]
           id: string
           is_general_manager: boolean | null
+          is_placeholder: boolean
           is_test: boolean
           lider_setor_id: string | null
           login_count: number
@@ -4847,7 +4848,7 @@ export type Database = {
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           unit_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           username: string | null
           welcome_banner_dismissed: boolean
         }
@@ -4875,6 +4876,7 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           is_general_manager?: boolean | null
+          is_placeholder?: boolean
           is_test?: boolean
           lider_setor_id?: string | null
           login_count?: number
@@ -4898,7 +4900,7 @@ export type Database = {
           unidade: Database["public"]["Enums"]["unidade_tipo"]
           unit_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           username?: string | null
           welcome_banner_dismissed?: boolean
         }
@@ -4926,6 +4928,7 @@ export type Database = {
           gerencia?: Database["public"]["Enums"]["gerencia_tipo"]
           id?: string
           is_general_manager?: boolean | null
+          is_placeholder?: boolean
           is_test?: boolean
           lider_setor_id?: string | null
           login_count?: number
@@ -4949,7 +4952,7 @@ export type Database = {
           unidade?: Database["public"]["Enums"]["unidade_tipo"]
           unit_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           username?: string | null
           welcome_banner_dismissed?: boolean
         }
