@@ -14,12 +14,14 @@ import { PulsePrompt } from "@/components/clima/PulsePrompt";
 import { BirthdayBanner } from "@/components/birthdays/BirthdayBanner";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { FeedbackBanner } from "@/components/feedback/FeedbackBanner";
+import { RegistrarProvider } from "@/components/nav/RegistrarModal";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <ViewAsProvider>
       <PwaSplash />
       <SidebarProvider defaultOpen={false}>
+      <RegistrarProvider>
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
