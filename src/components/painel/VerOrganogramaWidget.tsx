@@ -12,7 +12,7 @@ export function VerOrganogramaWidget() {
 
   if (!unitId) return null;
 
-  const total = data ? (data.collaborators?.length ?? 0) + (data.supervisors?.length ?? 0) + (data.manager ? 1 : 0) : null;
+  const total = data?.people?.length ?? null;
 
   return (
     <Card className="p-4 flex items-center justify-between gap-3 bg-gradient-to-r from-primary/10 to-transparent border-primary/30">
