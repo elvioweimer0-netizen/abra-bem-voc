@@ -190,8 +190,8 @@ export function useMasterPinnedItems() {
       const { data } = await supabase
         .from("master_pinned_items")
         .select("*")
-        .eq("master_user_id", user!.id)
-        .order("position");
+        .eq("active", true)
+        .order("ordem");
       return data ?? [];
     },
   });
