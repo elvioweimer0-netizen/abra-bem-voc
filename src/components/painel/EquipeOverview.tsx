@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 type Row = { label: string; value: string; href?: string; icon: any; tone?: "success" | "warning" | "destructive" };
 
 export const EquipeOverview = forwardRef<HTMLDivElement, { rows?: Row[]; title?: string }>(function EquipeOverview({ rows, title = "Equipe" }, ref) {
+  const _ref = ref;
   const navigate = useNavigate();
   const list: Row[] = rows ?? [
     { label: "Presença hoje", value: "—", icon: Users, href: "/minha-equipe" },
