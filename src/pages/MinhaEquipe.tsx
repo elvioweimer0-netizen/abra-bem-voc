@@ -125,15 +125,50 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
 
   async function fetchMembers() {
     const db = supabase as any;
-    let query = db.from("team_members").select("*, units(name, code)").order("role").order("cargo");
+    const sectorMap = (s?: string | null) => {
+      if (!s) return "geral";
+      const k = s.toLowerCase();
+      if (k === "frente_de_caixa") return "frente_caixa";
+      return k;
+    };
+    let query = db
+      .from("profiles")
+      .select("id, user_id, unit_id, nome, cargo, cargo_titulo, setor, foto_url, telefone, data_admissao, afastado_status, is_general_manager, units:unit_id(name, code)")
+      .eq("ativo", true)
+      .order("nome");
     if (selectedUnitId) query = query.eq("unit_id", selectedUnitId);
-    if ((setorOnly || (isEncarregado && !isGerente && !canSelectUnit)) && profile?.setor) query = query.eq("sector", profile.setor === "frente_de_caixa" ? "frente_caixa" : profile.setor);
+    if ((setorOnly || (isEncarregado && !isGerente && !canSelectUnit)) && profile?.setor) {
+      query = query.eq("setor", profile.setor === "frente_caixa" ? "frente_de_caixa" : profile.setor);
+    }
     const { data, error } = await query;
     if (error) {
       toast({ title: "Não foi possível carregar a equipe", description: error.message, variant: "destructive" });
       return;
     }
-    setMembers(data || []);
+    const mapped = (data || []).map((p: any) => {
+      const cargoLower = (p.cargo_titulo || p.cargo || "").toLowerCase();
+      const role = p.is_general_manager || cargoLower.includes("gerente")
+        ? "gerente"
+        : cargoLower.includes("encarregado") || cargoLower.includes("lider") || cargoLower.includes("líder")
+          ? "encarregado"
+          : "colaborador";
+      const status = !p.afastado_status ? "ativo" : p.afastado_status === "ferias" ? "ferias" : "afastado";
+      return {
+        id: p.id,
+        user_id: p.user_id,
+        unit_id: p.unit_id,
+        sector: sectorMap(p.setor),
+        role,
+        cargo: p.cargo_titulo || p.cargo || "Colaborador",
+        nome: p.nome,
+        foto_url: p.foto_url,
+        telefone: p.telefone,
+        data_admissao: p.data_admissao ?? null,
+        status,
+        units: p.units,
+      } as TeamMember;
+    });
+    setMembers(mapped);
   }
 
   const visible = useMemo(() => {
