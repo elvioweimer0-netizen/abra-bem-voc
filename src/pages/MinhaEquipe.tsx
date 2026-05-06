@@ -138,7 +138,7 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
       .order("nome");
     if (selectedUnitId) query = query.eq("unit_id", selectedUnitId);
     if ((setorOnly || (isEncarregado && !isGerente && !canSelectUnit)) && profile?.setor) {
-      query = query.eq("setor", profile.setor === "frente_caixa" ? "frente_de_caixa" : profile.setor);
+      query = query.eq("setor", profile.setor as any);
     }
     const { data, error } = await query;
     if (error) {
