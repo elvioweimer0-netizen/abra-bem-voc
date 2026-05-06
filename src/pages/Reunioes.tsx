@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, History, ListChecks, MessageCircle, Users, Video } from "lucide-react";
+import { Calendar, Clock, History, ListChecks, Users, Video } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -124,9 +124,7 @@ export default function Reunioes() {
     setActiveRoom(null);
   };
 
-  const whatsappLink = next
-    ? `https://wa.me/?text=${encodeURIComponent(`Reunião ${tabLabels[next.type as MeetingType] || ""}: ${next.title} em ${format(parseISO(next.scheduled_date), "dd/MM", { locale: ptBR })} às ${next.scheduled_time?.slice(0, 5)}`)}`
-    : `https://wa.me/?text=${encodeURIComponent("Vamos fazer uma reunião rápida agora")}`;
+
 
   if (activeRoom) {
     return (
@@ -196,11 +194,6 @@ export default function Reunioes() {
                   <div className="flex gap-2 flex-wrap">
                     <Button size="lg" onClick={handleEnter} disabled={joining} className="gap-2">
                       <Video className="w-4 h-4" /> {joining ? "Abrindo sala…" : "Entrar na Sala"}
-                    </Button>
-                    <Button size="lg" variant="outline" asChild className="gap-2">
-                      <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                        <MessageCircle className="w-4 h-4" /> WhatsApp (backup)
-                      </a>
                     </Button>
                   </div>
                 </CardContent>
