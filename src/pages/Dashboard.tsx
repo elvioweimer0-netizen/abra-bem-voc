@@ -20,7 +20,7 @@ import { CalendarClock, CheckCircle2, ClipboardList, Gauge, MapPin } from "lucid
 import { useNavigate } from "react-router-dom";
 import type { Noticia, Endomarketing } from "@/types/database";
 import FeedColaborador from "@/pages/FeedColaborador";
-import PainelGerente from "@/pages/PainelGerente";
+import PainelGerenteHumanizado from "@/pages/PainelGerenteHumanizado";
 import PainelEncarregado from "@/pages/PainelEncarregado";
 import PainelMaster from "@/pages/PainelMaster";
 import { CommitmentsWidget } from "@/components/commitments/CommitmentsWidget";
