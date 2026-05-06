@@ -19,6 +19,7 @@ import {
   UserCircle,
   Video,
   ListChecks,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink as RRNavLink, useLocation } from "react-router-dom";
