@@ -34,6 +34,7 @@ import Reunioes from "@/pages/Reunioes";
 import CriarReuniao from "@/pages/CriarReuniao";
 import AgendaReunioes from "@/pages/AgendaReunioes";
 import HistoricoReunioes from "@/pages/HistoricoReunioes";
+import Tarefas from "@/pages/Tarefas";
 import GestaoUsuarios from "@/pages/GestaoUsuarios";
 import AdminImportarColaboradores from "@/pages/AdminImportarColaboradores";
 import GerenciaPage from "@/pages/GerenciaPage";
@@ -366,6 +367,7 @@ function ProtectedRoutes() {
         <Route path="/reunioes/criar" element={<CriarReuniao />} />
         <Route path="/agenda" element={<AgendaReunioes />} />
         <Route path="/reunioes/historico" element={<HistoricoReunioes />} />
+        <Route path="/tarefas" element={<Tarefas />} />
         <Route path="/gestao-usuarios" element={<GestaoUsuarios />} />
         <Route path="/admin/importar-colaboradores" element={<AdminImportarColaboradores />} />
         <Route path="/admin/historico-solicitacoes" element={<HistoricoSolicitacoes />} />
