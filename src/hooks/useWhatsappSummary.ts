@@ -42,6 +42,7 @@ export function useProcessWhatsappSummary() {
       const { data, error } = await supabase.functions.invoke("process-whatsapp-summary", {
         body: { raw_input },
       });
+      void 0;
       if (error) {
         const ctx = (error as any)?.context;
         let msg = error.message || "Falha ao processar";
