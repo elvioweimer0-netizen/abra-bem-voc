@@ -43,4 +43,4 @@ export const EquipeOverview = forwardRef<HTMLDivElement, { rows?: Row[]; title?:
       </CardContent>
     </Card>
   );
-}
+});
