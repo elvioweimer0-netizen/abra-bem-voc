@@ -125,15 +125,45 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
 
   async function fetchMembers() {
     const db = supabase as any;
-    const sectorMap = (s?: string | null) => {
-      if (!s) return "geral";
-      const k = s.toLowerCase();
+    const norm = (s?: string | null) =>
+      (s ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    const sectorFromCargo = (cargoText: string): string => {
+      const c = norm(cargoText);
+      if (!c) return "geral";
+      if (c.includes("acoug")) return "acougue";
+      if (c.includes("padar") || c.includes("padeir")) return "padaria";
+      if (c.includes("horti") || c.includes("flv")) return "hortifruti";
+      if (c.includes("caixa") || c.includes("empacotador") || c.includes("fiscal de caixa")) return "frente_caixa";
+      if (c.includes("repositor") || c.includes("merceari") || c.includes("estoquista")) return "mercearia";
+      if (c.includes("conferente") || c.includes("faturista") || c.includes("recebimento")) return "deposito";
+      if (c.includes("limpeza") || c.includes("manutenc")) return "geral";
+      if (c.includes("prevenc") || c.includes("vigia") || c.includes("patrimoni")) return "geral";
+      return "geral";
+    };
+    const sectorFromOrganograma = (s?: string | null): string | null => {
+      const k = norm(s);
+      if (!k) return null;
+      if (k.includes("padaria")) return "padaria";
+      if (k.includes("acougue")) return "acougue";
+      if (k.includes("flv") || k.includes("horti")) return "hortifruti";
+      if (k.includes("frente") || k.includes("caixa")) return "frente_caixa";
+      if (k.includes("merceari") || k.includes("repositor")) return "mercearia";
+      if (k.includes("recebimento") || k.includes("deposito")) return "deposito";
+      return null;
+    };
+    const sectorFromSetorEnum = (s?: string | null): string | null => {
+      const k = norm(s);
+      if (!k) return null;
       if (k === "frente_de_caixa") return "frente_caixa";
-      return k;
+      if (["acougue", "padaria", "hortifruti", "mercearia", "deposito"].includes(k)) return k;
+      return null;
     };
     let query = db
       .from("profiles")
-      .select("id, user_id, unit_id, nome, cargo, cargo_titulo, setor, foto_url, telefone, data_admissao, afastado_status, is_general_manager, units:unit_id(name, code)")
+      .select("id, user_id, unit_id, nome, cargo, cargo_titulo, cargo_text, setor, setor_organograma, foto_url, telefone, data_admissao, afastado_status, is_general_manager, units:unit_id(name, code)")
       .eq("ativo", true)
       .order("nome");
     if (selectedUnitId) query = query.eq("unit_id", selectedUnitId);
@@ -146,20 +176,25 @@ export default function MinhaEquipe({ setorOnly = false }: { setorOnly?: boolean
       return;
     }
     const mapped = (data || []).map((p: any) => {
-      const cargoLower = (p.cargo_titulo || p.cargo || "").toLowerCase();
+      const cargoText = p.cargo_titulo || p.cargo_text || p.cargo || "";
+      const cargoLower = norm(cargoText);
       const role = p.is_general_manager || cargoLower.includes("gerente")
         ? "gerente"
-        : cargoLower.includes("encarregado") || cargoLower.includes("lider") || cargoLower.includes("líder")
+        : cargoLower.includes("encarregado") || cargoLower.includes("lider")
           ? "encarregado"
           : "colaborador";
       const status = !p.afastado_status ? "ativo" : p.afastado_status === "ferias" ? "ferias" : "afastado";
+      const sector =
+        sectorFromOrganograma(p.setor_organograma) ||
+        sectorFromSetorEnum(p.setor) ||
+        sectorFromCargo(cargoText);
       return {
         id: p.id,
         user_id: p.user_id,
         unit_id: p.unit_id,
-        sector: sectorMap(p.setor),
+        sector,
         role,
-        cargo: p.cargo_titulo || p.cargo || "Colaborador",
+        cargo: p.cargo_titulo || p.cargo_text || p.cargo || "Colaborador",
         nome: p.nome,
         foto_url: p.foto_url,
         telefone: p.telefone,
