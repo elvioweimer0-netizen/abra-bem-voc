@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadgeRow";
 import { MilestoneBanner } from "@/components/milestones/MilestoneBanner";
 import { MentorshipOffersEditor } from "@/components/mentorship/MentorshipOffersEditor";
-import { CoverageAvailabilityEditor } from "@/components/coverage/CoverageAvailabilityEditor";
+
 
 type Unit = { id: string; code: string; name: string };
 type TeamMember = { id: string; unit_id: string; sector: string; role: string; cargo: string; nome?: string | null; telefone?: string | null; data_admissao?: string | null; foto_url?: string | null };
