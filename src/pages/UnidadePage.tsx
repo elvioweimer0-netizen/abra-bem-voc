@@ -12,13 +12,9 @@ import { UnitKPIs } from "@/components/organograma/UnitKPIs";
 import { useRole } from "@/hooks/useRole";
 import { useOrgAlocacoes } from "@/hooks/useOrgAlocacoes";
 
-function isCidadeAlta(u: { code?: string | null; name?: string | null; type?: string | null } | null | undefined) {
+function isLoja(u: { code?: string | null; name?: string | null; type?: string | null } | null | undefined) {
   if (!u) return false;
-  const idMatch = (u as any).id === "1afcfed3-1a5b-442e-bb20-5c9268d69f74";
-  const code = (u.code ?? "").toUpperCase();
-  const codigo = ((u as any).codigo ?? "").toUpperCase();
-  const name = (u.name ?? "").toLowerCase();
-  return idMatch || code === "L01" || codigo === "L01" || code === "MATRIZ" || codigo === "MATRIZ" || name.includes("cidade alta");
+  return (u.type ?? "").toLowerCase() === "loja";
 }
 
 export default function UnidadePage() {
