@@ -31,7 +31,7 @@ export default function UnidadePage() {
     if (!allowed) return <Navigate to="/unidades" replace />;
   }
 
-  const isCA = isCidadeAlta(data?.unit);
+  const isCA = isLoja(data?.unit);
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-4">
