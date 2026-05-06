@@ -44,7 +44,7 @@ export default function Dashboard() {
   // Detect role from real profile so role-based panels render reliably.
   const realCargo = (profile as any)?.cargo as string | undefined;
   if (realCargo === "master" || realCargo === "admin" || realCargo === "supervisor") return <PainelMaster />;
-  if (realCargo === "gerente_loja" || realCargo === "gerente") return <PainelGerente />;
+  if (realCargo === "gerente_loja" || realCargo === "gerente") return <PainelGerenteHumanizado />;
   if (realCargo === "encarregado" || realCargo === "fiscal") return <PainelEncarregado />;
   if (isFeedUser) return <FeedColaborador />;
   const showAdminMetrics = isGerente || isAdmin;
