@@ -197,11 +197,6 @@ export default function Reunioes() {
                     <Button size="lg" onClick={handleEnter} disabled={joining} className="gap-2">
                       <Video className="w-4 h-4" /> {joining ? "Abrindo sala…" : "Entrar na Sala"}
                     </Button>
-                    <Button size="lg" variant="outline" asChild className="gap-2">
-                      <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                        <MessageCircle className="w-4 h-4" /> WhatsApp (backup)
-                      </a>
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
