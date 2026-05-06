@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { AchievementsBadgeRow } from "@/components/achievements/AchievementsBadgeRow";
 import { MilestoneBanner } from "@/components/milestones/MilestoneBanner";
 import { MentorshipOffersEditor } from "@/components/mentorship/MentorshipOffersEditor";
+import { CoverageAvailabilityEditor } from "@/components/coverage/CoverageAvailabilityEditor";
 
 
 type Unit = { id: string; code: string; name: string };
