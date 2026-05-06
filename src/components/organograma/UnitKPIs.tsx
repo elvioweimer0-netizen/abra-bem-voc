@@ -20,7 +20,7 @@ function isLoja(u: { code?: string | null; name?: string | null; type?: string |
   return (u.type ?? "").toLowerCase() === "loja";
 }
 
-function PessoasCardCidadeAlta({ data }: { data: UnitOrgData }) {
+function PessoasCardLoja({ data }: { data: UnitOrgData }) {
   const unit = data.unit!;
   const { isAdmin, isMaster } = useRole();
   const canEdit = isAdmin || isMaster;
@@ -112,7 +112,7 @@ export function UnitKPIs({ data, layout = "stack" }: { data: UnitOrgData; layout
   const kind = unit ? detectUnitKind(unit.code, unit.type) : "loja";
   const expectedSlots = unit ? getExpectedSlots(kind).length : 0;
   const totalPeople = data.people.length;
-  const isCA = isCidadeAlta(unit);
+  const isCA = isLoja(unit);
 
   const { data: extras } = useQuery({
     queryKey: ["unit-kpis", unit?.id, unit?.code],
@@ -177,7 +177,7 @@ export function UnitKPIs({ data, layout = "stack" }: { data: UnitOrgData; layout
   return (
     <div className={wrapperClass}>
       {isCA ? (
-        <PessoasCardCidadeAlta data={data} />
+        <PessoasCardLoja data={data} />
       ) : (
         <Card>
           <CardHeader className="pb-2">
