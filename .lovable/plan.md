@@ -1,153 +1,79 @@
-# Plano: CLIENTE MISTERIOSO DIGITAL
+## Reuniões Online — Reconstrução (plano)
 
-Permite a gerentes, supervisores e admins visitarem outras unidades de forma anônima e avaliarem por critérios padronizados. Quando a visita é anônima, o gerente da unidade visitada NÃO descobre quem visitou.
+### Pré-passo: descartar tarefas pendentes
+Descarto da fila estas 4 tarefas da migração de alocações (voltamos depois):
+- Hook `useOrgAlocacoes`
+- Abas em `UnidadePage`
+- Modal Alocar/Mover
+- Integrar alocações no `CidadeAltaOrgTree`
 
----
+### Escopo
+Reconstruir a feature **Reunião Online** ponta-a-ponta, em UM commit reversível, sem mexer em RLS de tabelas existentes nem em features já implantadas.
 
-## 1. Schema SQL (migration única)
+### Secrets a solicitar
+- `DAILY_API_KEY` (dashboard.daily.co)
+- `OPENAI_API_KEY` (platform.openai.com)
 
-### Tabelas
+Peço via `add_secret` antes de codar as edge functions.
 
-**`mystery_visit_criteria`** (catálogo de critérios)
-- `id uuid pk`, `code text unique`, `name text`, `ordem smallint`, `active boolean default true`, `created_at`
-- SEED: `atendimento`, `limpeza_loja`, `organizacao_estoque`, `fila_caixa`, `qualidade_produto`, `sinalizacao_promo`, `vestimenta_equipe`, `postura_equipe`
+### Estado já existente (reaproveitar)
+- Edge `create-daily-room` ✅
+- Edge `process-meeting-recording` ✅ (Whisper + GPT)
+- Tabelas `leadership_meetings`, `meeting_minutes`, `meeting_action_items`, `ai_suggestions` ✅
+- Bucket `meeting-recordings` ✅
+- Página `ReunioesLideranca.tsx` (referência, não tocar)
+- Página `HistoricoReunioes.tsx` (referência)
 
-**`mystery_visits`**
-- `id uuid pk`
-- `visitor_user_id uuid → profiles.id` (id do PERFIL, não auth.uid; mantém padrão das outras tabelas)
-- `target_unit_id uuid → units.id NOT NULL`
-- `visit_date date NOT NULL`
-- `visit_time time NULL`
-- `anonymous_to_team boolean NOT NULL DEFAULT true`
-- `overall_score numeric(3,1) CHECK (overall_score IS NULL OR (overall_score BETWEEN 0 AND 10))` (calculado por trigger a partir dos scores 1-5 → escala 0-10)
-- `notes text`, `photos jsonb DEFAULT '[]'::jsonb`
-- `created_at timestamptz default now()`, `updated_at`
-- Index: `(target_unit_id, visit_date DESC)`, `(visitor_user_id, visit_date DESC)`
+### O que será criado/alterado
 
-**`mystery_visit_scores`**
-- `id uuid pk`
-- `visit_id uuid → mystery_visits ON DELETE CASCADE`
-- `criteria_id uuid → mystery_visit_criteria`
-- `score smallint CHECK (score BETWEEN 1 AND 5)`
-- `comment text`
-- UNIQUE `(visit_id, criteria_id)`
+**1. Migration (mínima, aditiva)**
+- Coluna `unidade_id uuid null` em `leadership_meetings` (se não existir) para filtrar individuais por loja.
+- Índice por `(type, scheduled_date)`.
+- Sem alterar RLS existente; apenas garantir policy de SELECT/INSERT por usuário autenticado se faltar para as novas colunas.
 
-### Triggers
-- `tg_mvs_recalc_overall` (AFTER INSERT/UPDATE/DELETE em `mystery_visit_scores`): recalcula `overall_score = avg(score) * 2` (para ficar em 0-10).
-- `tg_mystery_visit_notify` (AFTER INSERT em `mystery_visits` + reaproveita após recálculo via INSERT no scores): roda quando overall_score finaliza:
-  - Se `anonymous_to_team = false`: notifica gerentes da `target_unit_id` ("Você foi visitado, score X").
-  - Se `overall_score < 6`: notifica supervisores/admins/master + nomes específicos (Roberto, Guga) — usando padrão já existente no código (lower(nome) LIKE '%roberto%'/'%guga%').
+**2. Dependência**
+- `bun add @daily-co/daily-js`
 
-### Bucket Storage
-- `INSERT INTO storage.buckets (id, name, public) VALUES ('mystery-photos','mystery-photos', false)` (privado).
-- Policies em `storage.objects`:
-  - SELECT: visitante dono OU master/admin/supervisor (excluindo gerente da unidade alvo se anônimo — verificado via lookup do path `{visit_id}/...`).
-  - INSERT: visitante autenticado (qualquer gerente/supervisor/admin) — primeiro segmento do path = visit_id válido pertencente ao usuário.
-  - DELETE: dono ou admin/master.
-  - Para evitar lookup recursivo complexo, usar regra simplificada: SELECT permitido para visitor + admin/master/supervisor; gerentes da unidade alvo NÃO conseguem ler (não têm role admin/master/supervisor). O sigilo do "quem" fica no row (visitor_user_id) que o gerente target nunca consegue SELECT.
+**3. Nova página `src/pages/Reunioes.tsx`** com 3 abas:
+- **Diária** | **Semanal** | **Individuais (por loja)**
+- Topo de cada aba: card grande com
+  - Status da próxima reunião (data/hora, participantes esperados)
+  - Botão primário **Entrar na Sala** → invoca `create-daily-room`, monta iframe via `@daily-co/daily-js` com `startRecording: { type: 'cloud' }` automático ao entrar
+  - Botão secundário **WhatsApp (backup)** → abre `wa.me` com link da sala
+- Lateral: **Pauta automática** (invoca `generate-meeting-agenda` existente, com fallback para B.O. eletrônico + ações pendentes da última ata)
 
----
+**4. Subtela Histórico** (dentro de Reuniões, rota `/reunioes/historico`)
+- Lista todas as reuniões passadas
+- Filtros: tipo (diária/semanal/individual), unidade, período
+- Cada item mostra `sentiment` com ícone (😊 positivo / 😐 neutro / 😟 tenso) + título da ata + duração
 
-## 2. RLS
+**5. Nova tela `src/pages/Tarefas.tsx`** (nova entrada no menu)
+- Lista `meeting_action_items` agrupados
+- Filtros: **Minhas** / **Da unidade** / **Todas**
+- Cards coloridos por prazo: verde (>3d), amarelo (≤3d), vermelho (vencido)
+- Marcar como concluída
 
-### `mystery_visit_criteria`
-- SELECT: authenticated (todos).
-- INSERT/UPDATE/DELETE: admin/master.
+**6. Componente iframe Daily**
+- `src/components/reunioes/DailySalaFrame.tsx`
+- Usa `DailyIframe.createFrame()`, escuta `recording-started`/`left-meeting`
+- Ao sair com gravação, dispara webhook do Daily → `process-meeting-recording` (já existente)
 
-### `mystery_visits`
-- **INSERT**: `visitor_user_id = coverage_profile_id_for(auth.uid())` AND visitor cargo IN (`gerente_loja`,`gerente_adm`,`gerente`,`supervisor`,`admin`,`master`).
-- **SELECT**: 
-  - visitor (sempre vê suas próprias visitas), OU
-  - admin/master/supervisor (sempre veem tudo), OU
-  - gerentes da target_unit_id **somente quando** `anonymous_to_team = false` (e mesmo assim a coluna `visitor_user_id` é uma id de perfil — mas para cumprir o requisito de nunca expor quem, criaremos uma view `mystery_visits_for_targets` que omite `visitor_user_id` para esse caso, ou retornaremos via RPC. Solução escolhida: **não permitir SELECT direto pra gerentes target**; eles recebem apenas push notification quando `anonymous_to_team=false`. Assim o anonimato fica blindado a nível de RLS — gerentes target nunca acessam a row.)
-- **UPDATE**: visitor (próprio), admin/master.
-- **DELETE**: admin/master.
+**7. Menu lateral**
+- Adiciona item **Reuniões** (rota `/reunioes`) e **Tarefas** (rota `/tarefas`) no `AppLayout` / sidebar conforme padrão existente. Visibilidade: todos os roles autenticados; Individuais só para gerentes/admin.
 
-### `mystery_visit_scores`
-- **SELECT**: quem pode ver a visita (mesmo critério via subquery EXISTS).
-- **INSERT/UPDATE/DELETE**: visitor da visita pai OU admin/master.
+**8. Rotas em `App.tsx`**
+- `/reunioes`, `/reunioes/historico`, `/tarefas`
 
-### Storage `mystery-photos`
-- SELECT/INSERT/DELETE: visitor + admin/master/supervisor.
+### Fora de escopo (não mexer)
+- `PainelGerenteHumanizado.tsx`
+- `Dashboard.tsx`
+- Qualquer RLS de tabelas existentes
+- `ReunioesLideranca.tsx` (mantida em paralelo até validarmos a nova)
 
----
+### Validação ao final
+- Build verde
+- Listo todos os arquivos tocados
+- Testo manualmente: abrir `/reunioes`, criar sala, entrar, sair, conferir que ata apareceu em `/reunioes/historico` e ações em `/tarefas`
 
-## 3. Frontend
-
-### Hooks
-- `useMysteryCriteria` — lista catálogo ativo.
-- `useMysteryVisits({ unitId?, visitorId?, from?, to? })` — lista filtrada.
-- `useMysteryVisit(id)` — detalhe + scores.
-- `useCreateMysteryVisit` — cria visita + scores + upload de fotos.
-- `useMysteryComparativeStats` — agrega por unidade (avg overall, avg por critério).
-
-### Componentes
-- `NovaMysteryVisitForm.tsx` — multi-step:
-  1. Dados gerais (unit, data, hora, toggle anônimo, observação).
-  2. Sliders 1-5 por critério (com label + comentário opcional).
-  3. Upload de até 5 fotos (bucket `mystery-photos`).
-  4. Resumo + submit.
-- `MysteryVisitCard.tsx` — card resumo (data, unit, score geral, badges).
-- `MysteryVisitDetail.tsx` — abre modal com scores detalhados + fotos.
-- `MysteryComparativeChart.tsx` — Recharts: bar chart unit vs avg overall + radar por critério.
-
-### Páginas
-- `/cliente-misterioso` (`MysteryVisitPage.tsx`) — gerentes/supervisor/admin/master: botão "+ Nova visita" + lista de **minhas visitas**.
-- `/cliente-misterioso/historico` (`MysteryHistoricoPage.tsx`) — lista geral com filtros (unit/período/visitor — visitor filter só aparece pra admin/supervisor).
-- `/admin/cliente-misterioso` (`AdminMysteryPage.tsx`) — comparativo entre unidades, ranking, tendência por critério (12 semanas).
-
-### Guards (App.tsx)
-- `MysteryAccess` — visitor: `gerente_loja|gerente_adm|gerente|supervisor|admin|master`.
-- `MysteryAdminAccess` — `admin|master|supervisor`.
-
-### Sidebar
-- Item "Cliente Misterioso" (ícone `UserSearch`) em **operacao** para visitor roles.
-- Item "Cliente Misterioso (admin)" para admin/supervisor/master.
-
----
-
-## 4. Push notifications
-
-- Trigger AFTER UPDATE em `mystery_visits` (quando `overall_score` muda de NULL para valor):
-  - Se `anonymous_to_team = false`: notifica gerentes da `target_unit_id` com título "Você foi visitado" + score.
-  - Se `overall_score < 6`: notifica admin/master/supervisor + perfis com `lower(nome) LIKE '%roberto%'` ou `'%guga%'` (padrão já usado no projeto).
-
----
-
-## 5. Arquivos tocados (previsão)
-
-**Migration:** `supabase/migrations/<ts>_mystery_shopper.sql`
-
-**Hooks novos:**
-- `src/hooks/useMysteryCriteria.ts`
-- `src/hooks/useMysteryVisits.ts`
-- `src/hooks/useCreateMysteryVisit.ts`
-- `src/hooks/useMysteryComparativeStats.ts`
-
-**Componentes novos:**
-- `src/components/mystery/NovaMysteryVisitForm.tsx`
-- `src/components/mystery/MysteryVisitCard.tsx`
-- `src/components/mystery/MysteryVisitDetail.tsx`
-- `src/components/mystery/MysteryComparativeChart.tsx`
-- `src/components/mystery/MysteryPhotoUploader.tsx`
-
-**Páginas novas:**
-- `src/pages/MysteryVisitPage.tsx`
-- `src/pages/MysteryHistoricoPage.tsx`
-- `src/pages/AdminMysteryPage.tsx`
-
-**Editados:**
-- `src/App.tsx` (3 rotas + 2 guards)
-- `src/components/AppSidebar.tsx` (2 links + ícone `UserSearch`)
-- `src/integrations/supabase/types.ts` (auto)
-
----
-
-## 6. Decisões / detalhes
-- **Anonimato blindado**: gerente da target_unit NUNCA tem permissão SELECT na row, mesmo com `anonymous_to_team=false`. Nesse caso ele só recebe push notification (sem expor quem). Isso evita qualquer brecha (mesmo via SQL direto).
-- **Bucket privado** com path `{visit_id}/{filename}` — fotos servidas via signed URL.
-- **overall_score** calculado server-side (avg dos scores * 2 → escala 0-10) — não confiamos em valor enviado pelo cliente.
-- **Validação cliente**: zod — overall opcional (calculado), todos critérios obrigatórios (1-5), até 5 fotos × 5MB.
-- **Único commit reversível**: 1 migration + arquivos novos + edits localizados.
-
-Aprova pra executar?
+### Aprovação
+Confirma o plano que eu já solicito os 2 secrets e executo tudo num commit só.
