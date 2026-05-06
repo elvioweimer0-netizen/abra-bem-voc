@@ -15,11 +15,9 @@ function pct(n: number) {
   return `${Math.round(n)}%`;
 }
 
-function isCidadeAlta(u: { code?: string | null; name?: string | null; type?: string | null } | null | undefined) {
+function isLoja(u: { code?: string | null; name?: string | null; type?: string | null } | null | undefined) {
   if (!u) return false;
-  const code = (u.code ?? "").toUpperCase();
-  const name = (u.name ?? "").toLowerCase();
-  return (u.type === "loja") && (code === "MATRIZ" || code === "L01" || name.includes("cidade alta"));
+  return (u.type ?? "").toLowerCase() === "loja";
 }
 
 function PessoasCardCidadeAlta({ data }: { data: UnitOrgData }) {
