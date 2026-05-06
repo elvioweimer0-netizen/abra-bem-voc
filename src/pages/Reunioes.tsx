@@ -124,9 +124,7 @@ export default function Reunioes() {
     setActiveRoom(null);
   };
 
-  const whatsappLink = next
-    ? `https://wa.me/?text=${encodeURIComponent(`Reunião ${tabLabels[next.type as MeetingType] || ""}: ${next.title} em ${format(parseISO(next.scheduled_date), "dd/MM", { locale: ptBR })} às ${next.scheduled_time?.slice(0, 5)}`)}`
-    : `https://wa.me/?text=${encodeURIComponent("Vamos fazer uma reunião rápida agora")}`;
+
 
   if (activeRoom) {
     return (
