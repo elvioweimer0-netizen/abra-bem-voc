@@ -17,6 +17,8 @@ import {
   Upload,
   Crown,
   UserCircle,
+  Video,
+  ListChecks,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink as RRNavLink, useLocation } from "react-router-dom";
@@ -126,6 +128,8 @@ export function AppSidebar() {
     { title: "Registrar", icon: Plus, onClick: registrar.open },
     { title: "Unidades", url: "/unidades", icon: Building },
     { title: "Cultura", url: "/cultura-hub", icon: BookOpen },
+    { title: "Reuniões", url: "/reunioes", icon: Video },
+    { title: "Tarefas", url: "/tarefas", icon: ListChecks },
   ].filter((i) => i.show !== false);
 
   const mais: Item[] = [
