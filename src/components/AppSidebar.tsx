@@ -131,6 +131,7 @@ export function AppSidebar() {
     { title: "Cultura", url: "/cultura-hub", icon: BookOpen },
     { title: "Reuniões", url: "/reunioes", icon: Video },
     { title: "Tarefas", url: "/tarefas", icon: ListChecks },
+    { title: "Código de Ética", url: "/rh/codigo-etica", icon: Shield },
   ].filter((i) => i.show !== false);
 
   const mais: Item[] = [
