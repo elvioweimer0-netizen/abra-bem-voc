@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useHourContext } from "@/hooks/useHourContext";
 import { CurioFalante } from "./CurioFalante";
 import { FraseDoDia } from "./FraseDoDia";
 import { StreakBadge } from "./StreakBadge";
@@ -10,44 +11,26 @@ interface HeaderSaudacaoProps {
   resumoTexto?: string;
 }
 
-function capitalizeWords(s: string) {
-  return s.replace(/(^|\s|-)([a-zà-ú])/g, (_, p1, p2) => p1 + p2.toUpperCase());
-}
+const GREETINGS: Record<string, string> = {
+  manha: "Bom dia",
+  tarde: "Boa tarde",
+  noite: "Boa noite",
+  madrugada: "Boa madrugada",
+};
 
 export function HeaderSaudacao({ subtitle, resumoTexto }: HeaderSaudacaoProps) {
   const { profile } = useAuth();
+  const ctx = useHourContext();
   const nome = profile?.nome?.split(" ")[0] ?? "time";
-  const today = new Date();
-  const dataExtenso = capitalizeWords(
-    today.toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).replace(/ de /g, " de ")
-  );
-
+  const dia = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
   return (
     <div className="space-y-3">
-      <div className="animate-home-brand min-w-0">
-        <h1 className="text-2xl sm:text-[28px] font-bold leading-tight text-foreground">
-          ✨ Seja bem-vindo, {nome}, ao{" "}
-          <span
-            className="brand-script inline-block text-[32px] leading-tight sm:text-[38px]"
-            style={{ color: "#B63533" }}
-          >
-            Conecta Curió
-          </span>
+      <div className="rounded-2xl gradient-curio text-primary-foreground p-4 shadow-sm">
+        <p className="text-xs opacity-90 capitalize">{dia}</p>
+        <h1 className="text-2xl md:text-3xl font-bold">
+          {GREETINGS[ctx]}, {nome}
         </h1>
-        <p className="mt-2 text-[15px] leading-snug text-muted-foreground">
-          Comunicação, equipe e operação em um só lugar.
-        </p>
-        <p className="mt-1 text-[13px] leading-snug text-muted-foreground/75">
-          {dataExtenso}
-        </p>
-        {subtitle && (
-          <p className="mt-1 text-[13px] text-muted-foreground">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-sm opacity-90 mt-0.5">{subtitle}</p>}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <StreakBadge />
           <ModoToggle />
